@@ -1,0 +1,9 @@
+{
+  "id": "2026-11-24_prueba_claude",
+  "personajes": ["Claude"],
+  "voz": {"Claude": "Diego (Ootto)", "clip_ootto": "clip_424fcbf650754817b4be"},
+  "texto": "¡Hola! Soy Claude, el aprendiz de mecánico. Hoy voy a cambiar una rueda yo solito. ¿Alguien sabe dónde se enchufa?",
+  "nota_pronunciacion": "En el texto que se manda a la voz se escribe 'Clod' en lugar de 'Claude'",
+  "inicio_voz_s": 0.6,
+  "palabras": [["¡Hola",0.12,0.49],["Soy",0.608,0.77],["Claude",0.77,1.04],["el",1.165,1.18],["aprendiz",1.18,1.58],["de",1.66,1.66],["mecánico",1.66,2.11],["Hoy",2.11,2.26],["voy",2.34,2.42],["a",2.42,2.5],["cambiar",2.5,2.74],["una",2.82,2.9],["rueda",2.98,3.22],["yo",3.22,3.38],["solito",3.38,3.82],["¿Alguien",3.838,4.14],["sabe",4.22,4.3],["dónde",4.38,4.54],["se",4.54,4.62],["enchufa",4.62,5.1]]
+}
