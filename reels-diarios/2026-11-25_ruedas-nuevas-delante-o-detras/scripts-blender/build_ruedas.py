@@ -86,12 +86,12 @@ M = {
     "iris": mat("Iris", (0.06, 0.035, 0.02), 0.2, coat=1.0),
     "mouth": mat("Boca", (0.12, 0.03, 0.03), 0.6),
     "boot": mat("Bota", (0.05, 0.04, 0.035), 0.5),
-    "floorW": mat("SueloTaller", (0.1, 0.1, 0.105), 0.3, coat=0.3),
+    "floorW": mat("SueloTaller", (0.055, 0.056, 0.06), 0.45, coat=0.1),
     "wallW": mat("ParedTaller", (0.16, 0.165, 0.17), 0.85),
     "shelf": mat("Estanteria", (0.25, 0.26, 0.28), 0.5, 0.7),
     "red": mat("ArmarioRojo", (0.45, 0.02, 0.02), 0.3, 0.3, coat=0.5),
     "warm": mat("LamparaCalida", (1, 0.8, 0.5), 0.3, emit=(1, 0.72, 0.42), es=15),
-    "asphalt": mat("AsfaltoMojado", (0.022, 0.024, 0.028), 0.12, 0.0, coat=1.0),
+    "asphalt": mat("AsfaltoMojado", (0.012, 0.013, 0.016), 0.08, 0.0, coat=1.0),
     "puddle": mat("Charco", (0.01, 0.012, 0.016), 0.02, 0.0, coat=1.0),
     "ground": mat("Arcen", (0.03, 0.042, 0.032), 0.8),
     "lineW": mat("LineaBlanca", (0.85, 0.85, 0.85), 0.4),
@@ -269,7 +269,7 @@ strip("INS_BordeI", -3.3, -3.15, 0, S_END, 0.006, M["lineW"])
 s = 0.5; k = 0
 while s < S_END - 1:
     strip(f"INS_Discontinua{k}", -0.07, 0.07, s, s + 1.2, 0.006, M["lineW"], 0.3); s += 2.4; k += 1
-for i, (px, py, rr) in enumerate(((1.2, -1.0, 0.7), (-1.6, 4.5, 0.9), (0.6, 6.5, 0.5), (-1.0, -6.0, 0.6), (-3.8, 7.6, 0.8))):
+for i, (px, py, rr) in enumerate(()):
     prim("cyl", f"INS_Charco{i}", "INSERTO", M["puddle"], loc=(OX + px, py, 0.008), scale=(1, 0.7, 1), r=rr, d=0.004, seg=32)
 
 MINI = empty("MINI_Raiz", "INSERTO", None, (OX, -6, 0))  # frente en +Y
@@ -365,11 +365,11 @@ def aim(o, target):
     d = Vector(target) - o.location
     o.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
 
-k = light("Luz_Clave", "AREA", (4.5, -5.0, 4.5), 1500, 4); aim(k, (0.5, -0.5, 0.8))
-f_ = light("Luz_Relleno", "AREA", (-5.0, -4.5, 2.5), 450, 5, (0.8, 0.88, 1.0)); aim(f_, (0, 0, 0.8))
-r_ = light("Luz_Contra", "AREA", (0.5, 3.0, 4.0), 900, 3); aim(r_, (0.5, -1.0, 0.8))
+k = light("Luz_Clave", "AREA", (4.5, -5.0, 4.5), 650, 4); aim(k, (0.5, -0.5, 0.8))
+f_ = light("Luz_Relleno", "AREA", (-5.0, -4.5, 2.5), 180, 5, (0.8, 0.88, 1.0)); aim(f_, (0, 0, 0.8))
+r_ = light("Luz_Contra", "AREA", (0.5, 3.0, 4.0), 600, 3); aim(r_, (0.5, -1.0, 0.8))
 light("Luz_Lampara", "POINT", (1.2, 1.0, 3.1), 250, color=(1, 0.72, 0.42))
-ins = light("Luz_Inserto", "AREA", (OX - 1, 3, 14), 9000, 22); aim(ins, (OX - 1, 3, 0))
+ins = light("Luz_Inserto", "AREA", (OX - 1, 3, 14), 2200, 22); aim(ins, (OX - 1, 3, 0))
 ins2 = light("Luz_InsertoRim", "AREA", (OX + 6, 12, 6), 2500, 8, (0.7, 0.8, 1.0)); aim(ins2, (OX - 1, 2, 0))
 w = sc.world or bpy.data.worlds.new("Mundo"); sc.world = w; w.use_nodes = True
 bg = w.node_tree.nodes["Background"].inputs
@@ -414,19 +414,19 @@ P = {  # plano: (fotograma inicial, final)
     "P6": (446, 597), "P7": (598, 674), "P8": (675, 789), "P9": (790, 873), "P10": (874, 1005)}
 
 camera("CAM_P1", 26)
-cam_keys("CAM_P1", [(1, (-1.0, -4.1, 0.95), (-0.9, -1.0, 0.6)), (110, (1.5, -4.3, 1.0), (1.45, -1.0, 0.62))])
-camera("CAM_P2", 26)
-cam_keys("CAM_P2", [(111, (1.7, -4.7, 1.2), (1.8, -1.3, 0.8)), (210, (1.75, -4.5, 1.2), (1.8, -1.3, 0.82))])
+cam_keys("CAM_P1", [(1, (-1.3, -3.5, 0.55), (-0.7, -1.2, 0.5)), (110, (1.2, -3.6, 0.6), (1.6, -1.2, 0.55))])
+camera("CAM_P2", 22)
+cam_keys("CAM_P2", [(111, (1.75, -5.0, 1.15), (1.8, -1.3, 1.0)), (210, (1.8, -4.8, 1.15), (1.8, -1.3, 1.0))])
 camera("CAM_Clod", 40)
 cam_keys("CAM_Clod", [(211, (0.83, -2.45, 0.3), (1.05, -1.5, 0.24)), (284, (0.86, -2.35, 0.31), (1.05, -1.5, 0.24)),
                       (598, (0.95, -2.25, 0.27), (1.05, -1.5, 0.25)), (674, (0.97, -2.15, 0.27), (1.05, -1.5, 0.25))])
 camera("CAM_Alex", 45)
-cam_keys("CAM_Alex", [(285, (2.15, -3.6, 1.6), (2.45, -1.5, 1.45)), (331, (2.2, -3.45, 1.6), (2.45, -1.5, 1.47)),
-                      (675, (2.5, -3.6, 1.6), (2.5, -1.5, 1.52)), (789, (2.5, -3.3, 1.62), (2.5, -1.5, 1.55))])
+cam_keys("CAM_Alex", [(285, (2.05, -3.9, 1.75), (2.45, -1.5, 1.72)), (331, (2.1, -3.75, 1.75), (2.45, -1.5, 1.73)),
+                      (675, (2.5, -3.9, 1.72), (2.5, -1.5, 1.78)), (789, (2.5, -3.6, 1.74), (2.5, -1.5, 1.8))])
 camera("CAM_Inserto", 30)
 cam_keys("CAM_Inserto", [(332, (OX - 1.2, 0.3, 18), (OX - 1.2, 2.5, 0)), (445, (OX - 1.2, 0.6, 17.4), (OX - 1.2, 2.7, 0)),
                          (446, (OX - 1.2, 0.3, 18), (OX - 1.2, 2.5, 0)), (597, (OX - 1.2, 0.6, 17.2), (OX - 1.2, 2.7, 0))])
-camera("CAM_P9", 30)
+camera("CAM_P9", 42)
 cam_keys("CAM_P9", [(790, (-4.4, -3.6, 1.05), (-2.2, -0.6, 0.45)), (873, (-4.2, -3.4, 1.0), (-2.3, -0.5, 0.42))])
 camera("CAM_P10", 28)
 cam_keys("CAM_P10", [(874, (2.85, -4.7, 1.3), (2.9, -1.3, 0.85)), (1005, (2.88, -4.4, 1.3), (2.9, -1.3, 0.88))])
@@ -437,17 +437,34 @@ for f, n in SHOTS:
     mk = sc.timeline_markers.new(n, frame=f); mk.camera = CAMS[n][0]
 sc.camera = CAMS["CAM_P1"][0]
 
+M["plate"] = mat("PlacaTexto", (0, 0, 0), 0.9, alpha=0.6)
+def cam_plate(cam, name, y_frac, h_frac, f_in, f_out):
+    co, _, lens = CAMS[cam]
+    H = TXT_D * 12.0 / lens
+    me = bpy.data.meshes.new(name); bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=0.5); bm.to_mesh(me); bm.free()
+    o = new_obj(name, me, "TEXTOS", M["plate"], co, (0, y_frac * H, -TXT_D - 0.003))
+    sx, sy = 2 * H * 9 / 16 * 0.94, h_frac * 2 * H
+    key_scale(o, 1, (0, 0, 0)); key_scale(o, f_in - 1, (0, 0, 0)); key_scale(o, f_in + 4, (sx, sy, 1))
+    key_scale(o, f_out - 4, (sx, sy, 1)); key_scale(o, f_out, (0, 0, 0))
+    return o
+
 W_, O_ = M["white3d"], M["orange3d"]
-cam_text("CAM_P1", "TXT_P1a", "¿DELANTE O", W_, 0.66, 0.05, 8, 109)
-cam_text("CAM_P1", "TXT_P1b", "DETRÁS?", O_, 0.52, 0.062, 14, 109)
-cam_text("CAM_P2", "TXT_P2a", "NUEVAS,", W_, 0.66, 0.05, fr(6.1), 209)
-cam_text("CAM_P2", "TXT_P2b", "DETRÁS", O_, 0.52, 0.062, fr(6.5), 209)
-cam_text("CAM_Inserto", "TXT_P5a", "DELANTE:", W_, 0.68, 0.045, fr(11.6), 444)
-cam_text("CAM_Inserto", "TXT_P5b", "SIGUE RECTO", O_, 0.55, 0.05, fr(14.0), 444)
-cam_text("CAM_Inserto", "TXT_P6a", "DETRÁS:", W_, 0.68, 0.045, fr(15.0), 596)
-cam_text("CAM_Inserto", "TXT_P6b", "SE CRUZA", O_, 0.55, 0.055, fr(16.3), 596)
-cam_text("CAM_Alex", "TXT_P8a", "NUEVAS,", W_, 0.66, 0.05, fr(24.0), 788)
-cam_text("CAM_Alex", "TXT_P8b", "DETRÁS", O_, 0.52, 0.062, fr(24.4), 788)
+cam_plate("CAM_P1", "PL_P1", 0.59, 0.145, 8, 109)
+cam_plate("CAM_P2", "PL_P2", 0.59, 0.145, fr(6.1), 209)
+cam_plate("CAM_Inserto", "PL_P5", 0.62, 0.12, fr(11.6), 444)
+cam_plate("CAM_Inserto", "PL_P6", 0.62, 0.12, fr(15.0), 596)
+cam_plate("CAM_Alex", "PL_P8", 0.59, 0.145, fr(24.0), 788)
+cam_plate("CAM_P10", "PL_P10", 0.595, 0.1, fr(29.6), 1006)
+cam_text("CAM_P1", "TXT_P1a", "¿DELANTE O", W_, 0.67, 0.06, 8, 109)
+cam_text("CAM_P1", "TXT_P1b", "DETRÁS?", O_, 0.52, 0.075, 14, 109)
+cam_text("CAM_P2", "TXT_P2a", "NUEVAS,", W_, 0.67, 0.06, fr(6.1), 209)
+cam_text("CAM_P2", "TXT_P2b", "DETRÁS", O_, 0.52, 0.075, fr(6.5), 209)
+cam_text("CAM_Inserto", "TXT_P5a", "DELANTE:", W_, 0.69, 0.05, fr(11.6), 444)
+cam_text("CAM_Inserto", "TXT_P5b", "SIGUE RECTO", O_, 0.55, 0.055, fr(14.0), 444)
+cam_text("CAM_Inserto", "TXT_P6a", "DETRÁS:", W_, 0.69, 0.05, fr(15.0), 596)
+cam_text("CAM_Inserto", "TXT_P6b", "SE CRUZA", O_, 0.55, 0.065, fr(16.3), 596)
+cam_text("CAM_Alex", "TXT_P8a", "NUEVAS,", W_, 0.67, 0.06, fr(24.0), 788)
+cam_text("CAM_Alex", "TXT_P8b", "DETRÁS", O_, 0.52, 0.075, fr(24.4), 788)
 cam_text("CAM_P10", "TXT_P10a", "¿CUATRO GASTADAS?", W_, 0.66, 0.042, fr(29.6), 1006)
 cam_text("CAM_P10", "TXT_P10b", "CAMBIA LAS CUATRO", O_, 0.53, 0.042, fr(30.9), 1006)
 
