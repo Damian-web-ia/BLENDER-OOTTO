@@ -18,3 +18,5 @@
 - Con pose A pegada al cuerpo avisa de que el rig puede salir mal; "intentar de todos modos" funcionó bien.
 - Exportar en **FBX + Blender + esqueleto**: se descarga un .zip `tripo_convert_*.zip` en Descargas.
 - En Blender, importar el FBX con `temp_override` de una vista 3D (si no, falla `mode_set`).
+- **Brazos de Alex v2: usar IK, no rotaciones sueltas.** Rotar los huesos `mixamorig:RightArm/ForeArm` a mano dejó el brazo dislocado (hombro hundido, codo recto, muñeca doblada). Solución: restricción IK en `RightForeArm` (chain_count=2) con un empty de objetivo para la mano y otro de polo para el codo (pole_angle −135° en este rig, codo hacia fuera y abajo). Para saludar: codo a la altura del hombro y antebrazo vertical; el saludo se anima moviendo solo el objetivo de la mano de lado a lado. Ejemplo: `biblioteca\personajes\alex\alex_v2_saludo.blend`.
+- Antes de renderizar, revisar siempre fotogramas de cerca (vista frontal, a 2,5 m) en los momentos de más movimiento.
