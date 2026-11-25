@@ -371,17 +371,18 @@ def hablar_alex(lineas, fps=30):
         fin = int(round((t0 + ln["w"][-1][1]) * fps)) + 1
         boca(fin + 3, 0)
 
-def agacharse(f0, dur=40, mano_lado="R", objetivo=(0.0, -0.55, 0.15)):
+def agacharse(f0, dur=40, mano_lado="R", objetivo=None):
     """Se agacha a mirar/tocar algo del suelo delante (p. ej. una rueda) y vuelve a levantarse."""
     f = f0; s = _sx(mano_lado); otro = "L" if mano_lado == "R" else "R"
+    if objetivo is None: objetivo = (s * 0.42, -0.70, 0.28)       # por fuera de la rodilla, delante
     for l in ("R", "L"): brazo_caido(l, f); rodilla(l, f)
     cadera(f); columna(f); cabeza(f)
     f += 6; cadera(f, (0, 0, 0.02)); cabeza(f, -4, 0, 0)                           # pequeña anticipación hacia arriba
     f += 16
     cadera(f, (0, 0.12, -0.42)); columna(f, 32, 0, 0); cabeza(f, 22, 0, 0)
     for l in ("R", "L"): rodilla(l, f, (_sx(l) * -0.08, -0.55, 0))
-    mano_en(mano_lado, f, objetivo); codo_hacia(mano_lado, f, (s * 0.6, 0.2, 0.6)); mano_pose(mano_lado, f, "abierta")
-    mano_en(otro, f, (_sx(otro) * 0.22, -0.32, 0.55)); mano_pose(otro, f, "relajada")
+    mano_en(mano_lado, f, objetivo); codo_hacia(mano_lado, f, (s * 0.9, 0.1, 0.9)); mano_pose(mano_lado, f, "señalar")
+    mano_en(otro, f, (_sx(otro) * 0.26, -0.40, 0.66)); codo_hacia(otro, f, (_sx(otro) * 0.8, 0.0, 0.9)); mano_pose(otro, f, "relajada")
     f += 4; cadera(f, (0, 0.12, -0.44))
     f += dur; cadera(f, (0, 0.12, -0.43)); cabeza(f, 18, 6 * -s, 4 * -s)
     mano_en(mano_lado, f, (objetivo[0] + s * 0.04, objetivo[1], objetivo[2] + 0.02))
