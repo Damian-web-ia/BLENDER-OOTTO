@@ -269,7 +269,7 @@ def andar(f0, pasos=4, zancada=0.55, fp=15, levanta=0.10):
         columna(fm, 3, 0, 4 * _sx(sw))
         f = f1
     cadera(f, (0, 0, 0), (0, 0, 0)); columna(f)
-    for l in ("R", "L"): brazo_caido(l, f)
+    for l in ("R", "L"): brazo_caido(l, f); pie_en(l, f + 5, (_sx(l) * 0.20, Y_PIE, 0.12))
     _lineal(ALEX, "location", f0, f)
     for l in ("R", "L"): _lineal(C("pie_" + l), "location", f0, f, indice=1)
     return f
