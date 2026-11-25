@@ -145,7 +145,13 @@ def suavizar():
 # barbilla ~ (0, -0.12, 1.60), pecho delante ~ (0, -0.20, 1.25), cadera der. lateral (-0.22, 0.0, 1.0).
 def _abs(nombre, f, pos):
     o = C(nombre); o.location = Vector(pos) / S; _k(o, f, "location")
-def mano_en(lado, f, pos):   _abs("mano_" + lado, f, pos)
+HOMBRO_AUTO = True
+def mano_en(lado, f, pos):
+    """Coloca la mano. Si la mano sube por encima del hombro, la clavícula acompaña (como en un cuerpo real)."""
+    _abs("mano_" + lado, f, pos)
+    if HOMBRO_AUTO:
+        z = pos[2]; sube = max(0.0, min(1.0, (z - 1.30) / 0.55)) * 22
+        hombro(lado, f, sube)
 def codo_hacia(lado, f, pos): _abs("codo_" + lado, f, pos)
 def pie_en(lado, f, pos, giro=(0, 0, 0)):
     _abs("pie_" + lado, f, pos)
