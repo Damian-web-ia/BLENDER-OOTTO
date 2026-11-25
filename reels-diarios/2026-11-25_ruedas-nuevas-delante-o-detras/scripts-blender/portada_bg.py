@@ -14,7 +14,7 @@ for o in O:
     if o.name.startswith(("TXT_", "PL_")):
         o.animation_data_clear(); o.hide_render = True
 # Alex
-a = free("ALEX_Raiz"); a.location = (-0.2, -1.65, 0); a.rotation_euler = (0, 0, R(-35))
+a = free("ALEX_Raiz"); a.location = (-0.45, -1.65, 0); a.rotation_euler = (0, 0, R(-35))
 sh = free("ALEX_Hombro-1"); sh.rotation_euler = (0, R(78), 0)
 el = free("ALEX_Codo-1"); el.rotation_euler = (0, R(8), 0)
 shr = free("ALEX_Hombro1"); shr.rotation_euler = (0, R(8), 0)
@@ -24,7 +24,7 @@ free("ALEX_Boca").scale = (1.6, 0.5, 0.7)
 # Clod abrazando una rueda nueva
 w = free("RUEDA_Suelta"); w.location = (-1.45, -3.05, 0.33); w.rotation_euler = (R(90), 0, R(-25))
 free("RUEDA_Suelta_Giro").rotation_euler = (0, 0, 0)
-c = free("CLOD_Raiz"); c.location = (-1.82, -3.2, 0.0); c.rotation_euler = (0, 0, R(65))
+c = free("CLOD_Raiz"); c.location = (-1.9, -3.08, 0.0); c.rotation_euler = (0, 0, R(80))
 for s in (-1, 1):
     free(f"CLOD_Hombro{s}").rotation_euler = (R(-95), 0, s * R(-25))
     free(f"CLOD_Cadera{s}").rotation_euler = (0, 0, 0)
@@ -36,8 +36,8 @@ for n in ("PILA_Gastados", "PILA_Nuevos"):
 # cámara de portada
 cd = bpy.data.cameras.new("CAM_Portada"); cd.lens = 26; cd.sensor_fit = "VERTICAL"; cd.sensor_height = 24; cd.clip_start = 0.02
 cam = bpy.data.objects.new("CAM_Portada", cd); sc.collection.objects.link(cam)
-cam.location = (-1.15, -6.3, 0.95)
-tgt = Vector((-1.15, -1.5, 0.95))
+cam.location = (-1.3, -5.6, 0.85)
+tgt = Vector((-1.3, -1.5, 0.95))
 cam.rotation_euler = (tgt - cam.location).to_track_quat("-Z", "Y").to_euler()
 sc.camera = cam
 for mk in list(sc.timeline_markers):
