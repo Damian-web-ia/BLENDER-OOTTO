@@ -135,5 +135,132 @@ def suavizar():
             curves = [fc for l in ad.action.layers for s_ in l.strips for cb in s_.channelbags for fc in cb.fcurves]
         for fc in curves:
             for k in fc.keyframe_points:
+                if k.interpolation == 'LINEAR': continue      # tramos lineales a propósito (pies apoyados, raíz)
                 k.interpolation = 'BEZIER'; k.handle_left_type = 'AUTO_CLAMPED'; k.handle_right_type = 'AUTO_CLAMPED'
             fc.update()
+
+# ======================================================================
+# POSICIONES ABSOLUTAS (metros, espacio del personaje, origen entre los pies en el suelo)
+# Referencias medidas en Alex v2 (1,75 m): hombro der. (-0.19, 0.05, 1.36), hombro izq. (0.19, 0.05, 1.36),
+# barbilla ~ (0, -0.12, 1.60), pecho delante ~ (0, -0.20, 1.25), cadera der. lateral (-0.22, 0.0, 1.0).
+def _abs(nombre, f, pos):
+    o = C(nombre); o.location = Vector(pos) / S; _k(o, f, "location")
+def mano_en(lado, f, pos):   _abs("mano_" + lado, f, pos)
+def codo_hacia(lado, f, pos): _abs("codo_" + lado, f, pos)
+def pie_en(lado, f, pos, giro=(0, 0, 0)):
+    _abs("pie_" + lado, f, pos)
+    o = C("pie_" + lado); base = o.get("rot0")
+    if base is None: o["rot0"] = list(o.rotation_euler); base = o["rot0"]
+    q = Euler((R(giro[0]), R(giro[1]), R(giro[2]))).to_quaternion() @ Euler(base).to_quaternion()
+    o.rotation_euler = q.to_euler('XYZ'); _k(o, f, "rotation_euler")
+
+def _sx(lado): return -1 if lado == "R" else 1      # signo hacia fuera en X
+
+def brazo_caido(lado, f):
+    s = _sx(lado)
+    mano_en(lado, f, (s * 0.31, -0.03, 0.89)); codo_hacia(lado, f, (s * 0.65, 0.45, 1.05))
+
+# ---------------------------------------------------------------- gestos (devuelven el fotograma final)
+def saludo(lado, f0, ciclos=3, vel=8):
+    s = _sx(lado); f = f0
+    brazo_caido(lado, f); f += 6
+    mano_en(lado, f, (s * 0.30, -0.02, 0.85)); f += 14                       # anticipación
+    codo_hacia(lado, f, (s * 0.95, 0.15, 1.05)); mano_pose(lado, f, "abierta"); mano_giro(lado, f)
+    mano_en(lado, f, (s * 0.44, -0.08, 1.58)); f += 4
+    mano_en(lado, f, (s * 0.43, -0.08, 1.56))
+    for i in range(ciclos):
+        f += vel; mano_en(lado, f, (s * 0.34, -0.08, 1.54)); mano_giro(lado, f, 0, 12 * s, 0)
+        f += vel; mano_en(lado, f, (s * 0.52, -0.08, 1.54)); mano_giro(lado, f, 0, -12 * s, 0)
+    f += vel; mano_en(lado, f, (s * 0.44, -0.08, 1.56)); mano_giro(lado, f)
+    f += 18; brazo_caido(lado, f); mano_pose(lado, f, "relajada")
+    f += 5; mano_en(lado, f, (s * 0.31, -0.03, 0.91))
+    return f
+
+def senalar(lado, f0, dur=40, objetivo=(0, -2.0, 1.4)):
+    s = _sx(lado); f = f0; brazo_caido(lado, f); f += 12
+    dirv = (Vector(objetivo) - Vector((s * 0.19, 0.05, 1.36))).normalized()
+    p = Vector((s * 0.19, 0.05, 1.36)) + dirv * 0.46
+    mano_en(lado, f, p); codo_hacia(lado, f, (s * 0.7, 0.2, 0.8)); mano_pose(lado, f, "señalar"); mano_giro(lado, f, -10, 0, 0)
+    f += 3; mano_en(lado, f, p + dirv * 0.01)
+    f += dur; mano_en(lado, f, p)
+    f += 14; brazo_caido(lado, f); mano_pose(lado, f, "relajada"); mano_giro(lado, f)
+    return f
+
+def pulgar_arriba(lado, f0, dur=30):
+    s = _sx(lado); f = f0; brazo_caido(lado, f); f += 12
+    mano_en(lado, f, (s * 0.22, -0.32, 1.22)); codo_hacia(lado, f, (s * 0.7, 0.1, 0.7))
+    mano_pose(lado, f, "pulgar"); mano_giro(lado, f, 0, 0, 0)
+    f += 4; mano_en(lado, f, (s * 0.22, -0.33, 1.25))
+    f += dur; mano_en(lado, f, (s * 0.22, -0.32, 1.22))
+    f += 14; brazo_caido(lado, f); mano_pose(lado, f, "relajada")
+    return f
+
+def encogerse(f0, dur=24):
+    f = f0
+    for l in ("R", "L"): brazo_caido(l, f); hombro(l, f)
+    cabeza(f); f += 10
+    for l in ("R", "L"):
+        s = _sx(l); mano_en(l, f, (s * 0.42, -0.25, 1.05)); codo_hacia(l, f, (s * 0.7, 0.3, 0.8))
+        mano_pose(l, f, "abierta"); hombro(l, f, 14)
+    cabeza(f, 0, 10, 0); f += dur
+    for l in ("R", "L"): hombro(l, f, 10)
+    f += 14
+    for l in ("R", "L"): brazo_caido(l, f); hombro(l, f); mano_pose(l, f, "relajada")
+    cabeza(f)
+    return f
+
+def pensar(lado, f0, dur=40):
+    s = _sx(lado); f = f0; brazo_caido(lado, f); f += 14
+    mano_en(lado, f, (s * 0.04, -0.20, 1.45)); codo_hacia(lado, f, (s * 0.5, -0.3, 0.9))
+    mano_pose(lado, f, "relajada"); cabeza(f, 6, 6 * -s, 0); columna(f, 4, 0, 0)
+    f += dur; cabeza(f, 6, 8 * -s, 4 * -s)
+    f += 14; brazo_caido(lado, f); cabeza(f); columna(f)
+    return f
+
+Y_PIE = 0.065   # y de reposo de los tobillos
+
+def _lineal(obj, data_path_exacto, f0, f1, indice=None):
+    ad = obj.animation_data
+    if not ad or not ad.action: return
+    try: curves = list(ad.action.fcurves)
+    except Exception:
+        curves = [fc for l in ad.action.layers for s_ in l.strips for cb in s_.channelbags for fc in cb.fcurves]
+    for fc in curves:
+        if fc.data_path == data_path_exacto and (indice is None or fc.array_index == indice):
+            for k in fc.keyframe_points:
+                if f0 <= k.co.x < f1: k.interpolation = 'LINEAR'
+
+def andar(f0, pasos=4, zancada=0.55, fp=15, levanta=0.10):
+    """Camina hacia delante. El objeto ALEX_v2 avanza (movimiento de raíz) y los pies se quedan clavados
+    en el suelo mientras apoyan. Devuelve el fotograma final."""
+    L = zancada; f = f0
+    fwd = (ALEX.matrix_world.to_3x3().normalized() @ Vector((0, -1, 0))).normalized()
+    root0 = ALEX.location.copy(); avance = 0.0
+    ALEX.keyframe_insert("location", frame=f)
+    y = {"R": 0.0, "L": 0.0}
+    for i in range(pasos):
+        sw = "R" if i % 2 == 0 else "L"; st = "L" if sw == "R" else "R"
+        a = L / 2 if (i == 0 or i == pasos - 1) else L
+        y_sw_fin = -L / 2 if i < pasos - 1 else 0.0
+        fm = f + fp // 2; f1 = f + fp
+        # pie de apoyo: retrocede (en el espacio del personaje) lo mismo que avanza la raíz
+        pie_en(st, f, (_sx(st) * 0.20, Y_PIE + y[st], 0.12)); pie_en(st, f1, (_sx(st) * 0.20, Y_PIE + y[st] + a, 0.12))
+        # pie que avanza: sube en el medio
+        pie_en(sw, f, (_sx(sw) * 0.20, Y_PIE + y[sw], 0.12))
+        pie_en(sw, fm, (_sx(sw) * 0.20, Y_PIE + (y[sw] + y_sw_fin) / 2, 0.12 + levanta), (-12, 0, 0))
+        pie_en(sw, f1, (_sx(sw) * 0.20, Y_PIE + y_sw_fin, 0.12), (6, 0, 0))
+        y[st] += a; y[sw] = y_sw_fin
+        # raíz
+        avance += a; ALEX.location = root0 + fwd * (avance * 1.0); ALEX.keyframe_insert("location", frame=f1)
+        # cadera: baja al apoyar, sube al pasar; gira un poco con el paso
+        cadera(f, (0, 0, -0.025), (0, 0, 4 * _sx(sw))); cadera(fm, (0, 0, 0.012), (0, 0, 0))
+        # brazos en oposición
+        mano_en(st, fm, (_sx(st) * 0.30, -0.20, 0.93)); mano_en(sw, fm, (_sx(sw) * 0.30, 0.16, 0.91))
+        codo_hacia(st, fm, (_sx(st) * 0.65, 0.45, 1.05)); codo_hacia(sw, fm, (_sx(sw) * 0.65, 0.45, 1.05))
+        columna(fm, 3, 0, 4 * _sx(sw))
+        f = f1
+    cadera(f, (0, 0, 0), (0, 0, 0)); columna(f)
+    for l in ("R", "L"): brazo_caido(l, f)
+    _lineal(ALEX, "location", f0, f)
+    for l in ("R", "L"): _lineal(C("pie_" + l), "location", f0, f, indice=1)
+    return f
