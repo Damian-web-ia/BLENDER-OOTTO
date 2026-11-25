@@ -22,9 +22,9 @@ elr = free("ALEX_Codo1"); elr.rotation_euler = (R(-70), 0, R(-25))
 h = free("ALEX_Cabeza"); h.rotation_euler = (0, 0, R(18))
 free("ALEX_Boca").scale = (1.6, 0.5, 0.7)
 # Clod abrazando una rueda nueva
-w = free("RUEDA_Suelta"); w.location = (-1.95, -3.0, 0.33); w.rotation_euler = (R(90), 0, R(-25))
+w = free("RUEDA_Suelta"); w.location = (-1.45, -3.05, 0.33); w.rotation_euler = (R(90), 0, R(-25))
 free("RUEDA_Suelta_Giro").rotation_euler = (0, 0, 0)
-c = free("CLOD_Raiz"); c.location = (-2.05, -3.28, 0.0); c.rotation_euler = (0, 0, R(20))
+c = free("CLOD_Raiz"); c.location = (-1.82, -3.2, 0.0); c.rotation_euler = (0, 0, R(65))
 for s in (-1, 1):
     free(f"CLOD_Hombro{s}").rotation_euler = (R(-95), 0, s * R(-25))
     free(f"CLOD_Cadera{s}").rotation_euler = (0, 0, 0)
@@ -65,5 +65,9 @@ r.resolution_x, r.resolution_y, r.resolution_percentage = 1080, 1920, 100
 sc.eevee.taa_render_samples = 64
 r.image_settings.media_type = "IMAGE"; r.image_settings.file_format = "PNG"
 r.filepath = out
+from bpy_extras.object_utils import world_to_camera_view
+bpy.context.view_layer.update()
+for n in ("CLOD_Raiz", "RUEDA_Suelta", "ALEX_Raiz", "CLOD_Cabeza"):
+    print("POS", n, tuple(round(v, 3) for v in world_to_camera_view(sc, cam, O[n].matrix_world.translation)), O[n].hide_render)
 bpy.ops.render.render(write_still=True)
 open(out + ".done", "w").write("ok")
