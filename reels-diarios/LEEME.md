@@ -14,3 +14,4 @@ Cada día a las 19:30 Claude hace un reel 3D con Blender que se publica al día 
 
 | Fecha | Carpeta | Tema | Publicado |
 |---|---|---|---|
+| 25-11-2026 | [2026-11-25_ruedas-nuevas-delante-o-detras](2026-11-25_ruedas-nuevas-delante-o-detras/) | ¿Ruedas nuevas delante o detrás? | IG + YT 26-11 19:30 · TikTok 26-11 20:00 |
