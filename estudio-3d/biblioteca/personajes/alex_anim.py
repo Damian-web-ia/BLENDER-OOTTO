@@ -264,3 +264,60 @@ def andar(f0, pasos=4, zancada=0.55, fp=15, levanta=0.10):
     _lineal(ALEX, "location", f0, f)
     for l in ("R", "L"): _lineal(C("pie_" + l), "location", f0, f, indice=1)
     return f
+
+# ======================================================================
+# ORIENTAR LA MANO por objetivos (busca el giro de muñeca que mejor cumple las direcciones pedidas)
+def _vec(L, a, b):
+    return ((ALEX.matrix_world @ B(L + b).head) - (ALEX.matrix_world @ B(L + a).head)).normalized()
+
+def orientar_mano(lado, f, pulgar_hacia=None, dedos_hacia=None, max_ang=110):
+    """pulgar_hacia / dedos_hacia: direcciones en el espacio del MUNDO (p. ej. (0,0,1) = arriba).
+    Ajusta la rotación de la muñeca en el fotograma f y la guarda como clave."""
+    L = "Left" if lado == "L" else "Right"; h = B(L + "Hand"); h.rotation_mode = 'XYZ'
+    bpy.context.scene.frame_set(f)
+    def score():
+        bpy.context.view_layer.update(); s_ = 0
+        if pulgar_hacia: s_ += _vec(L, "HandThumb1", "HandThumb4").dot(Vector(pulgar_hacia).normalized())
+        if dedos_hacia: s_ += _vec(L, "Hand", "HandMiddle1").dot(Vector(dedos_hacia).normalized())
+        return s_
+    e = list(h.rotation_euler); best = score()
+    for paso in (40, 20, 10, 5, 2):
+        mejora = True
+        while mejora:
+            mejora = False
+            for ax in range(3):
+                for sg in (1, -1):
+                    old = e[ax]; e[ax] = max(-R(max_ang), min(R(max_ang), old + sg * R(paso)))
+                    h.rotation_euler = e; sc_ = score()
+                    if sc_ > best + 1e-4: best = sc_; mejora = True
+                    else: e[ax] = old; h.rotation_euler = e
+    _k(h, f, "rotation_euler")
+    return round(best, 3)
+
+def pulgar_arriba(lado, f0, dur=30):
+    s = _sx(lado); f = f0; brazo_caido(lado, f); f += 12
+    mano_en(lado, f, (s * 0.24, -0.30, 1.18)); codo_hacia(lado, f, (s * 0.8, 0.1, 0.75)); mano_pose(lado, f, "pulgar")
+    orientar_mano(lado, f, pulgar_hacia=(0, 0, 1), dedos_hacia=(-s * 0.6, -0.4, 0))
+    f2 = f + 4; mano_en(lado, f2, (s * 0.24, -0.31, 1.21)); mano_pose(lado, f2, "pulgar")
+    orientar_mano(lado, f2, pulgar_hacia=(0, 0, 1), dedos_hacia=(-s * 0.6, -0.4, 0))
+    f = f2 + dur; mano_en(lado, f, (s * 0.24, -0.30, 1.18)); mano_pose(lado, f, "pulgar")
+    orientar_mano(lado, f, pulgar_hacia=(0, 0, 1), dedos_hacia=(-s * 0.6, -0.4, 0))
+    f += 14; brazo_caido(lado, f); mano_pose(lado, f, "relajada"); mano_giro(lado, f)
+    return f
+
+def encogerse(f0, dur=24):
+    f = f0
+    for l in ("R", "L"): brazo_caido(l, f); hombro(l, f); mano_giro(l, f)
+    cabeza(f); f += 10
+    for l in ("R", "L"):
+        s = _sx(l); mano_en(l, f, (s * 0.45, -0.22, 1.02)); codo_hacia(l, f, (s * 0.7, 0.3, 0.8))
+        mano_pose(l, f, "abierta"); hombro(l, f, 14)
+        orientar_mano(l, f, pulgar_hacia=(s, 0, 0.2), dedos_hacia=(s * 0.3, -1, 0.1))
+    cabeza(f, 0, 10, 0); f += dur
+    for l in ("R", "L"):
+        s = _sx(l); hombro(l, f, 10); mano_en(l, f, (s * 0.46, -0.22, 1.0)); mano_pose(l, f, "abierta")
+        orientar_mano(l, f, pulgar_hacia=(s, 0, 0.2), dedos_hacia=(s * 0.3, -1, 0.1))
+    f += 14
+    for l in ("R", "L"): brazo_caido(l, f); hombro(l, f); mano_pose(l, f, "relajada"); mano_giro(l, f)
+    cabeza(f)
+    return f
