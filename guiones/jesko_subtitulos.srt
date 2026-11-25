@@ -1,0 +1,127 @@
+1
+00:00:00,141 --> 00:00:01,570
+ALEX: ¿Sabes qué puto coche es este?
+
+2
+00:00:01,529 --> 00:00:02,480
+ALEX: Espera a ver lo que lleva
+
+3
+00:00:02,330 --> 00:00:02,960
+ALEX: dentro.
+
+4
+00:00:05,220 --> 00:00:06,580
+ALEX: Es un Koenigsegg Jesko.
+
+5
+00:00:06,509 --> 00:00:07,710
+ALEX: Pero lo más curioso no es
+
+6
+00:00:07,560 --> 00:00:08,190
+ALEX: su motor.
+
+7
+00:00:09,120 --> 00:00:10,480
+CLAUDE: ¿Entonces qué? ¿La factura?
+
+8
+00:00:11,420 --> 00:00:13,010
+ALEX: Su caja tiene nueve marchas,
+
+9
+00:00:12,871 --> 00:00:15,100
+ALEX: siete embragues multidisco y pesa solo
+
+10
+00:00:15,030 --> 00:00:15,900
+ALEX: noventa kilos.
+
+11
+00:00:19,320 --> 00:00:21,290
+ALEX: Los embragues trabajan coordinadamente,
+
+12
+00:00:21,163 --> 00:00:23,070
+ALEX: abriendo y cerrando distintas rutas de
+
+13
+00:00:22,920 --> 00:00:23,710
+ALEX: transmisión.
+
+14
+00:00:24,420 --> 00:00:27,340
+CLAUDE: ¿Siete embragues? ¿Quién diseñó semejante locura?
+
+15
+00:00:28,218 --> 00:00:30,250
+ALEX: Con el sistema UPOD puede seleccionar
+
+16
+00:00:30,100 --> 00:00:31,710
+ALEX: directamente la marcha óptima.
+
+17
+00:00:31,675 --> 00:00:33,710
+ALEX: Por ejemplo, de séptima a cuarta.
+
+18
+00:00:35,920 --> 00:00:37,410
+CLAUDE: Vamos, que se salta la cola.
+
+19
+00:00:38,200 --> 00:00:39,810
+ALEX: Fabricación de precisión,
+
+20
+00:00:39,700 --> 00:00:42,010
+ALEX: control electrónico y embragues coordinados.
+
+21
+00:00:41,959 --> 00:00:43,000
+ALEX: Eso es lo complicado.
+
+22
+00:00:43,220 --> 00:00:44,650
+CLAUDE: Y yo que pensaba que era
+
+23
+00:00:44,500 --> 00:00:46,410
+CLAUDE: cambiar cuatro engranajes.
+
+24
+00:00:46,720 --> 00:00:48,390
+ALEX: Todo esto para gestionar la potencia
+
+25
+00:00:48,240 --> 00:00:49,990
+ALEX: del coche y aprovecharla en cada
+
+26
+00:00:49,840 --> 00:00:50,550
+ALEX: situación.
+
+27
+00:00:51,120 --> 00:00:52,390
+CLAUDE: ¿Y no le valía una caja
+
+28
+00:00:52,320 --> 00:00:53,030
+CLAUDE: del desguace?
+
+29
+00:00:54,204 --> 00:00:55,890
+ALEX: ¿Qué vehículo quieres que desmontemos en
+
+30
+00:00:55,740 --> 00:00:56,770
+ALEX: el siguiente vídeo?
+
+31
+00:00:57,320 --> 00:00:58,980
+CLAUDE: Uno que podamos permitirnos,
+
+32
+00:00:58,855 --> 00:00:59,450
+CLAUDE: por favor.
