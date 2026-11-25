@@ -1,0 +1,16 @@
+/* Base: variables de color, fondo, tipografía y reglas generales. */
+/* VOICE: nocturno, vivo, íntimo; la memoria de Claude sobre EKORUEDAS encendida en la oscuridad
+   IDEA: el "segundo cerebro" de Claude: cada recuerdo del proyecto es una neurona que se dispara
+   PICTURE: cerebro 3D de neuronas de colores por categoría, con impulsos brillantes y estallidos desde el núcleo
+   COLOUR and TYPE: marrón carbón cálido, blanco hueso, naranja #ff7a1a y un color por categoría; Montserrat + Inter
+   LAYOUT: marca arriba, contadores a la derecha, herramientas a la izquierda, cerebro a pantalla completa, tiempo y buscador abajo */
+:root{color-scheme:dark;--bg:#0c0a09;--ink:#f5f0ea;--mute:#8d867f;--or:#ff7a1a;--line:#2e2a27;--glass:#1a1614e8}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(ellipse 70% 60% at 50% 46%,#3a2f28 0%,#221c18 40%,#120f0d 70%,var(--bg) 100%);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit}
+[hidden]{display:none!important}
+label.l{display:block;font:500 11px "JetBrains Mono";color:var(--mute);margin:12px 0 6px}
+.reel .brand,.reel .tools,.reel .legend,.reel .dock,.reel .hint,.reel .card,.reel .panel,.reel .how{display:none!important}
+.reel .pov{display:block}
+.reel .exitreel{display:block}

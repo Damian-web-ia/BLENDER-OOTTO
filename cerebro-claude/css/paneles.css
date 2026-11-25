@@ -1,0 +1,42 @@
+/* Paneles: ficha del recuerdo, Cómo funciona, Pregúntale, avisos y modo reel. */
+#c{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+#c.drag{cursor:grabbing}
+#c.pathing{cursor:crosshair}
+kbd{font:500 11px "JetBrains Mono";color:var(--mute);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+.card{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:min(350px,88vw);max-height:72vh;overflow:auto;background:#181412f5;border:1px solid var(--line);border-radius:16px;padding:18px;z-index:4;display:none}
+.card.on{display:block}
+.card .bar{position:absolute;inset:0 0 auto 0;height:3px;border-radius:16px 16px 0 0}
+.card h2{font:800 20px/1.2 Montserrat;margin:4px 0 6px;padding-right:34px}
+.tag{display:inline-flex;align-items:center;gap:6px;font:500 11px "JetBrains Mono",monospace;color:var(--mute);margin-bottom:10px}
+.card p{margin:0 0 12px;font-size:15px}
+.card h3{font:500 11px "JetBrains Mono";color:var(--mute);margin:14px 0 8px}
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.links button,.path button{display:inline-flex;align-items:center;gap:6px;background:#231e1b;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:13px;cursor:pointer;min-height:32px;max-width:100%;text-align:left}
+.links button:hover,.links button:focus-visible,.path button:hover,.path button:focus-visible{border-color:var(--or);outline:none}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.acts .tb{height:34px}
+.x{position:absolute;top:6px;right:6px;background:none;border:0;color:var(--mute);font-size:22px;width:44px;height:44px;cursor:pointer}
+.path{margin:0;padding-left:20px;font-size:14px}
+.path li{margin:3px 0}
+.toast{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);background:#181412f0;border:1px solid var(--line);border-radius:14px;padding:10px 14px;z-index:3;font-size:14px;max-width:min(420px,88vw);text-align:center;opacity:0;transition:opacity .35s;pointer-events:none}
+.toast.on{opacity:1}
+.toast b{color:var(--or)}
+.how{position:absolute;left:max(3vw,14px);top:118px;width:min(330px,86vw);z-index:4;font-size:14px;display:none;background:#181412f5;border:1px solid var(--line);border-radius:14px;padding:14px 16px 6px}
+.how.on{display:block}
+.how ol{margin:0;padding-left:18px}
+.how li{margin-bottom:8px}
+.tip{position:absolute;pointer-events:none;background:#000d;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:13px;z-index:5;display:none;white-space:nowrap}
+.panel{position:absolute;left:max(3vw,14px);top:118px;width:min(380px,90vw);z-index:5;display:none;background:#181412f7;border:1px solid var(--line);border-radius:16px;padding:16px;max-height:calc(100vh - 220px);overflow:auto}
+.panel.on{display:block}
+.panel h2{font:800 17px Montserrat;margin:0 0 4px}
+.panel .sub{color:var(--mute);font-size:13px;margin:0 0 12px}
+.ans{margin-top:12px;font-size:15px;white-space:pre-wrap}
+.ans.wait{color:var(--mute)}
+.sugs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sugs button{background:#231e1b;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:13px;cursor:pointer;min-height:32px}
+.sugs button:hover{border-color:var(--or)}
+.err{color:#ff8a8a;font-size:13px;margin-top:8px}
+.pov{position:absolute;left:50%;top:9vh;transform:translateX(-50%);width:min(90vw,620px);text-align:center;font:800 clamp(20px,3.4vw,30px)/1.25 Montserrat;z-index:2;display:none;text-wrap:balance}
+.pov small{display:block;font:800 15px Montserrat;margin-top:14px;letter-spacing:.04em}
+.pov small i{display:block;width:16px;height:2px;margin:6px auto 0;background:var(--or);box-shadow:0 0 10px var(--or)}
+.exitreel{position:absolute;right:12px;bottom:12px;z-index:6;display:none;background:#0008;border:1px solid var(--line);color:var(--mute);border-radius:999px;height:36px;padding:0 12px;cursor:pointer;font-size:12px}

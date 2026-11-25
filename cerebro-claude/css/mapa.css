@@ -1,0 +1,25 @@
+/* Pestañas y todo lo de la pestaña Mapa del sistema. */
+.tabs{position:absolute;top:86px;left:50%;transform:translateX(-50%);z-index:4;display:flex;gap:4px;padding:4px;background:var(--glass);border:1px solid var(--line);border-radius:999px;backdrop-filter:blur(8px)}
+.tabs button{border:0;background:none;color:var(--mute);padding:7px 16px;border-radius:999px;font:600 13px Montserrat,sans-serif;letter-spacing:.03em;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected=true]{background:var(--or);color:#2a1200;box-shadow:0 0 18px #ff7a1a66}
+body.map{background:radial-gradient(ellipse 80% 70% at 50% 55%,#15111a 0%,#08080d 55%,#030305 100%)}
+#m{position:absolute;inset:0;width:100%;height:100%;display:none;touch-action:none;cursor:grab}
+body.map #m{display:block}
+body.map #c,body.map .stats,body.map .tools,body.map .legend,body.map .dock,body.map .hint,body.map .card,body.map .how,body.map .panel,body.map .toast,body.map .tip{display:none!important}
+body:not(.map) .mapui{display:none!important}
+.mlegend{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:min(760px,94vw)}
+.mlegend button{display:inline-flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font:500 13px Inter,sans-serif;cursor:pointer}
+.mlegend button i{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;font:800 11px Montserrat;color:#111;font-style:normal}
+.mlegend button[aria-pressed=true]{border-color:currentColor;box-shadow:0 0 16px currentColor}
+.mlegend button span{color:var(--ink)}
+.mtasks{position:absolute;top:140px;left:50%;transform:translateX(-50%);z-index:3;text-align:center;pointer-events:none;white-space:nowrap}
+.mtasks small{display:block;font:500 10px "JetBrains Mono",monospace;letter-spacing:.18em;color:var(--mute);margin-bottom:6px}
+.mtasks span{display:inline-block;font-size:12.5px;padding:5px 11px;border-radius:999px;background:#ff7a1a1f;border:1px solid #ff7a1a55;color:#ffc7a6;margin:0 3px}
+.mcard{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:min(320px,88vw);z-index:4;background:#15110fef;border:1px solid var(--line);border-radius:20px;padding:20px 22px;backdrop-filter:blur(10px)}
+.mcard .bar{height:3px;border-radius:3px;margin:-6px 0 14px}
+.mcard h2{margin:0 0 4px;font:800 21px Montserrat,sans-serif}
+.mcard .ph{font:500 11px "JetBrains Mono",monospace;letter-spacing:.12em;color:var(--mute)}
+.mcard p{margin:10px 0 0;color:#d8d2cb;font-size:15px}
+.mcard .via{display:inline-block;margin-top:12px;font-size:12px;padding:4px 10px;border-radius:999px;background:#ffffff10;color:#cfc8c0}
+.mcard ul{margin:12px 0 0;padding-left:18px;font-size:14px;color:#cfc8c0}
+.mhint{position:absolute;right:max(3vw,14px);bottom:80px;font:500 11px "JetBrains Mono",monospace;color:var(--mute);text-align:right;z-index:2;line-height:1.7}

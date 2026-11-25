@@ -1,0 +1,11 @@
+/* Cabecera: título y contadores (recuerdos, conexiones, días). */
+.brand{position:absolute;top:24px;left:50%;transform:translateX(-50%);text-align:center;z-index:2;pointer-events:none;white-space:nowrap}
+.brand b{font:800 18px Montserrat,sans-serif;letter-spacing:.02em}
+.brand i{display:block;width:16px;height:2px;border-radius:2px;background:var(--or);margin:6px auto 0;box-shadow:0 0 10px var(--or)}
+.brand small{display:block;margin-top:8px;color:var(--mute);font-size:13px}
+.stats{position:absolute;top:20px;right:max(3vw,14px);display:flex;gap:18px;z-index:2}
+.stat{text-align:center}
+.stat span{display:block;font:500 10px "JetBrains Mono",monospace;color:var(--mute)}
+.stat b{display:block;font:800 clamp(18px,2.4vw,27px)/1.1 Montserrat;font-variant-numeric:tabular-nums}
+.stat i{display:block;height:2px;margin-top:5px;background:var(--or);border-radius:2px;box-shadow:0 0 8px var(--or)}
+.stat.hot b{color:var(--or);text-shadow:0 0 14px #ff7a1a88}

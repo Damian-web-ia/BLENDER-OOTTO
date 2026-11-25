@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cerebro de Claude · EKORUEDAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/cabecera.css">
+<link rel="stylesheet" href="css/controles.css">
+<link rel="stylesheet" href="css/paneles.css">
+<link rel="stylesheet" href="css/mapa.css">
+<link rel="stylesheet" href="css/movil.css">
+</head>
+<body>
+<div class="brand"><b>CEREBRO DE CLAUDE</b><i></i><small>Todo lo que sé de EKORUEDAS</small></div>
+<nav class="tabs" role="tablist" aria-label="Vistas"><button role="tab" id="tabB" aria-selected="true">Cerebro</button><button role="tab" id="tabM" aria-selected="false">Mapa del sistema</button></nav>
+<canvas id="m" aria-label="Mapa 3D del sistema: Claude en el centro y las cuatro fases con sus herramientas alrededor. Arrastra para girar y toca una herramienta para leerla."></canvas>
+<div class="mapui mtasks"><small>TAREAS PROGRAMADAS</small><span>Reel 3D Blender · 19:30</span><span>Reel de reserva · 04:47</span><span>Tendencias · cada 3 días</span><span>Gmail · cada 2 h</span><span>Calendar · citas</span></div>
+<div class="mapui mlegend" id="mleg"></div>
+<div class="mapui mhint">ARRASTRA PARA GIRAR<br>TOCA UNA HERRAMIENTA</div>
+<aside class="mcard" id="mcard" hidden><div class="bar" id="mbar"></div><button class="x" id="mclose" aria-label="Cerrar">×</button><div class="ph" id="mph"></div><h2 id="mt"></h2><p id="md"></p><span class="via" id="mvia"></span><ul id="mlist"></ul></aside>
+<div class="stats" aria-label="Resumen del cerebro">
+  <div class="stat"><span>RECUERDOS</span><b id="sF">0</b><i></i></div>
+  <div class="stat"><span>CONEXIONES</span><b id="sL">0</b><i></i></div>
+  <div class="stat hot"><span>DÍAS</span><b id="sD">0</b><i></i></div>
+</div>
+<div class="tools" role="toolbar" aria-label="Herramientas del cerebro">
+  <button class="tb icon" id="bReset" aria-label="Volver a la vista inicial" title="Vista inicial (R)">⌂</button>
+  <button class="tb icon" id="bLabels" aria-pressed="false" aria-label="Mostrar nombres" title="Nombres (N)">Aa</button>
+  <button class="tb icon" id="bFire" aria-label="Disparar el núcleo" title="Disparar (F)">✦</button>
+  <button class="tb icon" id="bRand" aria-label="Recuerdo al azar" title="Recuerdo al azar (A)">⚄</button>
+  <button class="tb" id="bAsk" aria-expanded="false">Pregúntale</button>
+  <button class="tb" id="bReel">Modo reel</button>
+  <button class="tb wide" id="bHow" aria-expanded="false">Cómo funciona</button>
+</div>
+<div class="how" id="how">
+  <ol>
+    <li>Cada neurona es un recuerdo real de Claude sobre EKORUEDAS, con su fecha: decisiones, reglas, vídeos con sus likes, guiones, herramientas, lecciones y pendientes. Sin relleno.</li>
+    <li>Cada color es una categoría. Toca una en la leyenda para apagarla o encenderla.</li>
+    <li>La forma de cerebro sale de fórmulas: dos hemisferios, lóbulos, cerebelo y pliegues. Cada tema vive en una zona y Claude está en el centro.</li>
+    <li>Cada día, cada neurona se une con sus 6 vecinas más cercanas. Las conexiones son hilos curvos que ondulan suavemente, como pelo con aire, y crecen poco a poco cuando nace un recuerdo. Los impulsos viajan siguiendo cada curva.</li>
+    <li>Los impulsos salen del color de la neurona que los dispara. Con ✦ el núcleo dispara hacia todo el cerebro.</li>
+    <li>Toca una neurona para leerla: la cámara gira hacia ella y se encienden sus relaciones. Con "Trazar camino" ves cómo se conecta con otra.</li>
+    <li>El ▶ reproduce cómo creció el cerebro día a día.</li>
+    <li><b>Pregúntale</b>: Claude responde solo con estos recuerdos y enciende las neuronas que usa. Puedes dictar la pregunta y escuchar la respuesta.</li>
+    <li>El cerebro aprende solo: cada noche Claude añade los recuerdos del día y aparecen aquí sin hacer nada.</li>
+    <li><b>Modo reel</b>: oculta los controles y reproduce el crecimiento con el título POV, listo para grabar la pantalla.</li>
+    <li>Siempre suena una música ambiental suave de fondo, y cada disparo añade unas notas. El navegador solo deja empezar el sonido cuando tocas la página por primera vez.</li>
+    <li>Teclado: <kbd>/</kbd> buscar · <kbd>←</kbd><kbd>→</kbd> girar · <kbd>+</kbd><kbd>−</kbd> zoom · <kbd>Esp</kbd> reproducir · <kbd>Esc</kbd> cerrar.</li>
+  </ol>
+</div>
+<section class="panel" id="pAsk" aria-label="Pregúntale al cerebro">
+  <h2>Pregúntale al cerebro</h2>
+  <p class="sub">Responde solo con lo que hay guardado y enciende las neuronas que usa.</p>
+  <form class="row" id="fAsk"><input class="field" id="qa" placeholder="¿Qué vídeo ha funcionado mejor?" autocomplete="off" aria-label="Pregunta"><button class="tb icon" type="button" id="bMic" aria-label="Dictar la pregunta" hidden>🎙</button><button class="go" id="bSend">Preguntar</button></form>
+  <div class="sugs" id="sugs"></div>
+  <div class="ans" id="ans" aria-live="polite"></div>
+  <div class="links" id="ansl" style="margin-top:10px"></div>
+  <div class="row" style="margin-top:10px"><button class="tb" id="bSpeak" hidden>🔊 Escuchar</button></div>
+</section>
+<div class="pov" id="pov">POV: tienes un segundo cerebro con Claude que recuerda todo tu taller<small>EKORUEDAS<i></i></small></div>
+<button class="exitreel" id="exitReel">Salir del modo reel</button>
+<canvas id="c" aria-label="Cerebro 3D con todo lo que Claude sabe del proyecto de EKORUEDAS: arrastra para girar, rueda o pellizca para acercar, toca una neurona para leer el recuerdo"></canvas>
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<aside class="card" id="card" aria-live="polite">
+  <div class="bar" id="cbar"></div>
+  <button class="x" id="close" aria-label="Cerrar recuerdo">×</button>
+  <span class="tag" id="cy"></span>
+  <h2 id="ct"></h2>
+  <p id="cd"></p>
+  <div id="cpath"></div>
+  <h3 id="ch">RELACIONADO</h3>
+  <div class="links" id="cl"></div>
+  <div class="acts">
+    <button class="tb" id="bPath">Trazar camino</button>
+    <button class="tb" id="bCopy">Copiar</button>
+  </div>
+</aside>
+
+<div class="legend" id="legend" aria-label="Filtrar por categoría"></div>
+<div class="dock">
+  <ul class="results" id="res" role="listbox" aria-label="Resultados"></ul>
+  <div class="pill"><button class="dot" id="play" aria-label="Reproducir cómo creció el cerebro">▶</button><input type="range" id="t" min="0" max="9" value="9" aria-label="Línea de tiempo"><span class="day" id="day">HOY</span></div>
+  <div class="pill"><span aria-hidden="true">⌕</span><input type="search" id="q" placeholder="Buscar un recuerdo" aria-label="Buscar un recuerdo" autocomplete="off"><kbd aria-hidden="true">/</kbd></div>
+</div>
+<div class="hint">ARRASTRA PARA GIRAR<br>TOCA UNA NEURONA</div>
+
+<script src="js/datos/recuerdos.js"></script>
+<script src="js/datos/recuerdos-automaticos.js"></script>
+<script src="js/cerebro/forma.js"></script>
+<script src="js/cerebro/escena.js"></script>
+<script src="js/cerebro/interaccion.js"></script>
+<script src="js/cerebro/sonido.js"></script>
+<script src="js/cerebro/preguntale.js"></script>
+<script src="js/cerebro/recuerdos-auto.js"></script>
+<script src="js/cerebro/modo-reel.js"></script>
+<script src="js/mapa/fases.js"></script>
+<script src="js/mapa/galaxia.js"></script>
+<script src="js/mapa/camara-e-impulsos.js"></script>
+<script src="js/mapa/interaccion.js"></script>
+<script src="js/mapa/dibujo.js"></script>
+<script src="js/pestanas.js"></script>
+
+</body>
+</html>
