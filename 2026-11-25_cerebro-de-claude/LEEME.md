@@ -6,7 +6,7 @@ Sin librerías: HTML, CSS y JavaScript con Canvas 2D y Web Audio. Para verla, do
 ## Estructura
 
 ```
-cerebro-claude/
+2026-11-25_cerebro-de-claude/
 ├── index.html                  ← la página: solo la estructura (HTML) y los enlaces a CSS y JS
 │
 ├── css/                        ← DISEÑO (se cargan en este orden)
@@ -47,7 +47,7 @@ cerebro-claude/
 │   └── separar.py              convierte la página publicada en esta carpeta ordenada
 │
 └── descargas/
-    └── cerebro-claude.zip      toda esta carpeta comprimida, lista para descargar
+    └── cerebro-de-claude.zip      toda esta carpeta comprimida, lista para descargar
 ```
 
 ★ = los archivos que tocarás normalmente.
@@ -75,7 +75,7 @@ cerebro-claude/
 Cada domingo a las 11:41 una tarea de Claude:
 1. descarga la página publicada en Claude y los recuerdos automáticos de la semana;
 2. la vuelve a separar en esta carpeta con `herramientas/separar.py`;
-3. regenera `descargas/cerebro-claude.zip`;
+3. regenera `descargas/cerebro-de-claude.zip`;
 4. lo sube todo a este repositorio de GitHub.
 
 Así esta carpeta y el zip siempre tienen la última versión del cerebro y del mapa.
