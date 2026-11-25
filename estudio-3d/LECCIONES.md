@@ -11,3 +11,10 @@
 - **Velocidad:** EEVEE a 1080×1920 con 32 muestras va a unos 0,8 s por fotograma, así que 1000 fotogramas tardan unos 13 min.
 - **Pendiente:** en los últimos 2 s la cabeza de Alex roza «CAMBIA LAS CUATRO» porque la cámara se acerca. Regla: con *push-in*, título más arriba o cámara quieta.
 - **Publicación:** Ootto separa las publicaciones de Instagram al menos 30 min y vidIQ recomienda espaciar TikTok. Si el día ya tiene vídeo a las 19:00, el reel 3D sale a las 19:30 (IG/YT) y a las 20:00 (TikTok).
+
+## 2026-11-26 · Alex v2 con Tripo
+- La API de Tripo y la clave de prueba de Hyper3D no tenían créditos; la web de Tripo genera gratis pero **exportar requiere plan Pro**.
+- Tripo pide **retopología** antes del rig cuando el modelo pasa del límite de polígonos (4,7 M triángulos → 10.000 cuadriláteros).
+- Con pose A pegada al cuerpo avisa de que el rig puede salir mal; "intentar de todos modos" funcionó bien.
+- Exportar en **FBX + Blender + esqueleto**: se descarga un .zip `tripo_convert_*.zip` en Descargas.
+- En Blender, importar el FBX con `temp_override` de una vista 3D (si no, falla `mode_set`).

@@ -36,6 +36,14 @@ Cada día, antes de montar el reel (y el domingo se hace un repaso de la semana)
 2. Se revisa `LECCIONES.md`.
 3. Se elige **una** mejora pequeña de la lista diaria: la siguiente pendiente o la que más afecte a lo que el público ve en los primeros 3 segundos y en la portada.
 
+## Alex v2 (26-11-2026): modelo profesional disponible
+
+- Modelo generado con Tripo (plan Pro de Damián) a partir de la hoja de personaje de ChatGPT, retopologizado a ~10.000 cuadriláteros y con **esqueleto automático tipo Mixamo** (65 huesos con dedos: `mixamorig:Hips`, `Spine`, `Spine1`, `Spine2`, `Neck`, `Head`, `LeftArm`, `LeftForeArm`, `LeftHand`…). Textura 4K (color, normal, rugosidad).
+- **Solo en el PC** (no en GitHub, porque se parece a una persona real): `EKORUEDAS_ESTUDIO_3D\biblioteca\personajes\alex\alex_v2.blend` (altura 1,75 m, pies en el suelo, mirando a -Y). Archivos originales de Tripo en la misma carpeta.
+- Imagen de referencia: `referencias\evolucion\2026-11-26_alex_v2.png`.
+- **Pendiente (primera mejora diaria):** sustituir el Alex de bloques de la biblioteca por Alex v2: cargarlo con `bpy.data.libraries.load(..., link=False)` y añadir funciones `alex_pose()` y `alex_gesto()` que roten huesos `mixamorig:*` (rotation_mode 'XYZ'; en este rig el eje Z del brazo lo mueve adelante/atrás y el X lo acerca o separa del cuerpo; comprobar siempre con un render de prueba). Boca: añadir un hueso de mandíbula o formas de boca (shape keys) en la cabeza para hablar. Mientras no esté integrado, los reels siguen con el Alex anterior.
+- Siguiente personaje: **Clod v2** con el mismo método (hoja de personaje → Tripo → retopología → rig "Otro" o huesos a mano).
+
 ## Lista diaria de mejoras (en orden; se marca la fecha al hacerla)
 
 Diseño:
