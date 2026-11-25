@@ -14,7 +14,7 @@ for o in O:
     if o.name.startswith(("TXT_", "PL_")):
         o.animation_data_clear(); o.hide_render = True
 # Alex
-a = free("ALEX_Raiz"); a.location = (-0.45, -1.65, 0); a.rotation_euler = (0, 0, R(-35))
+a = free("ALEX_Raiz"); a.location = (-0.85, -1.75, 0); a.rotation_euler = (0, 0, R(-20))
 sh = free("ALEX_Hombro-1"); sh.rotation_euler = (0, R(78), 0)
 el = free("ALEX_Codo-1"); el.rotation_euler = (0, R(8), 0)
 shr = free("ALEX_Hombro1"); shr.rotation_euler = (0, R(8), 0)
@@ -36,8 +36,8 @@ for n in ("PILA_Gastados", "PILA_Nuevos"):
 # cámara de portada
 cd = bpy.data.cameras.new("CAM_Portada"); cd.lens = 26; cd.sensor_fit = "VERTICAL"; cd.sensor_height = 24; cd.clip_start = 0.02
 cam = bpy.data.objects.new("CAM_Portada", cd); sc.collection.objects.link(cam)
-cam.location = (-1.3, -5.6, 0.85)
-tgt = Vector((-1.3, -1.5, 0.95))
+cam.location = (-1.55, -5.7, 0.85)
+tgt = Vector((-1.5, -1.5, 0.95))
 cam.rotation_euler = (tgt - cam.location).to_track_quat("-Z", "Y").to_euler()
 sc.camera = cam
 for mk in list(sc.timeline_markers):
