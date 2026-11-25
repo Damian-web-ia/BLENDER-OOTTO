@@ -49,6 +49,9 @@ for o in ST_OBJS:
     key_hide(o, 1, True); key_hide(o, 331, False); key_hide(o, 1621, True)
 for o in LAB_OBJS:
     key_hide(o, 1, True); key_hide(o, 571, False); key_hide(o, 1381, True)
+for pn in ("Estudio_PanelSoftbox0", "Estudio_PanelSoftbox1"):
+    if pn in bpy.data.objects:
+        bpy.data.objects[pn].visible_camera = False
 w = sc.world or bpy.data.worlds.new("Mundo"); sc.world = w; w.use_nodes = True
 bg = w.node_tree.nodes["Background"].inputs
 bg[0].default_value = (0.01, 0.01, 0.012, 1); bg[1].default_value = 0.4
