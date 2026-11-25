@@ -8,6 +8,7 @@ for o in bpy.data.objects:
     if o.name.startswith("CTRL_") and o.animation_data: o.animation_data_clear()
 ALEX.location = (0, 1.6, 0); ALEX.rotation_euler = (0, 0, 0)
 todo_reposo(1)
+bpy.context.scene.frame_set(1); calibrar_palma()
 f = 12
 f = saludo("R", f, ciclos=3, vel=7)
 f += 4
