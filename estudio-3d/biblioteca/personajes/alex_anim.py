@@ -351,3 +351,22 @@ def encogerse(f0, dur=24):
     for l in ("R", "L"): brazo_caido(l, f); hombro(l, f); mano_pose(l, f, "relajada"); mano_giro(l, f)
     cabeza(f)
     return f
+
+# ======================================================================
+# BOCA (mandíbula). Máximo recomendado 7°: más abre la barbilla de forma poco natural.
+def boca(f, abre=0.0):
+    """abre: 0 cerrada .. 1 abierta (7°)."""
+    j = PB["Mandibula"]; j.rotation_mode = 'XYZ'
+    j.rotation_euler = (R(-7.0 * max(0.0, min(1.0, abre))), 0, 0); _k(j, f, "rotation_euler")
+
+def hablar_alex(lineas, fps=30):
+    """lineas: lista de {"at": segundo de inicio, "w": [[ini, fin], ...] por palabra} (formato voces.json, quien = Alex)."""
+    boca(1, 0)
+    for ln in lineas:
+        t0 = ln["at"]
+        for i, (a, b) in enumerate(ln["w"]):
+            fa = int(round((t0 + a) * fps)) + 1; fb = max(int(round((t0 + b) * fps)) + 1, fa + 3)
+            amp = 0.55 + 0.45 * ((i * 37) % 5) / 4
+            boca(fa - 1, 0.1); boca((fa + fb) // 2, amp); boca(fb, 0.15)
+        fin = int(round((t0 + ln["w"][-1][1]) * fps)) + 1
+        boca(fin + 3, 0)
