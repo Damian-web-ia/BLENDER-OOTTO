@@ -12,7 +12,7 @@ Aquí se guarda todo lo que hacemos para los vídeos de **EKORUEDAS** (taller de
 | [`2026-11-24_prueba-clod-3d/`](2026-11-24_prueba-clod-3d/) | 24-11-2026 | Primera prueba: Clod hablando en 3D con voz de Ootto | Prueba terminada |
 | [`2026-11-25_video-jesko-koenigsegg/`](2026-11-25_video-jesko-koenigsegg/) | 25-11-2026 | Vídeo 3D de 60 s: "La caja de cambios imposible" (Koenigsegg Jesko) | Terminado con sonido en Ootto · sin publicar · render 4K a medias |
 | [`2026-11-25_cerebro-de-claude/`](2026-11-25_cerebro-de-claude/) | 25-11-2026 | Código de la página "Cerebro de Claude" (cerebro 3D + mapa del sistema) y su zip | Se actualiza solo cada domingo |
-| [`reels-diarios/`](reels-diarios/) | desde 26-11-2026 | Un subcarpeta por día (`AAAA-MM-DD_tema`) con el prompt, los scripts de Blender, el vídeo sin voz y la portada de cada reel 3D | Se llena sola cada día a las 19:30 |
+| [`reels-diarios/`](reels-diarios/) | desde 26-11-2026 | Una subcarpeta por día (`AAAA-MM-DD_tema`) con el prompt, los scripts de Blender, el vídeo sin voz y la portada de cada reel 3D | Se llena sola cada día a las 19:30 |
 | [`skills/`](skills/) | desde 25-11-2026 | La skill maestra `ekoruedas-reel-3d` que escribe ChatGPT y mejora cada día | Se actualiza sola cada día |
 | [`LECCIONES.md`](LECCIONES.md) | desde 25-11-2026 | Lo aprendido cada día (qué falló y qué funcionó) | Se amplía solo cada día |
 
