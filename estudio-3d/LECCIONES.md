@@ -71,3 +71,9 @@
 - **Aspecto de dibujo en EEVEE:** Diffuse → Shader to RGB → rampa constante (sombra azulada) × color, y contorno con Solidify invertido + material negro con backface culling. Transformación de color "Standard" (AgX apaga los colores planos).
 - **Franja gris en la frente:** era la sombra del casquete de pelo; se quita con `visible_shadow = False` en el casquete.
 - **`mode_set` tras `read_homefile(use_empty=True)`** falla por contexto: usar `temp_override` con ventana, área y objeto activo.
+
+## YouTube (26-11-2026)
+- El canal @ekoruedas-26 estaba vacío: los reels anteriores se programaron solo para Instagram y TikTok, y el de las ruedas (Instagram + YouTube a las 19:30 del 26-11) no llegó a YouTube. La conexión de Ootto con el canal funciona (lee el canal sin errores).
+- Ootto sube como máximo 3 vídeos a YouTube al día por marca. Lo que pasa del tope queda en cola con su hora (`held_for: cap`); no se vuelve a subir.
+- Desde ahora, todo en los tres sitios (YouTube, Instagram, TikTok) a la misma hora, y comprobar YouTube con `own_media_list(platform="youtube")` después de cada publicación.
+- Cola de YouTube de los vídeos ya publicados: frenos 27-11 10:28 · ruedas delante o detrás 29-11 9:56 · invierno 29-11 10:43.

@@ -41,7 +41,7 @@ def _prop(nt, nombre):
 def materiales_freno():
     M = {}
     # disco: fundición mecanizada (anillos finos) + calor (incandescente en la pista de las pastillas, propiedad "calor")
-    m, n = _nuevo("F_Disco", (0.36, 0.36, 0.37), 0.30, 0.92)
+    m, n = _nuevo("F_Disco", (0.20, 0.20, 0.205), 0.38, 0.9)
     if n:
         _bump(m, "anillos", 900, 0.18)
         nt = m.node_tree; b = _p(m)
@@ -57,9 +57,9 @@ def materiales_freno():
         nt.links.new(sq.outputs["Value"], mr2.inputs["Value"])
         mul = nt.nodes.new("ShaderNodeMath"); mul.operation = 'MULTIPLY'; nt.links.new(mr.outputs["Result"], mul.inputs[0]); nt.links.new(mr2.outputs["Result"], mul.inputs[1])
         mul2 = nt.nodes.new("ShaderNodeMath"); mul2.operation = 'MULTIPLY'; nt.links.new(mul.outputs[0], mul2.inputs[0]); nt.links.new(_prop(nt, "calor"), mul2.inputs[1])
-        bb = nt.nodes.new("ShaderNodeBlackbody"); bb.inputs["Temperature"].default_value = 1150
+        bb = nt.nodes.new("ShaderNodeBlackbody"); bb.inputs["Temperature"].default_value = 980
         nt.links.new(bb.outputs[0], b.inputs["Emission Color"])
-        st = nt.nodes.new("ShaderNodeMath"); st.operation = 'MULTIPLY'; st.inputs[1].default_value = 22.0
+        st = nt.nodes.new("ShaderNodeMath"); st.operation = 'MULTIPLY'; st.inputs[1].default_value = 3.2
         nt.links.new(mul2.outputs[0], st.inputs[0]); nt.links.new(st.outputs[0], b.inputs["Emission Strength"])
     M["disco"] = m
     m, n = _nuevo("F_Campana", (0.10, 0.10, 0.105), 0.55, 0.55)
@@ -72,7 +72,7 @@ def materiales_freno():
     if n: _bump(m, "ruido", 260, 0.12)
     M["pinza"] = m
     m, n = _nuevo("F_Cromo", (0.85, 0.86, 0.88), 0.07, 1.0); M["cromo"] = m
-    m, n = _nuevo("F_Acero", (0.55, 0.56, 0.58), 0.28, 1.0); M["acero"] = m
+    m, n = _nuevo("F_Acero", (0.72, 0.72, 0.74), 0.32, 1.0); M["acero"] = m
     m, n = _nuevo("F_Laton", (0.75, 0.55, 0.25), 0.3, 1.0); M["laton"] = m
     m, n = _nuevo("F_Goma", (0.018, 0.018, 0.02), 0.62)
     if n: _bump(m, "ruido", 900, 0.15)

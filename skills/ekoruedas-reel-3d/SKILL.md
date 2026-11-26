@@ -354,6 +354,9 @@ Antes de escribir una afirmación mecánica:
 - Ootto `reel_schedule`: día siguiente 19:00 Europe/Madrid, `platforms ["instagram","youtube"]`, `privacy "public"`, `ai_generated true`, portada propia, título de máx. 100 caracteres sin el nombre del taller, 5-8 etiquetas. Si Ootto lo mueve por coincidir con otro post, se acepta y se apunta.
 - TikTok con vidIQ: `vidiq_video_upload` → `vidiq_social_post_draft_create` (público, comentarios sí, música aceptada, `isAiGenerated true`) → si hay `suggestedPublishAt`, se acepta → `vidiq_social_post_publish`.
 - Nunca se quita ni se mueve un post ya programado.
+- Damián (26-11-2026, 21:37): "a partir de ahora todo esté publicado en YouTube, Instagram y TikTok". Los tres, siempre, a la misma hora.
+- YouTube: Ootto sube como máximo 3 vídeos al día por marca; si se pasa, lo deja en cola y dice a qué hora sube (se acepta y se apunta, nunca se vuelve a subir).
+- Comprobar YouTube después de cada publicación: `own_media_list(platform="youtube")`. El 26-11 el reel de las ruedas se programó en Instagram + YouTube y a YouTube no llegó. Si falta, `reel_post(platform="youtube", title, tags, privacy "public")` con el mismo job.
 - Pie: 1-2 frases con el dato y su fuente + bloque fijo del taller + 4-6 hashtags (#ekoruedas #derio #bizkaia #taller + 1-2 del tema).
 
 ## 11. Comprobaciones antes de entregar

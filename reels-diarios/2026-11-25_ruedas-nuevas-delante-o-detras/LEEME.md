@@ -9,7 +9,7 @@
 | **Imagen** | Blender 5.3 EEVEE, 1080×1920, 1005 fotogramas, 32 muestras (~0,8 s por fotograma) |
 | **Sonido** | Voces de Ootto (Carlos = Alex, Diego = Clod), música funk-groove con ducking, 4 efectos (ding, pop, frenazo, risa corta), -14 LUFS, subtítulos con palabras clave en #FF8400 |
 | **Ootto** | job `job_50c4923d1f22` · [ver](https://mcp.ootto.ai/w/reel/acc_50544226d762-50c4923d1f22) |
-| **Publicación** | Instagram y YouTube Shorts: 26-11-2026 a las **19:30** (Ootto lo movió de 19:00 porque a esa hora sale el vídeo de invierno) · TikTok (vidIQ): 26-11-2026 a las **20:00** (sugerencia de ritmo de vidIQ) · Público |
+| **Publicación** | Instagram y YouTube Shorts: 26-11-2026 a las **19:30** (Ootto lo movió de 19:00 porque a esa hora sale el vídeo de invierno) · TikTok (vidIQ): 26-11-2026 a las **20:00** (sugerencia de ritmo de vidIQ) · Público · **YouTube no llegó** (canal vacío el 26-11 a las 21:30); se volvió a mandar con `reel_post`: sube el **29-11 a las 9:56** (tope de 3 subidas al día de Ootto) |
 
 ## Archivos
 | Archivo | Qué es |
