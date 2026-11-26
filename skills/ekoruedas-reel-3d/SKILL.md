@@ -1,594 +1,375 @@
 ---
 name: ekoruedas-reel-3d
-description: Skill maestra para idear, verificar, producir y publicar reels diarios de Ekoruedas con personajes y escenas creados por código en Blender 5.3, y preparar voces, audio, subtítulos, portadas y entregables.
+description: Skill para idear, producir y publicar reels diarios de EkoRuedas en 3D con Blender, usando datos reales del canal, tendencias verificadas, voces de Ootto y animación de Alex y Clod. Mantiene las reglas editoriales, técnicas y de seguridad del canal, y aprende de las métricas de cada publicación.
 ---
 
 # ekoruedas-reel-3d
 
-## 1. Propósito y flujo diario
+## Propósito
 
-Producir reels verticales, informativos y entretenidos para conductores de Bizkaia y de España. El proceso busca que cada vídeo resulte fácil de entender, compartir y guardar, y que transmita confianza en el taller.
+Crear reels verticales diarios, informativos y con humor blanco para Instagram, YouTube Shorts y TikTok. Cada reel debe abrir con un gancho comprensible desde el primer segundo, explicar una sola idea con claridad y buscar retención y guardados.
 
-### Horario de trabajo
+Esta skill guía el proceso de principio a fin: analizar datos, entrevistar al responsable, elegir tema y tendencia, escribir el guion, planificar la animación, producir las voces, preparar Blender, montar, revisar, publicar y registrar las lecciones.
 
-- **19:30:** empezar la producción del contenido que se publicará al día siguiente. Revisar el calendario, elegir o confirmar el tema, comprobar los datos y preparar el guion y el plan visual.
-- Crear y guardar los archivos de Blender, el material de producción y las versiones de portada. Generar el render sin voz.
-- Montar después las voces, música, efectos y subtítulos. Revisar la pieza completa y preparar el pie de texto.
-- Dejar la publicación programada: Damián autorizó la publicación automática sin aprobación previa, siempre en público.
-- **Día siguiente, 19:00, hora de Madrid:** publicar en Instagram Reels, YouTube Shorts y TikTok.
+## 1. Reglas fijas del canal
 
-La publicación se mantiene a las 19:00 aunque haya otro post ese día, salvo que la persona responsable autorice explícitamente un cambio. No desplazar ni cancelar publicaciones por decisión propia.
+### Formato y publicación
 
-### Orden de trabajo
+- Reel vertical **1080 × 1920**, **30 fps**, normalmente **30–40 s**.
+- Gancho durante el primer segundo.
+- Publicación diaria a las **19:00 Europe/Madrid**, en la fecha indicada por el responsable.
+- Instagram y YouTube Shorts se programan desde Ootto; TikTok desde vidIQ, salvo que el responsable indique otra cosa.
+- Público general; explicar sin presuponer conocimientos mecánicos.
 
-1. Revisar calendario de marca y temas ya cubiertos.
-2. Consultar tendencias y rendimiento propio; proponer una idea concreta.
-3. Comprobar los datos con fuentes fiables.
-4. Escribir un guion hablado y ajustarlo a la duración y a las voces disponibles.
-5. Preparar planos, diseño y portada.
-6. Crear y animar todo lo visual mediante código en Blender.
-7. Renderizar la imagen sin voz.
-8. Montar voces, música, efectos y subtítulos con las herramientas de posproducción aprobadas, como Ootto y ffmpeg.
-9. Revisar contenido, datos, composición, audio, subtítulos, metadatos y pie de texto.
-10. Guardar el trabajo en el repositorio y preparar la publicación.
+### Identidad dentro del vídeo
 
-Si falta una fuente para un dato esencial, cambiar el dato o el tema; si falla el PC o Blender, la tarea de las 04:47 hace un reel normal ese día. No suplir ausencias inventando hechos o locuciones.
+Dentro del vídeo no se muestra:
 
----
-
-## 2. Identidad y reglas de marca
-
-### Tono y audiencia
-
-- Informativo, cercano y comprensible para todo el público.
-- Explicar como a un amigo que no sabe de mecánica.
-- Español neutro de España, sin dialecto marcado.
-- Humor visual moderado, apto para familias.
-- Gancho claro desde el primer segundo.
-- Alex explica; Clod genera un malentendido cómico que facilita la explicación.
-- Priorizar claridad, seguridad y confianza por encima del chiste.
-
-### Límites visuales de marca
-
-**Dentro del vídeo no aparecen nunca:**
-
-- Logo del taller.
+- Logo.
 - Nombre del taller.
 - Teléfono.
 - Web.
 
-Estos elementos, si corresponde, solo pueden incluirse en el pie de texto aprobado. No inventar ni reconstruir datos de contacto.
+Esos datos solo pueden aparecer en el pie de texto y se deben copiar del bloque oficial guardado, nunca improvisar.
 
-No usar nombres, emblemas, matrículas legibles ni marcas ficticias o reales en coches, herramientas, ropa, ruedas, fondos o rótulos. No añadir carteles con texto que parezcan información real.
+### Personajes
 
-### Exactitud y seguridad
-
-- No inventar cifras, estadísticas, velocidades, medidas, intervalos de mantenimiento ni recomendaciones.
-- No presentar opiniones o hipótesis como datos.
-- Comprobar cada afirmación técnica relevante antes de guionizarla.
-- No crear escenas de lesiones, colisiones, conducción temeraria o peligro como gag.
-- Si una demostración es simbólica, hacer que se entienda como tal.
-- No dar instrucciones de conducción de emergencia salvo que el tema y las fuentes fiables lo justifiquen y la formulación esté validada.
-- Si la fuente no confirma una frase, reformularla o eliminarla.
-
----
-
-## 3. Personajes
-
-### Alex
+**Alex**
 
 - Mecánico de unos 45 años, piel morena y barba corta canosa.
 - Mono negro liso con ribetes naranjas.
-- Sin marcas, textos ni logo en el uniforme.
-- Expresión seria y gestos precisos. Explica de forma sencilla, pausada y seca.
-- Puede levantar una mano para detener una idea equivocada, señalar una pieza o mirar a cámara en la frase clave.
-- No exagerar su enfado ni convertirlo en un personaje agresivo.
-- Voz: **Carlos**.
+- Serio, seco y claro; puede usar ironía contenida y una media sonrisa.
+- Desde el 26-11-2026, Alex pone **todas las voces**, con voz **Gonzalo**.
+- Animar la mandíbula según los tiempos de voz.
+- Usar el rig de Alex v2 y las poses disponibles.
+- Mantener respiración y cambios de peso continuos: Alex nunca queda completamente inmóvil.
+- Anticipar los gestos: ojos y cabeza antes que brazo.
+- En encuadre vertical, respetar la limitación de manos indicada en la producción del día y no cruzarlas delante de la cara.
+
+**Clod**
+
+- Robot naranja de 32 cm, rígido por piezas, pantalla negra con ojos LED blancos, auriculares naranjas y símbolo blanco en el pecho.
+- Sin antena.
+- **No habla nunca.**
+- Comunica con expresiones LED y gestos: duda, sorpresa, susto, enfado, tristeza, risa, salto, saludo, pulgar arriba, encogerse o taparse la cara, entre otros recursos disponibles en Clod v2.
+- Es torpe y gracioso, pero sus gags no deben promover acciones peligrosas ni avergonzar a personas.
+- Mantener respiración y cambios de peso continuos.
+
+### Producción visual
+
+- Imagen y animación se producen únicamente en **Blender**; no utilizar imágenes o vídeo generados por IA.
+- Todo se modela por código.
+- El formato visual preferido es el **despiece 3D**: pieza visible por dentro, rótulos claros y macros realistas.
+- Textos y rótulos se añaden en el montaje, no en Blender.
+- No inventar datos técnicos, cifras, precios, intervalos ni especificaciones.
+- Si un detalle no está confirmado por una fuente aceptada o por el responsable, no se afirma como hecho.
+
+### Biblioteca disponible
+
+Antes de modelar algo nuevo, revisar si ya existe:
+
+- Alex v2, rig con IK de brazos y piernas, seis poses de mano, nueve expresiones, mandíbula sincronizable, caminar, agacharse, señalar, pulgar arriba y encogerse.
+- Clod v2, piezas rígidas, caras LED y acciones disponibles.
+- Coche compacto, ruedas nuevas y gastadas.
+- Taller, carretera cenital mojada, estudio con ciclorama y banco de trabajo.
+- Neumático realista por capas: carcasa, cinturones, talón y banda.
+- Respiración y cambios de peso continuos incorporados a los personajes.
+
+## 2. Flujo diario obligatorio
+
+### Paso 0 — Mejora pequeña de biblioteca
+
+Cada día se intenta una mejora pequeña de diseño o movimiento de Alex o Clod.
+
+1. Elegir un cambio acotado: una transición, una expresión, una pose, un ajuste de peso o un detalle de diseño.
+2. Guardar una prueba **antes/después**.
+3. Revisar que el cambio no rompa rigs, escalas, materiales o animaciones ya existentes.
+4. Si la mejora no pasa la prueba, no sustituir la versión estable. Registrar el fallo.
+5. No dejar que una mejora experimental bloquee el reel del día.
+
+### Paso 1 — Reunir información y entrevistar
+
+Antes de proponer el reel, recopilar:
+
+- Insights recientes de Instagram, YouTube y TikTok disponibles en Ootto.
+- Vistas y mediana reciente, retención o tiempo medio, guardados y comentarios.
+- Outliers: qué publicación superó claramente la mediana y qué tenía de particular.
+- Tendencias actuales de vidIQ en España: temas, formatos y sonidos, con fecha de consulta.
+- Temas ya publicados, programados o en producción.
+- Fuentes técnicas autorizadas, si el tema necesita datos mecánicos.
+
+Entrevistar al responsable con **30–40 preguntas numeradas**, agrupadas y concretas, cubriendo:
+
+1. Objetivo y público.
+2. Tendencias y ambiente.
+3. Tema, síntoma, pieza y fuente.
+4. Guion, humor y CTA.
+5. Personajes y actuación.
+6. Escenario, modelado, materiales, luces y cámaras.
+7. Animación y tiempos.
+8. Motor, resolución, fps y duración.
+9. Voces, música, efectos y subtítulos.
+10. Portada, pie, título, hashtags, publicación, métricas y riesgos.
+
+Adaptar las preguntas a los datos ya disponibles: no volver a preguntar como incógnita algo que ya está fijado. Si, tras las respuestas, quedan decisiones imprescindibles sin resolver, hacer como máximo **10 preguntas adicionales**. No empezar a redactar el paquete final si falta una fuente técnica crítica, la fecha de publicación o una decisión necesaria para mantener la seguridad del gag.
+
+### Paso 2 — Elegir tema con datos
+
+Puntuar internamente las ideas según:
+
+- **Gancho de síntoma reconocible**, preferiblemente en forma de pregunta.
+- Rendimiento de temas y ganchos anteriores.
+- Tendencia actual, indicando cuándo se consultó y en qué plataforma.
+- Relevancia para conductores de Bizkaia y España.
+- Potencial de explicación visual o despiece 3D.
+- Diferencia frente a temas ya publicados o programados.
+- Disponibilidad de fuente técnica autorizada.
+- Posibilidad de explicarlo sin jerga ni datos inventados.
+
+La mediana y los outliers guían la elección, pero no garantizan resultados. No presentar una tendencia como éxito seguro. Para cada propuesta final:
+
+- Elegir una idea principal.
+- Indicar **dos alternativas descartadas** y una razón concreta por cada una.
+- Evitar repetir temas ya realizados, salvo que el responsable solicite expresamente una segunda parte.
+
+### Paso 3 — Crear y guardar el paquete
+
+Crear la carpeta del reel en GitHub:
+
+```text
+reels-diarios/AAAA-MM-DD_tema/
+```
+
+Usar la fecha de producción para la carpeta y registrar por separado la fecha y hora de publicación. Guardar como mínimo:
+
+- Prompt de producción aprobado.
+- Guion y tiempos de voz.
+- Fuentes y datos permitidos.
+- Notas de planos y animación.
+- Resultados de revisiones.
+- Métricas y lecciones después de publicar.
+
+Guardar también el prompt y la skill utilizados, siguiendo la estructura existente del repositorio. No almacenar secretos, credenciales ni datos de acceso.
+
+### Paso 4 — Voces primero
+
+1. Preparar el guion final con todas las frases habladas por Alex.
+2. Generar las voces en Ootto **antes de animar**.
+3. Usar **Gonzalo** para Alex.
+4. No generar ni asignar ninguna voz a Clod.
+5. Dividir la locución por frases para facilitar ajuste y edición.
+6. Medir los tiempos por palabra y guardar el resultado en:
+
+```text
+data/voces.json
+```
+
+7. Ajustar la duración y los cortes de planos a las voces reales; no forzar una animación a un tiempo de voz imaginado.
+8. Respetar el presupuesto diario de Ootto: **como máximo, aproximadamente siete créditos al día**. Priorizar pocas generaciones completas y cambios de texto antes de consumir créditos. Si se necesita una regeneración, identificar primero qué frase concreta falla.
+
+### Paso 5 — Escena y animación en Blender
+
+En el PC del taller:
+
+1. Preparar el script diario para Blender 5.3.
+2. Cargar:
+   - `taller_v2.py`
+   - Alex v2 mediante `alex_anim.py`
+   - Clod v2 mediante `clod_anim.py`
+3. Cargar los activos existentes antes de modelar.
+4. Crear por código las piezas nuevas estrictamente necesarias.
+5. Usar **EEVEE**, **30 fps**, lienzo **1080 × 1920** y escala de render **67 %**, salvo que el responsable haya fijado un ajuste diferente.
+6. Renderizar en segundo plano y guardar el resultado en la carpeta del día.
+7. Comprobar encuadre antes del render completo con fotogramas sueltos:
+   - Siluetas y caras legibles en móvil.
+   - Manos dentro del encuadre y fuera de las caras.
+   - Zona libre para subtítulos.
+   - Sin cámara atravesando geometría.
+   - Piezas y despiece comprensibles.
+   - Sin parpadeo ni efecto estroboscópico.
+8. Mantener respiración y cambios de peso de ambos personajes incluso en planos de explicación.
+9. Animar anticipaciones y reacciones: mirada o cabeza primero; brazo después. Evitar movimientos instantáneos sin preparación.
+10. No introducir rótulos, subtítulos, logos ni nombres dentro de la escena de Blender; se añaden en montaje.
+
+### Paso 6 — Transferencia y montaje
+
+Transferir los renders desde el PC del taller a Ootto. Verificar que el material transferido está completo y corresponde a la versión aprobada.
+
+Montar con Ootto y ffmpeg:
+
+- Voz de Alex según `data/voces.json`.
+- Música rítmica suave, inicialmente alrededor de **0,2** de nivel, con ducking bajo la voz.
+- **2–4 efectos** pertinentes; evitar saturar o tapar la voz.
+- Subtítulos ASS con caja oscura.
+- Mezcla final objetivo de **−14 LUFS**.
+- Exportar un máster vertical a 1080 × 1920 y 30 fps, además de los formatos adicionales acordados.
+- Revisar el archivo final completo con sonido, no solo la línea de tiempo del editor.
+
+### Paso 7 — Publicación
+
+Preparar:
+
+- Portada vertical **1080 × 1920**.
+- Recorte **1080 × 1080** para vista cuadrada, si está solicitado.
+- Título de YouTube.
+- Pie de texto.
+- Hashtags.
+- Hora local de publicación.
+
+El pie puede incluir el bloque fijo oficial del taller. Si no se encuentra el texto oficial, dejar un marcador para que lo inserte el responsable; no inventar nombre, teléfono, web ni dirección.
+
+Programar a las **19:00 Europe/Madrid** en la fecha confirmada:
+
+- Instagram y YouTube Shorts desde Ootto.
+- TikTok desde vidIQ.
+- Confirmar que las publicaciones son públicas y que la portada, el título y el pie son los correctos.
+
+### Paso 8 — Aprender de los resultados
+
+Tras la publicación, recoger las métricas disponibles en el momento acordado y registrarlas en la carpeta del reel y en `LECCIONES.md`.
+
+Como mínimo, revisar:
+
+- Vistas frente a la mediana reciente del canal.
+- Tiempo medio de visionado y retención disponible.
+- Guardados.
+- Comentarios.
+- Rendimiento del gancho y posibles puntos de abandono.
+- Diferencias entre plataformas.
+- Si el resultado fue un outlier y qué rasgo observable pudo contribuir.
+
+No atribuir causalidad a un único factor sin evidencia. Registrar observaciones concretas, por ejemplo: “el gancho de síntoma retuvo mejor que el arranque con personaje”, no “la música causó el éxito” sin datos que lo sostengan.
+
+Actualizar los recuerdos del cerebro de Claude si ese mecanismo está disponible y dejar la lección verificable en `LECCIONES.md`. Mantener aprendizajes útiles, no opiniones aisladas ni información personal innecesaria.
+
+## 3. Estructura del guion
+
+Ajustar la duración al tema. Como referencia para un reel de alrededor de 35 segundos:
+
+1. **Gancho, 0–3 s:** síntoma o pregunta reconocible desde el primer segundo.
+2. **Explicación, aproximadamente 3–13 s:** una causa posible o principio mecánico en lenguaje llano.
+3. **Despiece, aproximadamente 13–19 s:** mostrar qué pieza hace qué.
+4. **Gag, aproximadamente 19–25 s:** un gag claro de Clod, sin voz.
+5. **Consecuencia y consejo, aproximadamente 25–32 s:** solo si está respaldado por fuente autorizada.
+6. **Cierre, aproximadamente 32–35 s:** consejo, guardar o comentar.
+
+El esquema es flexible: manda la claridad del tema y el tiempo real de la voz.
+
+### Criterios del guion
+
+- Empezar con un síntoma que el conductor pueda reconocer.
+- Mantener una única idea central.
+- Explicar en la misma frase cualquier palabra técnica necesaria.
+- Evitar afirmaciones absolutas si la fuente solo habla de una posibilidad.
+- No prometer diagnósticos remotos.
+- Mantener el texto hablado dentro de la duración real del reel. Calcular con el audio generado, no solo con el número de palabras.
+- El humor sirve a la explicación; no debe retrasar el gancho ni oscurecer el consejo.
+- La CTA debe ser corta y pertinente: guardar, comentar o consultar a un profesional cuando corresponda.
+- No incluir en voz ni texto datos del taller que solo pueden ir en el pie.
+
+## 4. Fuentes y exactitud técnica
+
+Antes de escribir una afirmación mecánica:
+
+1. Registrar la fuente y el enlace exactos.
+2. Extraer solo los datos necesarios para el reel.
+3. Distinguir una causa posible de una causa segura.
+4. No transformar una correlación o recomendación en una regla universal.
+5. No inventar números, intervalos, costes, porcentajes, especificaciones ni promesas.
+6. Si las fuentes se contradicen o no respaldan una afirmación, omitirla y pedir aclaración.
+7. Evitar rótulos que impliquen una precisión que la explicación no tiene.
+8. Revisar que portada, voz, subtítulos, caption y animación cuenten la misma historia.
+
+## 5. Actuación creíble y seguridad
+
+### Alex
+
+- Mira al interlocutor o a cámara antes de comenzar el gesto.
+- Usa gestos sencillos y económicos; no señalar continuamente.
+- Mantiene postura viva con respiración y pequeños cambios de peso.
+- Las expresiones deben acompañar la intención de la línea, sin sobreactuar.
+- El humor de Alex se expresa con pausas breves, sequedad y una reacción precisa, no con crueldad.
 
 ### Clod
 
-- Robot naranja pequeño, de unos 32 cm.
-- Pantalla negra con ojos LED blancos, auriculares naranjas y símbolo blanco en el pecho.
-- **Sin antena.**
-- Torpe y gracioso, pero nunca peligroso ni cruel.
-- Suele cometer un error intuitivo o presumido y reaccionar de forma exagerada al descubrir la explicación.
-- Voz: **Diego**, más rápida y entusiasta que Alex, con emociones claras.
-- En el **texto hablado**, escribir siempre **Clod**. En subtítulos, etiquetas y pie de texto puede usarse **Claude**.
-
-### Actuación conjunta
-
-- Alex corrige con pocas palabras y autoridad tranquila.
-- Clod no debe ser un mero estorbo: su error tiene que preparar el aprendizaje.
-- Usar pausas, miradas y gestos para que el humor se entienda incluso sin sonido.
-- Mantener la silueta, escala, vestuario y colores de los personajes de un reel a otro.
-- No añadir antena, ropa, accesorios nuevos o cambios permanentes de diseño sin aprobación.
-
----
-
-## 4. Cómo elegir tema con tendencias
-
-La elección debe combinar interés del público, calendario de marca, rendimiento del canal y una explicación que pueda comprobarse.
-
-### Fuentes de ideas
-
-1. **Calendario de marca:** comprobar primero si existe un tema programado para la fecha.
-2. **Rendimiento propio:** detectar preguntas y formatos que superan de forma notable la mediana de la cuenta.
-3. **vidIQ y tendencias de plataforma:** buscar temas y patrones recientes en Instagram y TikTok España; utilizar datos actuales, no asumir que una tendencia antigua sigue vigente.
-4. **Preguntas habituales de conductores:** convertirlas en una pregunta reconocible, no en un tema demasiado general.
-5. **Estacionalidad:** usarla solo si existe una razón actual y la recomendación se puede respaldar.
-
-### Lectura de tendencias
-
-Buscar patrones, no copiar vídeos:
-
-- Pregunta relacionada con un problema real.
-- Error intuitivo que el público puede cometer.
-- Demostración visual breve en 3D.
-- Diferencia clara entre respuesta instintiva y respuesta correcta.
-- Final fácil de recordar o compartir.
-
-Registrar la fuente, plataforma, fecha de consulta y cifras de referencia si se usan. Los datos de tendencia cambian; no repetir cifras antiguas como si fueran actuales. No imitar personajes, guiones, gráficos, música, modelos ni recursos protegidos de otras cuentas.
-
-El sonido de tendencia no es obligatorio. Si no hay un sonido adecuado al nicho, usar música propia suave y centrarse en el contenido.
-
-### Rendimiento propio y outliers
-
-Comparar cada reel con la **mediana de la cuenta** y con piezas de duración y formato comparables; no decidir solo por visualizaciones absolutas. Registrar, cuando estén disponibles:
-
-- Visualizaciones.
-- Retención media y curva de abandono.
-- Porcentaje de reproducciones completas.
-- Compartidos y guardados.
-- Comentarios y nuevos seguidores.
-
-Como ejemplos históricos de aprendizaje del canal:
-
-- El reel sobre el coche que se va hacia un lado al soltar el volante obtuvo 1.621 visualizaciones, 10,8 veces la mediana indicada de 150.
-- El reel sobre chirrido al frenar obtuvo 476.
-- El reel de Clod queriendo actualizar una caja de cambios manual obtuvo 418 y una retención media de 23 segundos.
-
-Estos datos sirven como referencias de aquel momento, no como garantías de rendimiento futuro. La conclusión útil es probar preguntas de problema reconocible y el formato Alex + Clod 3D.
-
-### Temas ya cubiertos
-
-Consultar y actualizar el índice de producción para evitar repetir:
-
-- Alineación.
-- Pastillas y cómo frena el coche.
-- Pinchazo en autovía.
-- Testigos y piloto automático.
-- Caja de cambios.
-- Mantenimiento y aceite.
-- Neumáticos en invierno.
-- Koenigsegg Jesko.
-- Ruedas nuevas: si se cambian dos, van en el eje trasero.
-
-La lista es acumulativa: añadir cada tema una vez publicado y anotar enfoques o datos que ya se hayan explicado.
-
-### Comprobación de datos
-
-- Buscar fuentes primarias o técnicas fiables y recientes.
-- Para consejos de mantenimiento o seguridad, priorizar entidades reconocidas, fabricantes o documentación oficial relevante.
-- Comprobar que la fuente respalda la frase exacta, no solo el tema general.
-- Guardar URL, título de la fuente y fecha de consulta en el archivo del reel.
-- Si dos fuentes difieren, aclarar el alcance o evitar la afirmación controvertida.
-- No añadir números “para que suene más convincente”.
-- Las fuentes del pie de texto no sustituyen la comprobación interna del guion.
-
----
-
-## 5. Estructura del guion y del humor
-
-Una estructura habitual es:
-
-1. **Gancho en el segundo 1:** pregunta o problema reconocible.
-2. **Error de Clod:** decisión intuitiva, presumida o cómicamente equivocada.
-3. **Corrección de Alex:** breve, clara y sin rodeos.
-4. **Explicación y demostración visual:** mostrar el porqué, no limitarse a describirlo.
-5. **Aclaración esencial:** incorporar condiciones o matices relevantes.
-6. **Remate:** reacción de Clod o frase seca de Alex.
-7. **Cierre informativo:** solo si añade una recomendación útil y verificada.
-
-### Reglas del diálogo
-
-- El gancho debe entenderse aunque el espectador solo vea el primer segundo.
-- Evitar tecnicismos o definirlos en el momento.
-- No cargar una sola frase con varias explicaciones.
-- La broma no debe oscurecer qué debe recordar la audiencia.
-- No escribir una duración en palabras por estimación: ajustarse a la grabación real.
-- Preparar el texto hablado con **Clod** como nombre del personaje.
-- No poner en boca de Alex una promesa, cifra o regla más absoluta que la respaldada por las fuentes.
-
-### Humor y seguridad
-
-- Basar el humor en la personalidad torpe de Clod, el contraste con Alex o una confusión visual.
-- Preferir tropiezos controlados, gestos, poses equivocadas, ojos LED y pausas.
-- Evitar choques, lesiones, caídas peligrosas, herramientas mal usadas o conducción al límite.
-- No usar marcas como blanco de una burla.
-- No asociar una maniobra peligrosa a un consejo práctico de conducción sin validación específica.
-
-### Ajuste a las voces
-
-- El guion escrito es una intención, no un cronómetro definitivo.
-- Una vez generadas las voces, anotar inicios y finales reales de cada frase y palabra clave.
-- Ajustar cortes, animación, rótulos y efectos a esos tiempos.
-- No acelerar ni recortar una explicación hasta hacerla difícil de entender. Si no cabe, acortar el guion y volver a generar la voz.
-
----
-
-## 6. Estándares de Blender
-
-### Entorno de producción
-
-- Blender **5.3**.
-- Generación visual por código con `bpy`.
-- Motor **`BLENDER_EEVEE`**.
-- Sin imágenes ni vídeos generados por IA.
-- Sin descargar modelos, texturas, vídeos, sonidos ni otros recursos.
-- Modelar por código y crear materiales mediante nodos procedurales.
-- La salida de Blender se renderiza **sin voz**. El sonido, los subtítulos y el montaje final se hacen después.
-
-### Organización de escena
-
-Crear una escena limpia y reutilizable con colecciones diferenciadas, por ejemplo:
-
-- `CHARACTERS`
-- `VEHICLE`
-- `PROPS`
-- `SET`
-- `LIGHTS`
-- `CAMERAS`
-- `TEXT`
-- `ANIMATION_HELPERS`
-
-Nombrar los objetos y materiales de forma descriptiva. Mantener los controles, rig y objetos de texto separados de la geometría visible. Usar una escena base reutilizable, pero adaptar fondo, herramientas y pieza al tema del día.
-
-### Modelado por código
-
-- Construir geometría con primitivas, curvas, mallas y modificadores de Blender.
-- Usar bevels y superficies suaves donde ayuden a la lectura de la silueta.
-- Mantener modelos proporcionados, simples y legibles en pantalla de móvil.
-- La pieza protagonista debe poder reconocerse rápidamente.
-- Usar medidas aproximadas solo como decisiones de modelado; no convertirlas en afirmaciones habladas ni presentarlas como datos de un vehículo concreto.
-- Para detalles repetidos, generar geometría mediante funciones o bucles controlados.
-- Evitar mallas innecesariamente densas y operadores que dependan de una selección implícita frágil.
-
-### Materiales procedurales
-
-- Crear materiales con nodos y parámetros reproducibles.
-- No descargar texturas.
-- Evitar brillos que oculten la forma o parezcan grasa, agua o desgaste sin intención.
-- Separar visualmente piezas nuevas y usadas mediante diferencias de color, rugosidad o dibujo; no afirmar una profundidad o medida no comprobada.
-- En rejillas con texto, usar UV correctamente: `bm.loops.layers.uv.new('UVMap')` y `calc_uvs=True`.
-- Siempre que sea posible, poner el texto en un panel liso independiente en lugar de sobre una rejilla.
-
-### Iluminación
-
-- Usar una luz principal, relleno y, si hace falta, una luz de recorte.
-- Ajustar luces al material y al tono: cálido para taller, neutro para explicación y frío para una demostración esquemática.
-- Mantener exposición y contraste legibles en un móvil.
-- Si se usan paneles de luz, fijar `visible_camera=False` para que no aparezcan como rectángulos blancos.
-- Comprobar las reflexiones del suelo, carrocería y neumáticos con la cámara final.
-- Evitar que una luz queme el naranja de Clod o los ribetes de Alex.
-
-### Cámaras y planos
-
-- Componer primero en **9:16**; no confiar en que un encuadre horizontal se pueda recortar después.
-- Determinar el área segura para textos, caras, pieza y acciones.
-- Usar una cámara independiente para insertos cenitales cuando ayude a explicar la pieza.
-- Mantener continuidad de dirección y posición entre cortes.
-- Los movimientos de cámara deben ser discretos: cámara fija, pequeños acercamientos o seguimientos suaves.
-- Antes del render, revisar cada plano en vista de cámara y comprobar que la cámara no atraviesa piezas, personajes, suelo, paredes o coche.
-- Revisar que personajes, pieza y textos no queden fuera del cuadro al animarse.
-- En primeros planos, dejar el **DOF apagado** para evitar desenfoques accidentales o pérdida de información.
-- Renderizar una prueba de baja resolución o pocos fotogramas antes del render final.
-
-### Animación con tiempos de voz
-
-- Partir de los tiempos reales de los archivos de voz, no de una duración estimada.
-- Usar keyframes para gestos, miradas, movimiento de ojos LED, ruedas, rótulos, cámara y acciones.
-- Mantener pausas cuando haya un remate o una corrección seca.
-- Evitar movimientos que oculten la pieza justo cuando se nombra.
-- Clod puede tener movimiento de cuerpo, cabeza, ojos y extremidades; no añadirle una boca permanente si su diseño tiene pantalla negra con ojos LED.
-- Alex debe animarse con gestos contenidos y legibles.
-- Añadir **visemas simples** solo cuando el personaje tenga boca modelada y el plano permita verla. Sincronizar formas básicas con sílabas o grupos de palabras; no hace falta animación fonética compleja.
-- En planos sin boca visible, priorizar sincronía de cabeza, mirada y gesto.
-- Comprobar a velocidad normal y sin sonido para verificar que la acción se entiende visualmente.
-
-### Textos 3D y rótulos
-
-- Todo texto debe ser breve, legible y estar dentro del encuadre.
-- Evitar que el texto 3D atraviese personajes, ruedas, carrocería u otros objetos.
-- Comprobar contraste, sombra y escala a tamaño móvil.
-- Mantener rótulos alejados de las caras y del área habitual de botones de las plataformas.
-- No incluir en pantalla logo, nombre del taller, teléfono ni web.
-- Revisar errores de escritura, espacios, signos y acentos con el render final, no solo con el script.
-
-### Render y codificación
-
-- Salida: **1080 × 1920**, vertical 9:16, **30 fps**.
-- Motor: **`BLENDER_EEVEE`**.
-- Blender exporta el vídeo visual **sin voz**. La mezcla se monta después con las herramientas aprobadas.
-- Usar una codificación compatible para la entrega final, normalmente MP4/H.264 y audio AAC al montar el sonido. Comprobar el archivo exportado en las tres plataformas objetivo.
-- Para renders largos, iniciar el proceso en segundo plano con `subprocess.Popen` en lugar de bloquear el proceso de producción. En Windows, la lección del repositorio usa `creationflags=0x200`; hacer esta configuración dependiente del sistema operativo y no pasar esa bandera en un sistema que no la admita.
-- Guardar registros de errores y confirmar que el proceso termina correctamente antes de considerar el render válido.
-- Verificar duración, resolución, fps, imagen inicial, imagen final y sincronía antes de publicar.
-
-### Errores típicos que hay que evitar
-
-- Cámaras que atraviesan piezas o quedan dentro de la carrocería.
-- Textos fuera del cuadro, demasiado pequeños o detrás de la acción.
-- Paneles de luz visibles en cámara.
-- DOF activado accidentalmente en primeros planos.
-- Rejillas con texto sin UV, o con UV mal calculadas.
-- Geometría o reflejos que ocultan el dibujo de una pieza.
-- Animación que contradice el diálogo o presenta una demostración simbólica como un resultado garantizado.
-- Desajuste entre la duración del render y la voz.
-- Olvidar que la salida de Blender no debe contener la mezcla final.
-- Renderizar todos los fotogramas en calidad final sin probar antes una muestra.
-
----
-
-## 7. Voces, música, efectos y mezcla
-
-### Voces
-
-- **Alex:** voz **Carlos**. Pausada, seria, clara y seca; sin dramatización excesiva.
-- **Clod:** voz **Diego**. Más rápida, entusiasta, expresiva y torpe.
-- Generar o recibir **una frase por archivo** para poder sincronizar y recolocar frases con precisión.
-- Conservar el texto aprobado; no improvisar palabras, datos o remates durante el montaje.
-- Medir los tiempos reales de frase y, cuando sea necesario, de palabras clave.
-- Corregir errores de pronunciación o edición antes de animar labios o gestos.
-
-### Niveles y mezcla
-
-- Igualar los niveles de voz con `volumedetect` y escuchar los archivos, no depender solo de la inspección visual de la forma de onda.
-- Mantener ambas voces con una sonoridad percibida coherente.
-- Mantener la música por debajo del diálogo y aplicar **ducking**: bajar la música cuando hablan los personajes y subirla suavemente en huecos.
-- Como referencia de mezcla final, apuntar a **unos −14 LUFS integrados**, sin sacrificar la claridad del diálogo. Medir el archivo final; no asumir que un ajuste de volumen equivale a ese resultado.
-- Escuchar el montaje completo con auriculares y altavoz de móvil.
-- Evitar saturación, saltos de volumen, silencios accidentales y cortes de respiración poco naturales.
-
-### Música y efectos
-
-- Usar música propia o debidamente autorizada.
-- Elegir una base suave que no compita con las voces ni cambie el tono didáctico.
-- Si no hay un sonido de tendencia apropiado, no forzarlo.
-- Usar efectos puntuales y sincronizados: pitido de Clod, clic, rodadura o ding suave, según la escena.
-- Limitar los efectos a los que ayudan a comprender o rematar la acción.
-- Evitar golpes fuertes, frenazos estridentes y efectos que sugieran una colisión no mostrada.
-- Mantener un registro de la procedencia y autorización de cada archivo de audio.
-
----
-
-## 8. Subtítulos
-
-- Añadir los subtítulos después del render visual, durante la posproducción.
-- Usar frases cortas y sincronizadas con las voces reales.
-- Estilo base: texto blanco con contorno oscuro; destacar palabras clave en naranja **`#FF8400`**.
-- Situarlos en el tercio inferior, por encima de los botones de la plataforma.
-- No tapar caras, pieza protagonista, gestos o textos explicativos.
-- Mantener el mismo estilo, tamaño y posición a lo largo del vídeo.
-- Revisar manualmente puntuación, acentos, nombres y sincronía.
-- No incluir rótulos de hablante salvo que sean necesarios. Si se etiqueta a Clod en subtítulos, escribir **Claude**; el diálogo sigue escrito como **Clod**.
-- Comprobar los subtítulos en la versión vertical y en la previsualización de cada plataforma.
-- No confiar únicamente en el reconocimiento automático de voz.
-
----
-
-## 9. Portada y miniatura
-
-### Composición
-
-- Crear una portada específica para el tema, coherente con el diseño 3D del reel.
-- Preparar una versión **1080 × 1920** y comprobar un **recorte central 1080 × 1080**.
-- Mantener caras, pieza y texto principal dentro del área que sobrevive al recorte cuadrado.
-- Usar contraste suficiente para destacar en una cuadrícula pequeña.
-- Preferir una composición con Alex señalando la pieza o el dato correcto y Clod reaccionando o cometiendo el error visual.
-- Evitar fondos cargados y objetos que compitan con la idea central.
-
-### Texto
-
-- Máximo **cinco palabras**.
-- El texto debe plantear una pregunta o una idea concreta, no resumir todo el guion.
-- Usar el naranja **`#FF8400`** para una palabra clave y blanco para el resto, con contorno o sombra legible.
-- Revisar el texto en los dos recortes y comprobar signos, acentos y márgenes.
-- No añadir logo, nombre, teléfono ni web del taller a la imagen.
-
----
-
-## 10. Pie de texto, títulos y hashtags
-
-### Pie de texto
-
-Estructura recomendada:
-
-1. Gancho breve relacionado con el problema del reel.
-2. Explicación corta que aporte valor y no contradiga el vídeo.
-3. Fuente o aclaración, si resulta útil para el tema.
-4. Llamada a la acción moderada, por ejemplo guardar o compartir, si encaja.
-5. **Bloque fijo aprobado del taller al final.**
-
-Mantener nombre, logo, teléfono y web fuera del vídeo. En el pie se pueden incluir solo los datos aprobados. No completar el bloque fijo de memoria ni inventar contactos.
-
-### Títulos
-
-- Directos, claros y fieles al contenido.
-- Usar preguntas si ayudan a expresar el problema del conductor.
-- No prometer un resultado que el reel no demuestra.
-- No incluir el nombre del taller en el título, salvo instrucción explícita aprobada.
-- Evitar títulos largos, alarmistas o engañosos.
-
-### Hashtags
-
-- Usar **4–6 hashtags** relevantes.
-- Combinar, cuando proceda, marca o zona, tema del vídeo y categoría general.
-- Ejemplo base aprobado para una pieza de neumáticos:  
-  `#ekoruedas #derio #bizkaia #taller #neumaticos #seguridadvial`
-- Revisar que todos los hashtags correspondan al contenido y a la publicación.
-- No añadir etiquetas solo porque parezcan populares o no relacionadas.
-
----
-
-## 11. Publicación
-
-### Plataformas y horario
-
-Publicar el vídeo vertical en:
-
-- Instagram Reels.
-- YouTube Shorts.
-- TikTok.
-
-Hora habitual: **19:00, hora de Madrid**, el día siguiente a la producción. El horario se mantiene aunque haya otro post ese día, salvo autorización expresa para cambiarlo.
-
-### Público y presentación
-
-- Público general de España, incluidos conductores de Bizkaia y familias.
-- Usar la versión vertical 9:16 y comprobar la previsualización en cada plataforma.
-- Cargar título, pie de texto y hashtags correspondientes.
-- Confirmar que no se ha añadido por error un logo, teléfono o web dentro del vídeo.
-- Revisar portada, subtítulos, sonido y primer fotograma.
-- Confirmar que el modo de publicación automática está autorizado y que la cuenta seleccionada es la correcta.
-- No cambiar texto, fecha, hora o plataformas sin aprobación de la persona responsable.
-
-### Verificación después de publicar
-
-- Comprobar que el vídeo está publicado y se reproduce.
-- Verificar que el audio, los subtítulos y la portada se muestran correctamente.
-- Guardar enlaces de las publicaciones en el índice del repositorio.
-- Si una plataforma falla, anotar el error y pedir instrucciones antes de volver a programar o duplicar la publicación.
-
----
-
-## 12. Orden del repositorio de GitHub
-
-Guardar cada producción en:
-
-```text
-reels-diarios/
-└── AAAA-MM-DD_tema/
-    ├── LEEME.md
-    ├── prompt.md
-    ├── scripts/
-    ├── blender/
-    ├── audio/
-    ├── subtitulos/
-    ├── video/
-    └── portadas/
-```
-
-### Contenido recomendado
-
-- **`LEEME.md`**: tema, objetivo, duración, estado, fuentes consultadas, fecha y hora de publicación, plataformas y enlaces publicados.
-- **`prompt.md`**: prompt de producción aprobado, guion y plan de planos.
-- **`scripts/`**: código de creación, animación, preparación y validación.
-- **`blender/`**: archivos `.blend` necesarios para continuar el trabajo, si se acuerda guardarlos.
-- **`audio/`**: voces por frase, mezcla, música y efectos autorizados. No subir material cuya licencia o autorización no esté confirmada.
-- **`subtitulos/`**: archivos fuente de subtítulos y versión final revisada.
-- **`video/`**: render visual y entrega final según las normas de almacenamiento del repositorio.
-- **`portadas/`**: versiones vertical y cuadrada, además de fuentes editables si procede.
-
-Mantener un índice general, por ejemplo:
-
-```text
-reels-diarios/INDICE.md
-```
-
-El índice debe permitir localizar cada reel, conocer su tema, evitar repeticiones y consultar su rendimiento. Añadir en la raíz del repositorio:
-
-```text
-LECCIONES.md
-```
-
-Registrar allí errores, soluciones técnicas, formatos que funcionaron y mejoras de proceso. No guardar claves, tokens, contraseñas ni datos privados en GitHub. Seguir las normas del repositorio sobre archivos grandes y renders.
-
----
-
-## 13. Métricas y cómo aprender de ellas
-
-### Registrar
-
-Después de cada publicación, anotar los datos disponibles en momentos de revisión comparables. Incluir:
-
-- Visualizaciones.
-- Retención media.
-- Curva de retención y punto de abandono, si la plataforma los ofrece.
-- Porcentaje de finalización.
-- Compartidos.
-- Guardados.
-- Comentarios.
-- Nuevos seguidores.
-- Plataforma y duración del vídeo.
-
-### Interpretar
-
-- Comparar cada pieza con la mediana reciente de la cuenta, no solo con la mejor publicación histórica.
-- Comparar vídeos de duración y formato parecidos.
-- Una reproducción alta con retención baja puede señalar un buen gancho y una explicación larga o confusa.
-- Muchos guardados o compartidos pueden indicar utilidad; revisar el contenido y los comentarios antes de atribuir la causa.
-- Una caída temprana puede deberse al gancho, al primer plano, al volumen o a una apertura demasiado lenta.
-- La retención debe leerse junto con duración, alcance y reacciones; no interpretar una sola métrica como prueba definitiva.
-- No modificar el formato entero por el resultado de una sola publicación.
-
-### Aprender y probar
-
-- Registrar una hipótesis concreta por reel, por ejemplo: «la pregunta de problema retiene mejor que una afirmación inicial».
-- Cambiar pocas variables cada vez: gancho, duración, primera imagen, cantidad de diálogo o frecuencia de cortes.
-- Mantener un registro de qué se probó y qué se observó.
-- Usar objetivos provisionales acordados por el equipo y actualizarlos conforme cambie la mediana de la cuenta.
-- No prometer resultados basándose en una tendencia de otra cuenta.
-- Revisar comentarios para detectar preguntas nuevas y posibles temas; verificar cada sugerencia antes de convertirla en consejo técnico.
-
----
-
-## 14. Lista de comprobación final
-
-### Tema y guion
-
-- [ ] El tema encaja con el calendario, el público y los objetivos del canal.
-- [ ] Se ha comprobado que no repite innecesariamente un tema ya publicado.
-- [ ] Cada afirmación técnica tiene una fuente fiable registrada.
-- [ ] No hay cifras, medidas, estadísticas ni datos inventados.
-- [ ] El gancho se entiende en el primer segundo.
-- [ ] Clod comete un error comprensible y Alex lo corrige con claridad.
-- [ ] El humor no confunde el consejo ni muestra una situación peligrosa.
-- [ ] El guion cabe en las voces reales y sus pausas.
-
-### Blender e imagen
-
-- [ ] La escena se ha creado por código en Blender 5.3 con `BLENDER_EEVEE`.
-- [ ] No se han usado imágenes, vídeos, modelos ni texturas descargados o generados por IA.
-- [ ] Los materiales son procedurales.
-- [ ] La cámara no atraviesa geometría y todos los textos quedan dentro del cuadro.
-- [ ] La animación coincide con las frases y no oculta la pieza.
-- [ ] Se han comprobado planos, prueba de render y fotograma final.
-- [ ] No aparecen logo, nombre del taller, teléfono ni web dentro del vídeo.
-- [ ] La salida visual es vertical, 1080 × 1920 y 30 fps, sin voz.
-
-### Sonido y subtítulos
-
-- [ ] Cada archivo de voz contiene una frase y corresponde al texto aprobado.
-- [ ] Se han revisado niveles de voz con `volumedetect`.
-- [ ] La música queda por debajo del diálogo y el ducking es suave.
-- [ ] Efectos autorizados, breves y sin golpes o frenazos estridentes.
-- [ ] La mezcla se ha escuchado en auriculares y en un altavoz de móvil.
-- [ ] Se ha comprobado el objetivo de mezcla de unos −14 LUFS integrados.
-- [ ] Subtítulos revisados manualmente, sincronizados y dentro de zona segura.
-- [ ] Las palabras clave usan el naranja `#FF8400`.
-
-### Portada, texto y publicación
-
-- [ ] Portada vertical y recorte central 1080 × 1080 comprobados.
-- [ ] El texto de portada tiene cinco palabras o menos.
-- [ ] Pie de texto con el bloque fijo aprobado al final.
-- [ ] Título fiel al contenido y sin nombre del taller.
-- [ ] Hashtags pertinentes, entre cuatro y seis.
-- [ ] Publicación preparada para Instagram Reels, YouTube Shorts y TikTok.
-- [ ] Fecha y hora confirmadas: 19:00, hora de Madrid.
-- [ ] La publicación automática (autorizada por Damián) está programada y comprobada.
-- [ ] Se ha guardado el proyecto en `reels-diarios/AAAA-MM-DD_tema/`.
-- [ ] Se actualizarán el índice, `LECCIONES.md` y las métricas tras publicar.
-
----
-_Versión 1 · 25-11-2026 · escrita por ChatGPT tras entrevistar a Claude; revisada por Claude. Se mejora cada día (historial en GitHub)._
+- Usar primero mirada/cabeza/pantalla LED; luego el cuerpo o el gesto.
+- Preparar saltos, sustos o encogimientos con anticipación legible.
+- En los gags de aplastar/estirar, respetar el estilo de squash and stretch de la biblioteca; no producir lesiones realistas.
+- Darle una acción comprensible, una reacción y un remate visual.
+- No asignarle palabras, voz, texto que parezca diálogo hablado ni sincronía de boca.
+- No usarlo para ridiculizar conductores o clientes.
+
+### Seguridad
+
+- No representar como segura una conducta peligrosa con ruedas, elevadores, herramientas o maquinaria.
+- No poner a Clod, a Alex ni a una persona en contacto con partes móviles.
+- Si un gag utiliza una máquina, dejar claro visualmente cuándo está apagada o que el movimiento es una visualización separada.
+- Evitar sustos de accidentes, burlas, lesiones gráficas o humor de mal gusto.
+- La exageración mecánica debe leerse como visualización, no como instrucción de reparación.
+- Comprobar cada plano por separado y como secuencia: una imagen aislada puede dar una impresión distinta a la intención del gag.
+
+## 6. Cámara y composición vertical
+
+- Diseñar primero para **9:16**; no encuadrar como un vídeo horizontal recortado.
+- Mantener caras, pieza principal y gesto cómico dentro de la zona central segura.
+- Reservar espacio para subtítulos, especialmente en la parte inferior.
+- Evitar que elementos importantes queden bajo controles de interfaz de Instagram, TikTok o YouTube.
+- Usar:
+  - Primeros planos a la altura de los ojos para la explicación de Alex.
+  - Macros lentos para piezas y despieces.
+  - Planos algo más abiertos para que Clod se lea con claridad.
+  - Movimientos cortos y deliberados; no mover cámara por adornar.
+- No atravesar piezas ni ocultar la parte del componente que se está explicando.
+- En rotación de ruedas, revisar desenfoque de movimiento y evitar parpadeo.
+- Comprobar cada toma en una pantalla pequeña y en el recorte de portada solicitado.
+
+## 7. Portada
+
+- Debe funcionar sin audio y entenderse al primer vistazo.
+- Mostrar a Alex y/o Clod con una emoción legible y coherente con el tema.
+- Texto corto y grande; priorizar una pregunta o síntoma. Evitar frases largas.
+- Usar el naranja **#FF8400** como color de énfasis y asegurar contraste con el fondo.
+- No ocultar caras, gestos o pieza principal.
+- Preparar los formatos acordados, normalmente 1080 × 1920 y recorte 1080 × 1080.
+- Verificar el recorte cuadrado de forma real; no suponer que el centro de la portada vertical contiene todo lo importante.
+- No poner nombre del taller, logo, teléfono o web en la portada del vídeo.
+
+## 8. Sonido
+
+- Alex es la única voz (Ootto, `reel_voice` "Gonzalo", desde el 26-11-2026). Clod no habla: sus reacciones se oyen con efectos cortos.
+- Voces primero, frase a frase, con la emoción del guion; los tiempos de cada palabra (`words`) van a `data/voces.json` y mandan sobre la animación.
+- Música suave de `/work/audio/music_library` a ~0,2, con `sidechaincompress` bajo la voz.
+- 2-4 efectos de `/work/audio/sfx` o `/work/project/public/sfx_pack`, cada uno ligado a una acción visible.
+- Igualar el volumen de cada frase con `volumedetect` antes de mezclar; máster con `loudnorm` a -14 LUFS.
+
+## 9. Subtítulos y rótulos
+
+- Subtítulos ASS en bloques de 2-4 palabras, Noto Sans Display 72, caja oscura semitransparente (`BorderStyle 3`), palabras clave en naranja #FF8400.
+- Rótulos (nombres de piezas, "+80 km/h"…) se dibujan en el montaje, no en Blender, con placa oscura y nunca encima de una cara.
+- Si algo se mueve por la parte baja del plano, los subtítulos suben bajo los rótulos.
+- Antes de entregar, mirar una hoja de fotogramas con textos puestos.
+
+## 10. Publicación
+
+- Ootto `reel_schedule`: día siguiente 19:00 Europe/Madrid, `platforms ["instagram","youtube"]`, `privacy "public"`, `ai_generated true`, portada propia, título de máx. 100 caracteres sin el nombre del taller, 5-8 etiquetas. Si Ootto lo mueve por coincidir con otro post, se acepta y se apunta.
+- TikTok con vidIQ: `vidiq_video_upload` → `vidiq_social_post_draft_create` (público, comentarios sí, música aceptada, `isAiGenerated true`) → si hay `suggestedPublishAt`, se acepta → `vidiq_social_post_publish`.
+- Nunca se quita ni se mueve un post ya programado.
+- Pie: 1-2 frases con el dato y su fuente + bloque fijo del taller + 4-6 hashtags (#ekoruedas #derio #bizkaia #taller + 1-2 del tema).
+
+## 11. Comprobaciones antes de entregar
+
+- Datos: cada cifra tiene fuente (RACE, DGT, fabricante) apuntada en el LEEME del día.
+- Imagen: un fotograma por plano al 40 % revisado; encuadre comprobado con `comprobar_encuadre()` y `world_to_camera_view`; nada atraviesa piezas.
+- Sonido: voces claras, música por debajo, -14 LUFS.
+- Identidad: ni logo, ni nombre, ni teléfono, ni web dentro del vídeo.
+- Archivos: carpeta del día completa en GitHub (LEEME, prompt, scripts, voces.json, vídeo sin voz, portadas), fila en el índice y lecciones escritas.
+
+## 12. Aprender de los datos cada día
+
+- Leer `account_insights` (últimos 10) y `own_reel_outliers`: comparar vistas y tiempo medio de visionado de los reels 3D con los demás y frente a la mediana.
+- Sacar 1-3 conclusiones con números reales y usarlas en la entrevista y en el guion (tipo de gancho, duración, protagonismo de Clod, portada).
+- Apuntar lo aprendido en `LECCIONES.md` (proceso) y en `estudio-3d/LECCIONES.md` (diseño 3D).
+
+## 13. Referencia técnica
+
+Todo el detalle técnico acumulado (bpy, cámaras, luces, render en segundo plano, montaje con ffmpeg, publicación) sigue en `historial/SKILL_2026-11-25.md` y en `estudio-3d/LEEME.md`, `estudio-3d/LECCIONES.md` y las guías de `estudio-3d/biblioteca/personajes/`. Esta skill no las sustituye: las ordena.
