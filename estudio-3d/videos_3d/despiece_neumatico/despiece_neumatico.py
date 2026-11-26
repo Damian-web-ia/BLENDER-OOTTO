@@ -299,9 +299,9 @@ if "bulto" not in NEU.data.shape_keys.key_blocks:
     r = np.hypot(co[:, 0], co[:, 1]); th = np.arctan2(co[:, 1], co[:, 0])
     dth = (th - th_b + np.pi) % (2 * np.pi) - np.pi
     rn = (r - R_LL) / (R_EXT - R_LL)
-    g = np.exp(-((dth * r) ** 2) / (2 * 0.040 ** 2) - ((rn - 0.52) ** 2) / (2 * 0.20 ** 2))
+    g = np.exp(-((dth * r) ** 2) / (2 * 0.032 ** 2) - ((rn - 0.52) ** 2) / (2 * 0.15 ** 2))
     lado = (co[:, 2] > 0.02) & (rn > 0.12) & (rn < 0.92)
-    co[:, 2] += np.where(lado, 0.024 * g, 0.0)
+    co[:, 2] += np.where(lado, 0.034 * g, 0.0)
     kb.data.foreach_set("co", co.ravel()); kb.value = 0.0
 for kb in NEU.data.shape_keys.key_blocks[1:]: kb.value = 0.0
 LLR = bpy.data.objects.get("D_LlantaRaiz")
@@ -466,7 +466,7 @@ cara(1, "sonrisa", 0.4)
 X_CLOD = -1.42
 H_, ze_, zt_, cab_ = seccion(X_CLOD)
 CLOD_CAPO = (CAR.location.x + X_CLOD, CAR.location.y - 0.05, zt_ + 0.01 - 0.012)
-CLOD_SUELO = (-1.01, -0.86, ANCHO + 0.002)          # de pie encima del neumático tumbado
+CLOD_SUELO = (SUELO.x + 0.18, SUELO.y - 0.19, ANCHO + 0.002)          # de pie encima del neumático tumbado
 
 # ---- PLANO 1 (1-100): Clod sobre el capó: "¿Una rueda es solo goma con aire? Vamos a verlo."
 CL.reposo(1); CL.mover(1, CLOD_CAPO, -6); CL.cara(1, "duda"); CL.cabeza(1, 0, 6, 0)
@@ -610,15 +610,19 @@ orbita(194, 18); orbita(272, 21); orbita(386, 24); orbita(495, 27); orbita(556, 
 ck(628, (-0.62, -2.55, 1.30), tuple(P + Vector((0, 0, -0.45))), 33)
 ck(650, (-0.70, -2.35, 0.95), tuple(SUELO + Vector((0, 0, 0.10))), 32)
 # plano 4: Clod y el "donut"
-ck(651, (-1.12, -2.70, 0.80), (-1.12, -0.85, 0.28), 30)
-ck(745, (-1.12, -2.52, 0.78), (-1.12, -0.85, 0.29), 30)
+ck(651, (-1.22, -2.55, 1.00), (-1.18, -0.88, 0.27), 32)
+ck(745, (-1.22, -2.40, 0.97), (-1.18, -0.88, 0.28), 32)
 # plano 5: Alex serio, luego detalle del bulto
-ck(746, (-0.74, -2.15, 1.52), (-0.62, -0.60, 1.40), 40)
-ck(815, (-0.72, -2.00, 1.52), (-0.62, -0.60, 1.40), 40)
+ck(746, (-0.74, -2.15, 1.50), (-0.62, -0.60, 1.36), 35)
+ck(815, (-0.72, -2.02, 1.50), (-0.62, -0.60, 1.36), 35)
 th_w = R(BULTO_ANG + GIRO_FIN); rb = R_LL + 0.52 * (R_EXT - R_LL)
 B = SUELO + Vector((rb * math.cos(th_w), rb * math.sin(th_w), ANCHO / 2 + 0.012))
-ck(816, tuple(B + Vector((0.20, -0.46, 0.36))), tuple(B), 50, dof=tuple(B), fstop=3.5)
-ck(895, tuple(B + Vector((0.16, -0.38, 0.30))), tuple(B), 50, dof=tuple(B), fstop=3.5)
+ck(816, tuple(B + Vector((0.34, -0.30, 0.10))), tuple(B + Vector((0, 0, -0.01))), 45, dof=tuple(B), fstop=4.0)
+ck(895, tuple(B + Vector((0.29, -0.26, 0.09))), tuple(B + Vector((0, 0, -0.01))), 45, dof=tuple(B), fstop=4.0)
+LB = luz("D_LuzBulto", 'SPOT', B + Vector((-0.55, 0.05, 0.14)), B, (1.0, 0.96, 0.9))
+LB.data.spot_size = R(40); LB.data.spot_blend = 0.4
+for f_, v in ((1, 0), (815, 0), (816, 160), (895, 160), (896, 0)):
+    LB.data.energy = v; LB.data.keyframe_insert("energy", frame=f_)
 # plano 6: los dos
 ck(896, (-0.95, -3.85, 1.15), (-0.95, -0.70, 0.92), 30)
 ck(FIN, (-0.95, -3.62, 1.13), (-0.95, -0.70, 0.93), 30)
