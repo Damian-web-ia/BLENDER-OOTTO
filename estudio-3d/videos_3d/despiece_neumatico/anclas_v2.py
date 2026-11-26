@@ -24,7 +24,7 @@ DES = bpy.data.objects["DESPIECE"]
 capas = {"alma": ["NR_G_alma"], "carcasa": ["NR_G_carc"], "talones": ["NR_G_tal"], "cinturones": ["NR_G_c1", "NR_G_c2"], "banda": ["NR_G_ext"]}
 BORDE = {"alma": (0.0, 0.29), "carcasa": (0.0, 0.29), "talones": (0.0725, 0.2135), "cinturones": (0.0, 0.30), "banda": (0.0, 0.316)}
 out = {}
-for f in list(range(126, 608)) + list(range(636, 694)):
+for f in range(1, sc.frame_end + 1):
     mc = trs(cam, f); lens = ev(cam.data, "lens", 0, f, cam.data.lens)
     der = (mc.to_3x3() @ Vector((1, 0, 0))).normalized(); izq = -der
     md = trs(DES, f); d = {}
@@ -38,6 +38,6 @@ for f in list(range(126, 608)) + list(range(636, 694)):
     out[f] = d
 # bulto
 B = Vector(RESULT_BULTO)
-for f in range(636, 694):
+for f in range(1, sc.frame_end + 1):
     mc = trs(cam, f); lens = ev(cam.data, "lens", 0, f, cam.data.lens); out[f]["bulto"] = proy(mc, lens, B)
 json.dump(out, open(SALIDA, "w"))

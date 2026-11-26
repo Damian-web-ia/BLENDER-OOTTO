@@ -429,9 +429,13 @@ VOZ_ALEX = [{"at": 0.25, "words": [["¿Una", 0.103, 0.28], ["rueda", 0.28, 0.52]
                                    ["Ni", 1.551, 1.83], ["de", 1.83, 1.91], ["broma", 1.91, 2.31], ["Mira", 2.373, 2.61], ["lo", 2.61, 2.69], ["que", 2.69, 2.85], ["lleva", 2.85, 3.01], ["dentro", 3.01, 3.41]]},
             {"at": 20.15, "words": [["Por", 0.12, 0.28], ["eso", 0.28, 0.68], ["si", 0.786, 1.0], ["ves", 1.0, 1.16], ["un", 1.16, 1.24], ["bulto", 1.24, 1.72], ["o", 1.72, 1.80], ["un", 1.80, 1.88], ["corte", 1.88, 2.12], ["en", 2.12, 2.20], ["el", 2.28, 2.28], ["lateral", 2.28, 2.83], ["no", 2.88, 2.96], ["esperes", 2.96, 3.59], ["llévala", 3.646, 4.0], ["a", 4.0, 4.08], ["revisar", 4.08, 4.48]]},
             {"at": 25.05, "words": [["Síguenos", 0.119, 0.60], ["para", 0.60, 0.84], ["ver", 0.84, 1.0], ["más", 1.0, 1.24], ["despieces", 1.24, 1.72], ["como", 1.72, 1.96], ["este", 1.96, 2.28]]}]
+V3_PALABRAS = [("Por", 0.04, 0.2), ("dentro", 0.2, 0.68), ("una", 0.801, 0.92), ("capa", 0.92, 1.16), ("de", 1.16, 1.32), ("goma", 1.32, 1.56), ("que", 1.64, 1.64), ("no", 1.64, 1.72), ("deja", 1.72, 1.96), ("escapar", 1.96, 2.28), ("el", 2.28, 2.36), ("aire", 2.36, 2.68),
+ ("Encima", 2.755, 3.32), ("la", 3.438, 3.56), ("carcasa", 3.56, 4.1), ("lonas", 4.177, 4.5), ("de", 4.58, 4.58), ("hilo", 4.58, 4.82), ("que", 4.9, 4.9), ("aguantan", 4.9, 5.22), ("el", 5.22, 5.38), ("peso", 5.38, 5.78), ("y", 5.78, 5.86), ("los", 5.86, 6.02), ("golpes", 6.02, 6.5),
+ ("En", 6.55, 6.71), ("los", 6.71, 6.87), ("bordes", 6.87, 7.35), ("los", 7.462, 7.71), ("talones", 7.71, 8.27), ("con", 8.33, 8.5), ("aros", 8.5, 8.66), ("de", 8.66, 8.74), ("acero", 8.74, 9.06), ("que", 9.14, 9.14), ("la", 9.14, 9.22), ("sujetan", 9.22, 9.7), ("a", 9.7, 9.78), ("la", 9.78, 9.86), ("llanta", 9.86, 10.18),
+ ("Luego", 10.2, 10.59), ("cinturones", 10.614, 11.17), ("de", 11.25, 11.25), ("acero", 11.25, 11.49), ("que", 11.57, 11.57), ("la", 11.57, 11.73), ("refuerzan", 11.73, 12.27),
+ ("Y", 12.31, 12.39), ("por", 12.39, 12.55), ("fuera", 12.55, 12.95), ("la", 12.98, 13.14), ("banda", 13.14, 13.38), ("de", 13.38, 13.46), ("rodadura", 13.46, 14.01), ("lo", 14.027, 14.25), ("único", 14.25, 14.49), ("que", 14.49, 14.57), ("toca", 14.57, 14.81), ("el", 14.89, 14.89), ("suelo", 14.89, 15.21)]
 def abs_t(lineas):
     return [{"at": 0, "words": [[w, l["at"] + a, l["at"] + b] for (w, a, b) in l["words"]]} for l in lineas]
-hablar(abs_t(VOZ_ALEX))
 parpadeos(1, FIN, evitar=(F(27.6),))
 CL.parpadeos(1, FIN, cada=(55, 85), evitar=[(EST - 30, EST + 60), (F(24.9), F(26.3))])
 respirar(1, FIN, periodo=64, amplitud=1.5)
@@ -523,4 +527,71 @@ sc.eevee.taa_render_samples = 48; sc.render.fps = 30; sc.frame_start, sc.frame_e
 try: sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.45; sc.render.motion_blur_position = 'START'
 except Exception: pass
 sc.view_settings.exposure = -0.1
+
+# ================================================================ VOZ NUEVA DE ALEX: reajuste de todos los tiempos
+# Todo se diseñó con la voz "Carlos" (VOZ_ALEX). Si existe voces_alex.json (otra voz), se calcula una correspondencia
+# de tiempos por palabras clave y se mueven TODAS las claves de animación; luego se ponen los labios con la voz nueva.
+import os
+VOZ_JSON = BASE + r"\videos_3d\despiece_neumatico\voces_alex.json"
+def _todas_curvas():
+    out = []
+    for act in bpy.data.actions:
+        try: cv = list(act.fcurves)
+        except Exception: cv = []
+        if not cv:
+            try: cv = [fc for l in act.layers for s_ in l.strips for cb in s_.channelbags for fc in cb.fcurves]
+            except Exception: cv = []
+        out += cv
+    return out
+def _abs(lineas): return [(l["at"] + a, l["at"] + b) for l in lineas for (w, a, b) in l["words"]]
+WARP = [(1.0, 1.0)]
+VOZ_USAR = VOZ_ALEX
+if os.path.exists(VOZ_JSON):
+    nueva = json.load(open(VOZ_JSON, encoding="utf-8"))
+    VOZ_USAR = [{"at": l["at"], "words": [[w[0], w[1], w[2]] for w in l["words"]]} for l in nueva["lineas"]]
+    viejo = [{"at": 0.25, "words": VOZ_ALEX[0]["words"]}, {"at": 4.25, "words": [[w, a, b] for (w, a, b) in V3_PALABRAS]},
+             {"at": 20.15, "words": VOZ_ALEX[1]["words"]}, {"at": 25.05, "words": VOZ_ALEX[2]["words"]}]
+    def T(lineas, i, j, fin=False):
+        l = lineas[i]; w = l["words"][j]; return l["at"] + (w[2] if fin else w[1])
+    nuevo = [{"at": l["at"], "words": l["words"]} for l in nueva["lineas"]]
+    # (línea, palabra, ¿final?) de los momentos que mandan en la animación
+    CLAVES = [(0, 6, True), (0, 7, False), (0, 9, True), (0, 10, False), (0, 14, True),
+              (1, 0, False), (1, 2, False), (1, 12, False), (1, 14, False), (1, 25, False), (1, 29, False), (1, 40, False), (1, 41, False),
+              (1, 47, False), (1, 51, False), (1, 59, True),
+              (2, 0, False), (2, 4, False), (2, 11, True), (2, 12, False), (2, 16, True),
+              (3, 0, False), (3, 6, True)]
+    for (i, j, fz) in CLAVES:
+        WARP.append((T(viejo, i, j, fz) * 30 + 1, T(nuevo, i, j, fz) * 30 + 1))
+    # cortes de plano: que caigan en fotogramas enteros
+    for c_old, (i, j) in ((606, (2, 0)), (640, (2, 4)), (692, (2, 12)), (753, (3, 0))):
+        c_new = round(WARP[[k for k, (i2, j2, f2) in enumerate(CLAVES) if (i2, j2) == (i, j)][0] + 1][1]) - (round(T(viejo, i, j) * 30 + 1) - c_old)
+        WARP += [(c_old - 1, c_new - 1), (c_old, c_new)]
+    WARP.append((FIN, T(nuevo, 3, 6, True) * 30 + 1 + 27))
+    WARP = sorted(set(WARP))
+    def W(x):
+        xs = [a for a, b in WARP]; ys = [b for a, b in WARP]
+        if x <= xs[0]: return x
+        if x >= xs[-1]: return ys[-1] + (x - xs[-1])
+        return float(np.interp(x, xs, ys))
+    # 2) mover todas las claves
+    for fc in _todas_curvas():
+        for k in fc.keyframe_points:
+            x = k.co[0]; nx = W(x); d = nx - x
+            k.co[0] = nx; k.handle_left[0] += d; k.handle_right[0] += d
+        fc.update()
+    FIN = int(round(W(FIN)))
+    CORTES = [int(round(W(c))) for c in CORTES]
+    sc.frame_end = FIN
+    json.dump({"warp": WARP, "fin": FIN, "cortes": CORTES}, open(BASE + r"\videos_3d\despiece_neumatico\warp.json", "w"))
+# 3) labios con la voz que se usa
+hablar(abs_t(VOZ_USAR))
+suavizar()
+ad = sk.animation_data
+if ad and ad.action:
+    try: cv = list(ad.action.fcurves)
+    except Exception: cv = [fc for l in ad.action.layers for s_ in l.strips for cb in s_.channelbags for fc in cb.fcurves]
+    for fc in cv:
+        for k in fc.keyframe_points:
+            if k.interpolation != 'CONSTANT': k.interpolation = 'BEZIER'
+        fc.update()
 result = {"ok": True, "fin": FIN, "P": list(P), "suelo": list(SUELO), "bulto": list(B), "clod": list(CLOD_CAPO), "hit": bool(hit)}
