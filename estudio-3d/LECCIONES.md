@@ -31,3 +31,4 @@
 - **Pantalla negra:** el barniz fuerte hacía espejo y se veía gris; poco barniz y poco especular.
 - **Copias base64 largas:** al pasar audio de Ootto al PC, comprobar con md5 por trozos; un fallo de copia dejó el audio con errores de CRC.
 - **Diálogo entre dos:** montar la pista de voces una vez (con sus silencios) y animar cada boca con sus propios tiempos.
+- **La vista previa de `look` con `frames` no usa el formato 9:16:** enseña más a los lados que el render final. Para los planos verticales, fiarse de `comprobar_encuadre()` (usa el formato real) o de un fotograma del render.
