@@ -54,8 +54,8 @@ def materiales_reales():
     m, n = _mat("R_Goma", (0.016, 0.016, 0.018), 0.72, spec=0.4)
     if n: _ruido(m, 2200, 0.25, rough_var=(0.62, 0.85))
     M["goma"] = m
-    m, n = _mat("R_Butilo", (0.030, 0.031, 0.034), 0.42, spec=0.5)
-    if n: _ruido(m, 900, 0.12, rough_var=(0.35, 0.5))
+    m, n = _mat("R_Butilo", (0.020, 0.021, 0.024), 0.55, spec=0.35)
+    if n: _ruido(m, 900, 0.12, rough_var=(0.48, 0.62))
     M["butilo"] = m
     m, n = _mat("R_GomaUnion", (0.022, 0.022, 0.024), 0.55, spec=0.45)
     if n: _ruido(m, 1500, 0.15)
@@ -63,7 +63,7 @@ def materiales_reales():
     m, n = _mat("R_Poliester", (0.80, 0.72, 0.52), 0.55, spec=0.3)
     if n: _nodos_trenza(m, escala=(260.0, 1.0), giro=0.9, fuerza=0.5, color_rampa=((0.62, 0.53, 0.35), (0.88, 0.81, 0.62)))
     M["poliester"] = m
-    m, n = _mat("R_CableAcero", (0.60, 0.61, 0.63), 0.26, metal=1.0)
+    m, n = _mat("R_CableAcero", (0.60, 0.61, 0.63), 0.34, metal=1.0)
     if n: _nodos_trenza(m, escala=(520.0, 1.0), giro=0.75, fuerza=0.8, color_rampa=((0.42, 0.43, 0.45), (0.74, 0.75, 0.77)))
     M["acero"] = m
     m, n = _mat("R_AlambreLaton", (0.78, 0.55, 0.32), 0.30, metal=1.0)
@@ -134,7 +134,7 @@ ALMA_H = [(-0.0595, 0.2125), (-0.0592, 0.2200), (-0.0655, 0.2335), (-0.0815, 0.2
 TALON_C = (0.0725, 0.2135)
 APEX = [(-0.0775, 0.2195), (-0.0670, 0.2195), (-0.0810, 0.2390)]
 
-def construir(T, col, M=None, padre=None, n_hilos=900, n_cables=460, prefijo="NR_"):
+def construir(T, col, M=None, padre=None, n_hilos=900, n_cables=300, prefijo="NR_"):
     """Crea todas las piezas como objetos hijos de 'padre'. Devuelve dict nombre->objeto."""
     M = M or materiales_reales(); O = {}
     def obj(nombre, me, mats):
@@ -190,10 +190,10 @@ def construir(T, col, M=None, padre=None, n_hilos=900, n_cables=460, prefijo="NR
             P = 12; aa = np.linspace(-media, media, P); tana = math.tan(math.radians(abs(ang))) * (1 if ang > 0 else -1)
             th0 = np.linspace(0, 2 * np.pi, n_cables, endpoint=False)
             dth = aa / tana / r0
-            TH = th0[:, None] + dth[None, :]; rr = r0 + 0.0005
+            TH = th0[:, None] + dth[None, :]; rr = r0 + 0.0008
             rutas = np.stack([rr * np.cos(TH), rr * np.sin(TH), np.broadcast_to(aa, TH.shape)], -1)
             norm = np.stack([np.cos(TH), np.sin(TH), np.zeros_like(TH)], -1)
-            obj(nm + "Cables", malla_tubos(prefijo + nm + "Cables", rutas, norm, 0.00046, lados=6, largo_uv=1.0), [M["acero"]])
+            obj(nm + "Cables", malla_tubos(prefijo + nm + "Cables", rutas, norm, 0.00072, lados=6, largo_uv=1.0), [M["acero"]])
         else: O[nm + "Cables"] = existe(nm + "Cables")
         if not existe(nm + "Goma"):
             lam = [(-media - 0.001, r0 - 0.0004), (media + 0.001, r0 - 0.0004), (media + 0.001, r0 - 0.0010), (-media - 0.001, r0 - 0.0010)]
@@ -246,11 +246,11 @@ def malla_flancos(T, nombre, n_u=480):
 
 def malla_marcado(T, nombre):
     """Letras en relieve sobre el flanco exterior (+Z): medida y tipo, sin marcas comerciales."""
-    textos = [("205/55 R16 91V", 0.272, 90.0, 0.0105), ("TUBELESS", 0.272, -90.0, 0.0085), ("RADIAL", 0.236, -90.0, 0.0070)]
+    textos = [("205/55 R16 91V", 0.270, 90.0, 0.0135), ("TUBELESS", 0.270, -90.0, 0.0115), ("RADIAL", 0.240, -90.0, 0.0085)]
     ext = _remuestrear(_catm(T, FLANCO_EXT, 5), 60)
     bm_tot = bmesh.new()
     for (txt, r0, ang0, alto) in textos:
-        cu = bpy.data.curves.new("tmp_txt", "FONT"); cu.body = txt; cu.size = alto; cu.extrude = 0.0006; cu.align_x = 'CENTER'
+        cu = bpy.data.curves.new("tmp_txt", "FONT"); cu.body = txt; cu.size = alto; cu.extrude = 0.0008; cu.align_x = 'CENTER'
         try: cu.font = bpy.data.fonts.load(r"C:\Windows\Fonts\arialbd.ttf", check_existing=True)
         except Exception: pass
         ob = bpy.data.objects.new("tmp_txt", cu); bpy.context.scene.collection.objects.link(ob)
@@ -262,7 +262,7 @@ def malla_marcado(T, nombre):
         th = math.radians(ang0) - x / r0
         rr = r0 + y
         asup = np.interp(rr, ext[:, 1], ext[:, 0])
-        co2 = np.c_[rr * np.cos(th), rr * np.sin(th), asup + z + 0.0005]
+        co2 = np.c_[rr * np.cos(th), rr * np.sin(th), asup + z + 0.0011]
         me.vertices.foreach_set("co", co2.astype(np.float32).ravel()); me.update()
         bm_tot.from_mesh(me); bpy.data.meshes.remove(me)
     out = bpy.data.meshes.new(nombre); bm_tot.to_mesh(out); bm_tot.free()
