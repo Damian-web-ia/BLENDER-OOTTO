@@ -170,7 +170,8 @@ if "COCHE_Motor" not in bpy.data.objects:
         cilindro(f"COCHE_MotorTapa{k}", (-1.30, -0.21 + k * 0.14, 0.76), 0.05, 0.04, ACERO, col=CC, padre=CAR)
     caja("COCHE_Caja", (-0.85, 0.05, 0.50), (0.35, 0.40, 0.32), ACERO, bisel=0.03, col=CC, padre=CAR)
     for s in (-1, 1):
-        cilindro(f"COCHE_Disco{s}", (X_DEL, s * 0.60, Z_RUEDA), 0.15, 0.024, ACERO, seg=64, col=CC, padre=CAR, rot=(R(90), 0, 0))
+        dsc = cilindro(f"COCHE_Disco{s}", (X_DEL, s * 0.60, Z_RUEDA), 0.15, 0.024, ACERO, seg=64, col=CC, padre=CAR, rot=(R(90), 0, 0))
+        for pp in dsc.data.polygons: pp.use_smooth = len(pp.vertices) == 4
         caja(f"COCHE_Pinza{s}", (X_DEL + 0.10, s * 0.585, Z_RUEDA + 0.11), (0.09, 0.07, 0.12), ROJO, bisel=0.012, col=CC, padre=CAR)
         cilindro(f"COCHE_Amort{s}", (X_DEL, s * 0.52, 0.62), 0.025, 0.34, ACERO, col=CC, padre=CAR)
         cu = bpy.data.curves.new(f"COCHE_Muelle{s}", "CURVE"); cu.dimensions = '3D'; cu.bevel_depth = 0.009; cu.bevel_resolution = 3
@@ -187,7 +188,7 @@ for (x, s, nm) in ((X_TRAS, -1, "RUEDA_TI"), (X_DEL, 1, "RUEDA_DD"), (X_TRAS, 1,
 
 # ---------------------------------------------------------------- RUEDA PROTAGONISTA y sus capas (raíz DESPIECE; eje del neumático = Z local)
 W0 = Vector(CAR.location) + Vector((X_DEL, -Y_RUEDA, Z_RUEDA))           # rueda delantera izquierda (lado cámara)
-P = Vector((-1.27, -0.78, 1.06))                                          # donde flota y se despieza
+P = Vector((-1.50, -0.90, 1.10))                                          # donde flota y se despieza
 SUELO = Vector((-1.27, -0.80, ANCHO / 2))                                 # donde cae tumbada (como un donut)
 GIRO_FIN = -60.0; BULTO_ANG = -90.0 - GIRO_FIN                            # el bulto acaba mirando a cámara (-Y)
 DES = bpy.data.objects.get("DESPIECE")
@@ -298,9 +299,9 @@ if "bulto" not in NEU.data.shape_keys.key_blocks:
     r = np.hypot(co[:, 0], co[:, 1]); th = np.arctan2(co[:, 1], co[:, 0])
     dth = (th - th_b + np.pi) % (2 * np.pi) - np.pi
     rn = (r - R_LL) / (R_EXT - R_LL)
-    g = np.exp(-((dth * r) ** 2) / (2 * 0.030 ** 2) - ((rn - 0.52) ** 2) / (2 * 0.17 ** 2))
+    g = np.exp(-((dth * r) ** 2) / (2 * 0.040 ** 2) - ((rn - 0.52) ** 2) / (2 * 0.20 ** 2))
     lado = (co[:, 2] > 0.02) & (rn > 0.12) & (rn < 0.92)
-    co[:, 2] += np.where(lado, 0.016 * g, 0.0)
+    co[:, 2] += np.where(lado, 0.024 * g, 0.0)
     kb.data.foreach_set("co", co.ravel()); kb.value = 0.0
 for kb in NEU.data.shape_keys.key_blocks[1:]: kb.value = 0.0
 LLR = bpy.data.objects.get("D_LlantaRaiz")
@@ -367,7 +368,7 @@ def kv(kb, f, v): kb.value = v; kb.keyframe_insert("value", frame=f)
 def kxr(f, v): sc["xray"] = v; sc.keyframe_insert('["xray"]', frame=f)
 def brillo(m, f, v):
     s = m.node_tree.nodes["Principled BSDF"].inputs["Emission Strength"]; s.default_value = v; s.keyframe_insert("default_value", frame=f)
-def destello(m, f0, pico=7.0, resto=0.6):
+def destello(m, f0, pico=7.0, resto=0.35):
     brillo(m, f0 - 1, 0.0); brillo(m, f0 + 5, pico); brillo(m, f0 + 22, resto)
 
 # --- raíz: en el coche -> sale y sube -> se tumba (eje vertical) y gira -> cae al suelo
@@ -403,7 +404,7 @@ slot(ALMA, 195, -0.52); slot(CARC, 274, -0.22); slot(TAL, 388, 0.05); slot(CINT1
 for m_ in (M_ALMA, M_CARC, M_TAL, M_CINT, M_GOMA_H): brillo(m_, 1, 0.0)
 destello(M_ALMA, 192); destello(M_CARC, 292); destello(M_TAL, 420); destello(M_CINT, 507); destello(M_GOMA_H, 585, 5.0, 0.0)
 brillo(M_GOMA_H, 610, 0.0)
-for m_ in (M_ALMA, M_CARC, M_TAL, M_CINT): brillo(m_, 600, 0.6); brillo(m_, 625, 0.0)
+for m_ in (M_ALMA, M_CARC, M_TAL, M_CINT): brillo(m_, 600, 0.35); brillo(m_, 625, 0.0)
 # --- bulto en el lateral (plano de detalle)
 kbb = NEU.data.shape_keys.key_blocks["bulto"]; kv(kbb, 1, 0.0); kv(kbb, 815, 0.0); kv(kbb, 816, 1.0)
 
@@ -438,14 +439,14 @@ L1 = luz("D_LuzClave", 'AREA', P + Vector((0.9, -1.6, 1.4)), P, (1.0, 0.95, 0.88
 L2 = luz("D_LuzContra", 'AREA', P + Vector((-0.6, 1.4, 0.9)), P, (0.35, 0.62, 1.0), 1.2)
 L3 = luz("D_LuzBajo", 'AREA', P + Vector((0.3, -0.8, -1.0)), P, (1.0, 0.6, 0.3), 1.0)
 L4 = luz("D_LuzFlash", 'POINT', P + Vector((0, -0.25, 0.15)), P, (1.0, 0.85, 0.6))
-for o, e in ((L1, 260), (L2, 520), (L3, 90)):
+for o, e in ((L1, 150), (L2, 320), (L3, 45)):
     for f_, v in ((1, 0), (150, 0), (180, e), (640, e), (650, 0)):
         o.data.energy = v; o.data.keyframe_insert("energy", frame=f_)
-for f_, v in ((1, 0), (189, 0), (190, 900), (194, 450), (205, 0), (556, 0), (590, 0), (592, 500), (600, 0)):
+for f_, v in ((1, 0), (189, 0), (190, 600), (194, 300), (205, 0), (556, 0), (590, 0), (592, 500), (600, 0)):
     L4.data.energy = v; L4.data.keyframe_insert("energy", frame=f_)
 
 # ================================================================ PERSONAJES
-ALEX_POS = Vector((-0.50, -0.50, 0)); ALEX_GIRO = -12
+ALEX_POS = Vector((-0.62, -0.60, 0)); ALEX_GIRO = -12
 sk = MALLA.data.shape_keys
 if sk.animation_data and sk.animation_data.action: sk.animation_data.action = None
 for o in bpy.data.objects:
@@ -464,10 +465,10 @@ cara(1, "sonrisa", 0.4)
 X_CLOD = -1.42
 H_, ze_, zt_, cab_ = seccion(X_CLOD)
 CLOD_CAPO = (CAR.location.x + X_CLOD, CAR.location.y - 0.05, zt_ + 0.01 - 0.012)
-CLOD_SUELO = (-0.80, -1.05, 0.0)
+CLOD_SUELO = (-1.01, -0.86, ANCHO + 0.002)          # de pie encima del neumático tumbado
 
 # ---- PLANO 1 (1-100): Clod sobre el capó: "¿Una rueda es solo goma con aire? Vamos a verlo."
-CL.reposo(1); CL.mover(1, CLOD_CAPO, -32); CL.cara(1, "duda"); CL.cabeza(1, 0, 6, 0)
+CL.reposo(1); CL.mover(1, CLOD_CAPO, -6); CL.cara(1, "duda"); CL.cabeza(1, 0, 6, 0)
 for l in ("R", "L"):
     CL.mano_en(l, F(0.45), (SX(l) * 0.30, -0.12, 0.50)); CL.codo_hacia(l, F(0.45), (SX(l) * 0.75, 0.10, 0.40)); CL.pulgar(l, F(0.45), 1.0)
     CL.mano_giro(l, F(0.45), gira=SX(l) * 40)
@@ -484,7 +485,7 @@ CL.mano_en("R", F(3.4), (-0.34, -0.22, 0.31))
 for l in ("R", "L"): CL.brazo_caido(l, 115)
 CL.cara(115, "contento"); CL.cabeza(115, 24, 0, -8); CL.mirar(115, -0.01, -0.012)
 CL.cara(150, "sorpresa"); CL.cabeza(165, 8, 0, -12)
-CL.mover(650, CLOD_CAPO, -32)
+CL.mover(650, CLOD_CAPO, -6)
 
 # ---- Alex en los planos 1-2: mira a Clod y luego: "Ni de broma. Mira lo que lleva dentro."
 cabeza(1, -12, 0, -30); columna(1, 0, 0, -8)
@@ -497,15 +498,15 @@ cara(F(3.3), "sonrisa", 0.8); cabeza(F(3.35), 0, 0, -4); columna(F(3.35), 0, 0, 
 for k, g in enumerate((-12, 10, -8, 0)): cabeza(F(3.45) + k * 4, 2, 0, g)
 for l in ("R", "L"): brazo_caido(l, F(3.5)); mano_pose(l, F(3.5), "relajada")
 # "Mira lo que lleva dentro": señala la rueda con la derecha
-mano_en("R", F(4.3), (-0.40, -0.30, 1.02)); codo_hacia("R", F(4.3), (-0.75, 0.05, 1.05)); mano_pose("R", F(4.3), "señalar")
-orientar_mano("R", F(4.3), dedos_hacia=(-1, -0.25, -0.45), pulgar_hacia=(0, 0, 1))
-mano_en("R", F(5.5), (-0.42, -0.31, 1.00)); orientar_mano("R", F(5.5), dedos_hacia=(-1, -0.25, -0.45), pulgar_hacia=(0, 0, 1))
+mano_en("R", F(4.3), (-0.42, -0.14, 1.04)); codo_hacia("R", F(4.3), (-0.75, 0.15, 1.05)); mano_pose("R", F(4.3), "señalar")
+orientar_mano("R", F(4.3), dedos_hacia=(-1, 0.45, -0.5), pulgar_hacia=(0, 0, 1))
+mano_en("R", F(5.5), (-0.44, -0.14, 1.02)); orientar_mano("R", F(5.5), dedos_hacia=(-1, 0.45, -0.5), pulgar_hacia=(0, 0, 1))
 cabeza(F(4.4), 14, 0, -24); cara(F(4.4), "picaro"); columna(F(4.4), 4, 0, -6)
 for l in ("R", "L"): brazo_caido(l, 230); mano_pose(l, 230, "relajada")
 cabeza(230, 0, 0, 0); columna(230, 0, 0, 0); cara(230, "neutra")
 
 # ---- PLANO 4 (651-745): Clod junto al neumático tumbado: "¡Y yo que pensaba que era un donut gigante!"
-CL.mover(651, CLOD_SUELO, -10); CL.reposo(651); CL.cara(651, "contento"); CL.cabeza(651, 10, 0, -28); CL.mirar(651, -0.02, -0.01)
+CL.mover(651, CLOD_SUELO, -6); CL.reposo(651); CL.cara(651, "contento"); CL.cabeza(651, 10, 0, -28); CL.mirar(651, -0.02, -0.01)
 for l in ("R", "L"): CL.brazo_caido(l, 651)
 CL.cara(F(22.05), "sorpresa"); CL.cabeza(F(22.15), -4, 0, -6); CL.mirar(F(22.15), 0.0, 0.01)
 CL.aplastar(F(22.05), 1.0); CL.aplastar(F(22.18), 1.12); CL.aplastar(F(22.35), 0.96); CL.aplastar(F(22.5), 1.0)
@@ -543,7 +544,7 @@ for k, a in enumerate((8, -2, 6, 0)): cabeza(F(28.8) + k * 5, a, 0, 0)
 brazo_caido("R", F(29.6)); mano_pose("R", F(29.6), "relajada")
 
 # ---- PLANO 6 (896-981): "¡Síguenos para más despieces!" Clod salta y los dos levantan el pulgar
-CL.mover(895, CLOD_SUELO, -10); CL.mover(896, (-0.82, -1.18, 0.0), -6)
+CL.mover(895, CLOD_SUELO, -6); CL.mover(896, CLOD_SUELO, -6)
 CL.cara(896, "feliz"); CL.cabeza(896, -4, 0, 0)
 fj = CL.salto(F(29.95), alto=0.22, aire=12)
 fp = CL.pulgar_arriba("L", F(30.5), dur=40)
@@ -593,33 +594,33 @@ def ck(f, loc, t, lens, dof=None, fstop=2.8):
 CORTES = [1, 101, 651, 746, 816, 896, FIN + 1]
 W0t = tuple(W0)
 # plano 1: coche con Clod en el capó, acercándose
-ck(1, (-3.25, -2.45, 1.30), (-1.35, 0.45, 0.80), 27)
-ck(100, (-3.00, -2.15, 1.27), (-1.35, 0.45, 0.80), 28)
+ck(1, (-1.30, -2.10, 0.80), (-1.33, 0.30, 0.66), 38)
+ck(100, (-1.30, -1.88, 0.80), (-1.33, 0.30, 0.67), 38)
 # planos 2-3 (continuo): Alex y la rueda -> entramos -> despiece en el aire -> cae
 ck(101, (-0.85, -3.30, 1.45), (-0.86, -0.20, 0.95), 27)
 ck(128, (-0.90, -2.85, 1.38), (-1.00, -0.12, 0.84), 28)
 ck(150, (-1.04, -1.62, 0.92), (-1.24, 0.02, 0.48), 32)
 ck(166, (-1.06, -1.30, 0.78), (-1.27, 0.0, 0.36), 34)
 ck(180, (-0.95, -2.10, 1.40), tuple(P + Vector((0, 0, -0.10))), 35)
-def orbita(f, ang, dist=2.45, alt=1.18, mira_z=0.02, lens=35):
+def orbita(f, ang, dist=2.30, alt=1.55, mira_z=0.02, lens=36):
     a = R(ang); off = Vector((math.sin(a) * dist, -math.cos(a) * dist, alt))
     ck(f, tuple(P + off), tuple(P + Vector((0, 0, mira_z))), lens)
-orbita(194, 14); orbita(272, 8); orbita(386, 0); orbita(495, -6); orbita(556, -10, mira_z=0.10); orbita(600, -12, mira_z=0.08)
+orbita(194, -14); orbita(272, -19); orbita(386, -24); orbita(495, -28); orbita(556, -31, mira_z=0.10); orbita(600, -32, mira_z=0.08)
 ck(628, (-0.62, -2.55, 1.30), tuple(P + Vector((0, 0, -0.45))), 33)
 ck(650, (-0.70, -2.35, 0.95), tuple(SUELO + Vector((0, 0, 0.10))), 32)
 # plano 4: Clod y el "donut"
-ck(651, (-1.10, -2.25, 0.62), (-1.02, -0.85, 0.32), 34)
-ck(745, (-1.08, -2.05, 0.60), (-1.02, -0.85, 0.33), 35)
+ck(651, (-1.12, -2.70, 0.80), (-1.12, -0.85, 0.28), 30)
+ck(745, (-1.12, -2.52, 0.78), (-1.12, -0.85, 0.29), 30)
 # plano 5: Alex serio, luego detalle del bulto
-ck(746, (-0.62, -2.05, 1.52), (-0.50, -0.50, 1.40), 40)
-ck(815, (-0.60, -1.90, 1.52), (-0.50, -0.50, 1.40), 40)
+ck(746, (-0.74, -2.15, 1.52), (-0.62, -0.60, 1.40), 40)
+ck(815, (-0.72, -2.00, 1.52), (-0.62, -0.60, 1.40), 40)
 th_w = R(BULTO_ANG + GIRO_FIN); rb = R_LL + 0.52 * (R_EXT - R_LL)
 B = SUELO + Vector((rb * math.cos(th_w), rb * math.sin(th_w), ANCHO / 2 + 0.012))
 ck(816, tuple(B + Vector((0.20, -0.46, 0.36))), tuple(B), 50, dof=tuple(B), fstop=3.5)
 ck(895, tuple(B + Vector((0.16, -0.38, 0.30))), tuple(B), 50, dof=tuple(B), fstop=3.5)
 # plano 6: los dos
-ck(896, (-0.70, -3.35, 1.25), (-0.80, -0.65, 0.82), 30)
-ck(FIN, (-0.72, -3.10, 1.22), (-0.80, -0.65, 0.84), 30)
+ck(896, (-0.95, -3.85, 1.15), (-0.95, -0.70, 0.92), 30)
+ck(FIN, (-0.95, -3.62, 1.13), (-0.95, -0.70, 0.93), 30)
 def _curvas(idb):
     ad_ = getattr(idb, "animation_data", None)
     if not ad_ or not ad_.action: return []
