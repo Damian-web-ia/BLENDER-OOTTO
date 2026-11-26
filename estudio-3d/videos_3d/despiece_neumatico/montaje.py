@@ -46,6 +46,7 @@ for at, ws, tam in VOZ:
 for k, g in enumerate(GRUPOS):
     fin = g[-1][2] + 0.35
     if k + 1 < len(GRUPOS): fin = min(fin, GRUPOS[k + 1][0][1]) if GRUPOS[k + 1][0][1] - g[-1][2] < 0.6 else fin
+    else: fin = 99.0                      # el último (la llamada a seguir) se queda hasta el final
     GRUPOS[k] = (g, g[0][1] - 0.04, fin)
 def y_sub(f):
     if f <= 189: return 0.80
@@ -80,8 +81,8 @@ def gancho(img, d, f):
     a = 1.0 if f < 92 else max(0.0, (100 - f) / 8)
     capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
     sz = int(104 * (0.6 + 0.4 * p))
-    dd.text((W / 2, 0.135 * H), "¿SOLO GOMA", font=fnt(sz, "Black"), fill=BLANCO + (int(255 * a),), anchor="mm", stroke_width=12, stroke_fill=(0, 0, 0, int(255 * a)))
-    dd.text((W / 2, 0.135 * H + sz * 1.05), "CON AIRE?", font=fnt(sz, "Black"), fill=AMARILLO + (int(255 * a),), anchor="mm", stroke_width=12, stroke_fill=(0, 0, 0, int(255 * a)))
+    dd.text((W / 2, 0.100 * H), "¿SOLO GOMA", font=fnt(sz, "Black"), fill=BLANCO + (int(255 * a),), anchor="mm", stroke_width=12, stroke_fill=(0, 0, 0, int(255 * a)))
+    dd.text((W / 2, 0.100 * H + sz * 1.05), "CON AIRE?", font=fnt(sz, "Black"), fill=AMARILLO + (int(255 * a),), anchor="mm", stroke_width=12, stroke_fill=(0, 0, 0, int(255 * a)))
     img.alpha_composite(capa)
 
 # ---------------------------------------------------------------- rótulos de las capas
@@ -93,14 +94,14 @@ CAPAS = [  # clave, desde, título, explicación, lado del ancla, color
  ("banda", 583, "BANDA DE RODADURA", "lo único que toca el suelo", "i", (255, 212, 0)),
 ]
 def pastilla(dd, cx, cy, texto, sub, color, escala=1.0, alfa=255, ancla_x=None):
-    ft = fnt(int(50 * escala), "Black"); fs = fnt(int(32 * escala), "SemiBold")
+    ft = fnt(int(60 * escala), "Black"); fs = fnt(int(37 * escala), "SemiBold")
     tw = ft.getlength(texto); sw = fs.getlength(sub) if sub else 0; bw = max(tw, sw) + 56 * escala
-    bh = (62 + (44 if sub else 0)) * escala
+    bh = (74 + (50 if sub else 0)) * escala
     x0 = cx - bw / 2; x0 = max(24, min(W - 24 - bw, x0)); y0 = cy - bh / 2
     dd.rounded_rectangle((x0, y0, x0 + bw, y0 + bh), radius=int(20 * escala), fill=(12, 14, 18, int(alfa * 0.86)), outline=color + (alfa,), width=max(2, int(4 * escala)))
     dd.rectangle((x0 + 3, y0 + 14 * escala, x0 + 11 * escala, y0 + bh - 14 * escala), fill=color + (alfa,))
-    dd.text((x0 + bw / 2 + 4 * escala, y0 + 36 * escala), texto, font=ft, fill=color + (alfa,), anchor="mm")
-    if sub: dd.text((x0 + bw / 2 + 4 * escala, y0 + 86 * escala), sub, font=fs, fill=(235, 235, 235, alfa), anchor="mm")
+    dd.text((x0 + bw / 2 + 4 * escala, y0 + 42 * escala), texto, font=ft, fill=color + (alfa,), anchor="mm")
+    if sub: dd.text((x0 + bw / 2 + 4 * escala, y0 + 99 * escala), sub, font=fs, fill=(235, 235, 235, alfa), anchor="mm")
     return (x0, y0, x0 + bw, y0 + bh)
 def rotulos(img, f):
     if not (192 <= f <= 615) or str(f) not in anclas: return
@@ -115,7 +116,7 @@ def rotulos(img, f):
         p = ease_back((f - f0) / 8.0); alfa = int(255 * salida)
         if k == activo:
             # cuadro grande arriba con línea al borde de la capa
-            by = 0.085 * H if f < 583 else 0.065 * H
+            by = 0.090 * H if f < 583 else 0.062 * H
             caja = pastilla(dd, W / 2, by, tit, sub, col, escala=0.75 + 0.25 * p, alfa=alfa)
             bx = (caja[0] + caja[2]) / 2 if False else (caja[0] + 40 if lado == "i" else caja[2] - 40)
             dd.line((bx, caja[3], px, py), fill=col + (alfa,), width=4)
@@ -135,7 +136,7 @@ def bulto(img, f):
     if not (817 <= f <= 895) or "bulto" not in anclas.get(str(f), {}): return
     b = anclas[str(f)]["bulto"]
     if b is None: return
-    cx, cy = b[0] * W, (1 - b[1]) * H; capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
+    cx, cy = b[0] * W, (1 - b[1]) * H - 0.075 * H; capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
     prog = min(1.0, (f - 817) / 10.0); r = 190 + 10 * math.sin((f - 817) * 0.4)
     dd.arc((cx - r, cy - r * 0.75, cx + r, cy + r * 0.75), start=-90, end=-90 + 360 * prog, fill=(255, 40, 40, 255), width=14)
     if f >= 822:
