@@ -34,7 +34,7 @@ def key(nombre, fn):
     for i, p in enumerate(W):
         d = fn(p)
         if d is None or d.length < 1e-7: continue
-        kb.data[i].co = basis.data[i].co + inv3 @ (d * (1.0 if nombre.startswith(('Parpado', 'Boca_O', 'Boca_Ancha')) else GANANCIA)); n += 1
+        kb.data[i].co = basis.data[i].co + inv3 @ (d * (1.0 if nombre.startswith(('Parpado', 'Boca_O', 'Boca_Ancha', 'OjoAbierto')) else GANANCIA)); n += 1
     return n
 
 stats = {}
@@ -55,7 +55,7 @@ for L in ("R", "L"):
     def ceja_triste(p, ci=ci, c=c, s=s):
         wi = peso_elipse(p, ci, 0.022, 0.016)
         wo = peso_elipse(p, c + Vector((s * 0.018, 0, 0)), 0.018, 0.014)
-        return Vector((-s * 0.001 * wi, 0, 0.0060 * wi - 0.0025 * wo))
+        return Vector((-s * 0.0006 * wi, 0, 0.0048 * wi - 0.0020 * wo))
     stats["CejaTriste_" + L] = key("CejaTriste_" + L, ceja_triste)
     # --- párpados
     def parpado(p, o=o):
@@ -68,7 +68,7 @@ for L in ("R", "L"):
     def ojo_abierto(p, o=o):
         w = peso_elipse(p, o, 0.026, 0.020, plano=0.4)
         if w <= 0: return None
-        return Vector((0, 0, (0.0035 if p.z > o.z else -0.0020) * w))
+        return Vector((0, 0, (0.0024 if p.z > o.z else -0.0010) * w))
     stats["OjoAbierto_" + L] = key("OjoAbierto_" + L, ojo_abierto)
     # --- boca
     m = COMISURA[L]; mj = MEJILLA[L]
