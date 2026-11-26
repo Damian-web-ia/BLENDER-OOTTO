@@ -55,15 +55,18 @@ cara(1, "sonrisa", 0.3); cabeza(1, 25, 0, 26); columna(1, 4, 0, 6)
 cara(F(0.70), "sorpresa", 0.4); cabeza(F(0.78), 26, 3, 28)
 cara(F(1.60), "sonrisa", 0.8); columna(F(2.0), 6, 0, 8); cabeza(F(2.3), 26, 6, 26)
 # "¡Anda! Y yo ya puedo sonreír."
-cara(F(2.85), "sorpresa", 0.8); cabeza(F(2.98), -3, 0, -12); columna(F(2.98), -2, 0, -4)
+cara(F(2.85), "sorpresa", 0.8); cabeza(F(2.98), -3, 0, -22); columna(F(2.98), -2, 0, -6)
 mano_en("R", F(3.05), (-0.31, -0.03, 0.89))
 mano_en("R", F(3.35), (-0.07, -0.24, 1.22)); codo_hacia("R", F(3.35), (-0.70, 0.00, 0.90)); mano_pose("R", F(3.35), "abierta")
 orientar_mano("R", F(3.35), palma_hacia=(0, 1, 0), dedos_hacia=(1, 0, 0.3))
-mano_en("R", F(3.80), (-0.06, -0.25, 1.23)); cara(F(3.40), "sonrisa", 0.8); cabeza(F(3.45), 5, -4, -12)
-cara(F(4.02), "risa"); cabeza(F(4.12), -6, 5, -10)
-for l in ("R", "L"):
-    mano_en(l, F(4.15), (SX(l) * 0.27, -0.26, 1.16)); codo_hacia(l, F(4.15), (SX(l) * 0.8, 0.3, 0.9)); mano_pose(l, F(4.15), "abierta")
-    mano_en(l, F(4.62), (SX(l) * 0.28, -0.26, 1.18)); mano_pose(l, F(4.62), "abierta")
+mano_en("R", F(3.80), (-0.06, -0.25, 1.23)); cara(F(3.40), "sonrisa", 0.8); cabeza(F(3.45), 5, -4, -22)
+cara(F(4.02), "risa"); cabeza(F(4.12), -6, 5, -20)
+# abre la mano derecha hacia fuera, palma arriba (la izquierda sigue relajada)
+mano_en("R", F(4.15), (-0.31, -0.24, 1.16)); codo_hacia("R", F(4.15), (-0.8, 0.3, 0.9)); mano_pose("R", F(4.15), "abierta")
+orientar_mano("R", F(4.15), palma_hacia=(0, 0, 1), dedos_hacia=(-0.6, -1, 0.2))
+mano_en("R", F(4.62), (-0.32, -0.24, 1.18)); mano_pose("R", F(4.62), "abierta")
+orientar_mano("R", F(4.62), palma_hacia=(0, 0, 1), dedos_hacia=(-0.6, -1, 0.2))
+brazo_caido("L", F(4.15)); mano_pose("L", F(4.15), "relajada")
 # escucha a Clod: "¿Y enfadarte?"
 for l in ("R", "L"): brazo_caido(l, F(5.00)); mano_pose(l, F(5.00), "relajada"); mano_giro(l, F(5.00))
 cara(F(5.05), "sonrisa", 0.6); cabeza(F(5.10), 25, 0, 26); columna(F(5.1), 4, 0, 6)
@@ -92,9 +95,9 @@ mano_en("R", FIN - 8, (-0.14, -0.32, 1.25)); orientar_mano("R", FIN - 8, pulgar_
 cara(FIN, "sonrisa", 0.85); cabeza(FIN, 2, -4, -6); mano_en("L", FIN, (0.27, -0.02, 1.00))
 
 # ================================================================ CLOD
-CL.cara(1, "contento"); CL.cabeza(1, -20, 0, -50); CL.cuerpo(1, 0, 0, -30); CL.mirar(1, -0.02, 0.012)
+CL.cara(1, "contento"); CL.cabeza(1, -20, 0, -40); CL.cuerpo(1, 0, 0, -20); CL.mirar(1, -0.025, 0.012)
 # "¡Alex, mira!": saluda a Alex
-CL.cabeza(F(0.45), -14, 0, -44); CL.cara(F(0.58), "feliz"); CL.cabeza(F(0.66), -22, 4, -52)
+CL.cabeza(F(0.45), -14, 0, -36); CL.cara(F(0.58), "feliz"); CL.cabeza(F(0.66), -22, 4, -42)
 fs = CL.saludo("R", F(0.50), ciclos=2, vel=5)
 # "¡Tengo pantalla nueva!": se señala la pantalla y mira a cámara
 for l in ("R", "L"):
@@ -104,22 +107,25 @@ CL.cabeza(F(1.62), -6, 0, 28); CL.cuerpo(F(1.62), 0, 0, 10); CL.mirar(F(1.62), 0
 CL.mirar(F(2.05), -0.015, 0.012); CL.mirar(F(2.40), 0.02, 0.012)
 # escucha a Alex
 for l in ("R", "L"): CL.brazo_caido(l, F(2.85))
-CL.cabeza(F(3.00), -20, 6, -50); CL.cuerpo(F(3.0), 0, 0, -30); CL.mirar(F(3.00), -0.02, 0.012); CL.cara(F(2.95), "sorpresa", 0.5)
+CL.cabeza(F(3.00), -20, 6, -42); CL.cuerpo(F(3.0), 0, 0, -20); CL.mirar(F(3.00), -0.02, 0.012); CL.cara(F(2.95), "sorpresa", 0.5)
 CL.cara(F(4.08), "feliz"); CL.rebote(F(4.15), veces=2, alto=0.025, cada=7)
 # "¿Y enfadarte?": pícaro, mano a la "barbilla"
-CL.cara(F(4.95), "contento"); CL.cabeza(F(5.02), -18, -10, -46); CL.mirar(F(5.0), -0.02, 0.006)
+CL.mover(F(4.75), POS_CLOD, GIRO_CLOD); CL.mover(F(4.92), POS_CLOD, GIRO_CLOD - 22); CL.mover(F(5.88), POS_CLOD, GIRO_CLOD - 22)
+CL.mover(F(6.02), POS_CLOD, GIRO_CLOD)                               # se gira hacia Alex (plano 3 = lo que ve Alex)
+CL.cara(F(4.95), "contento"); CL.cabeza(F(5.02), -26, -10, -50); CL.cuerpo(F(5.02), 0, 0, -30); CL.mirar(F(5.0), 0.0, 0.012)
+CL.cuerpo(F(5.88), 0, 0, -30); CL.cuerpo(F(6.02), 0, 0, -20)
 CL.mano_en("R", F(5.05), (-0.12, -0.20, 0.50)); CL.codo_hacia("R", F(5.05), (-0.60, 0.20, 0.35)); CL.pulgar("R", F(5.05), 0.3)
 CL.mano_en("R", F(5.70), (-0.12, -0.205, 0.51))
 # "¡Grrr!": susto
-CL.cara(F(6.08), "susto"); CL.cuerpo(F(6.15), -6, 0, -30)
+CL.cara(F(6.08), "susto"); CL.cuerpo(F(6.15), -6, 0, -20)
 CL.aplastar(F(6.06), 1.0); CL.aplastar(F(6.14), 1.13); CL.aplastar(F(6.28), 0.95); CL.aplastar(F(6.42), 1.0)
 for l in ("R", "L"):
     CL.mano_en(l, F(6.15), (SX(l) * 0.27, -0.10, 0.62)); CL.codo_hacia(l, F(6.15), (SX(l) * 0.75, 0.15, 0.45)); CL.pulgar(l, F(6.15), 1.0)
     CL.mano_en(l, F(6.55), (SX(l) * 0.27, -0.10, 0.61))
-CL.cara(F(6.80), "contento"); CL.cuerpo(F(6.85), 0, 0, -30)
+CL.cara(F(6.80), "contento"); CL.cuerpo(F(6.85), 0, 0, -20)
 for l in ("R", "L"): CL.brazo_caido(l, F(6.95))
 # "¡Ja, ja! ¡Perfecto! ¿Empezamos?"
-CL.cara(F(7.45), "risa"); CL.cabeza(F(7.55), -16, 8, -42); CL.rebote(F(7.50), veces=2, alto=0.03, cada=7)
+CL.cara(F(7.45), "risa"); CL.cabeza(F(7.55), -16, 8, -36); CL.rebote(F(7.50), veces=2, alto=0.03, cada=7)
 CL.cara(F(8.06), "feliz"); CL.cabeza(F(8.10), -6, 0, 26); CL.cuerpo(F(8.1), 0, 0, 10); CL.mirar(F(8.1), 0.02, 0.01)
 fp = CL.pulgar_arriba("L", F(8.00), dur=18)
 for l in ("R", "L"):
@@ -204,8 +210,8 @@ def ck(f, loc, t, lens):
     cam.keyframe_insert("location", frame=f); cam.keyframe_insert("rotation_euler", frame=f); cam.data.keyframe_insert("lens", frame=f)
 PLANOS = [
     [(CORTES[0], (0.12, -2.40, 1.30), (0.16, -0.25, 1.20), 30), (CORTES[1] - 1, (0.12, -2.28, 1.31), (0.16, -0.25, 1.21), 30)],   # 1 los dos
-    [(CORTES[1], (-0.08, -1.75, 1.50), (0.06, 0, 1.38), 30), (CORTES[2] - 1, (-0.07, -1.65, 1.51), (0.06, 0, 1.39), 30)],         # 2 Alex medio
-    [(CORTES[2], (-0.30, -0.95, 1.25), (0.40, -0.55, 1.12), 45), (CORTES[3] - 1, (-0.27, -0.92, 1.24), (0.40, -0.55, 1.12), 45)],  # 3 Clod
+    [(CORTES[1], (-0.45, -1.75, 1.50), (0.0, 0, 1.38), 30), (CORTES[2] - 1, (-0.42, -1.66, 1.51), (0.0, 0, 1.39), 30)],           # 2 Alex medio
+    [(CORTES[2], (0.18, -0.12, 1.52), (0.40, -0.55, 1.10), 40), (CORTES[3] - 1, (0.20, -0.17, 1.49), (0.40, -0.55, 1.10), 40)],    # 3 Clod visto por Alex
     [(CORTES[3], (0.05, -1.32, 1.56), (0.01, 0, 1.49), 40), (CORTES[4] - 1, (0.05, -1.25, 1.56), (0.01, 0, 1.49), 40)],           # 4 Alex cerca
     [(CORTES[4], (0.20, -2.45, 1.30), (0.17, -0.25, 1.20), 30), (CORTES[5] - 1, (0.16, -2.00, 1.34), (0.17, -0.25, 1.26), 30)],   # 5 los dos, acercándose
 ]
