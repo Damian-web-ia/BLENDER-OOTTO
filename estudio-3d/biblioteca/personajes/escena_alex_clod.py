@@ -210,7 +210,7 @@ def ck(f, loc, t, lens):
     cam.keyframe_insert("location", frame=f); cam.keyframe_insert("rotation_euler", frame=f); cam.data.keyframe_insert("lens", frame=f)
 PLANOS = [
     [(CORTES[0], (0.12, -2.40, 1.30), (0.16, -0.25, 1.20), 30), (CORTES[1] - 1, (0.12, -2.28, 1.31), (0.16, -0.25, 1.21), 30)],   # 1 los dos
-    [(CORTES[1], (-0.45, -1.75, 1.50), (0.0, 0, 1.38), 30), (CORTES[2] - 1, (-0.42, -1.66, 1.51), (0.0, 0, 1.39), 30)],           # 2 Alex medio
+    [(CORTES[1], (-0.38, -1.85, 1.48), (0.06, 0, 1.36), 30), (CORTES[2] - 1, (-0.36, -1.76, 1.49), (0.06, 0, 1.37), 30)],         # 2 Alex medio (Clod mira desde la esquina)
     [(CORTES[2], (0.18, -0.12, 1.52), (0.40, -0.55, 1.10), 40), (CORTES[3] - 1, (0.20, -0.17, 1.49), (0.40, -0.55, 1.10), 40)],    # 3 Clod visto por Alex
     [(CORTES[3], (0.05, -1.32, 1.56), (0.01, 0, 1.49), 40), (CORTES[4] - 1, (0.05, -1.25, 1.56), (0.01, 0, 1.49), 40)],           # 4 Alex cerca
     [(CORTES[4], (0.20, -2.45, 1.30), (0.17, -0.25, 1.20), 30), (CORTES[5] - 1, (0.16, -2.00, 1.34), (0.17, -0.25, 1.26), 30)],   # 5 los dos, acercándose
