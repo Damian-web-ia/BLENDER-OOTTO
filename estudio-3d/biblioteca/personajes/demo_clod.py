@@ -83,7 +83,7 @@ CL.cara(F(5.75), "feliz"); CL.cabeza(F(5.75), -2, -7, 0)
 CL.parpadeo(F(6.20), lado="L")                                      # guiño
 f = CL.salto(F(6.55), alto=0.20, aire=12)
 CL.cara(f, "feliz"); CL.cabeza(f, -3, -4, 0)
-CL.mano_en("R", f + 4, (-0.17, -0.19, 0.44)); CL.pulgar("R", f + 4, 1.0)
+CL.mano_en("R", f + 4, (-0.16, -0.21, 0.49)); CL.orientar_pulgar("R", f + 4)
 
 CL.hablar(VOZ)
 CL.parpadeos(1, FIN, cada=(50, 80), evitar=[(F(6.20), F(6.20)), (F(2.47), F(3.12))])

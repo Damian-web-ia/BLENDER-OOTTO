@@ -178,11 +178,34 @@ class ClodAnim:
         for i in range(ciclos):
             self.mano_en(lado, f + vel, (s * 0.22, -0.07, 0.71)); self.mano_en(lado, f + 2 * vel, (s * 0.33, -0.06, 0.70)); f += 2 * vel
         return f
+    def orientar_pulgar(self, lado, f, arriba=(0, 0, 1), dedos=(0, -1, 0)):
+        """Gira la muñeca en f para que el pulgar apunte 'arriba' y la mano hacia 'dedos' (mundo). Guarda la clave."""
+        bpy.context.scene.frame_set(f)
+        pm = self.PB["mano." + lado]; pp = self.PB["pulgar." + lado]
+        pm.rotation_mode = pp.rotation_mode = 'XYZ'; pp.rotation_euler = (0, 0, 0); self._k(pp, f, "rotation_euler")
+        up, fw = Vector(arriba).normalized(), Vector(dedos).normalized()
+        def d(b): return (self.arm.matrix_world @ self.PB[b].matrix).to_3x3().col[1].normalized()
+        def nota():
+            bpy.context.view_layer.update(); return d("pulgar." + lado).dot(up) + 0.4 * d("mano." + lado).dot(fw)
+        best = (-9, (0, 0, 0))
+        for rx in range(-90, 91, 15):
+            for ry in range(-90, 91, 15):
+                for rz in range(-75, 76, 15):
+                    pm.rotation_euler = (_RC(rx), _RC(ry), _RC(rz)); v = nota()
+                    if v > best[0]: best = (v, (rx, ry, rz))
+        c = best[1]
+        for rx in range(c[0] - 10, c[0] + 11, 5):
+            for ry in range(c[1] - 10, c[1] + 11, 5):
+                for rz in range(c[2] - 10, c[2] + 11, 5):
+                    pm.rotation_euler = (_RC(rx), _RC(ry), _RC(rz)); v = nota()
+                    if v > best[0]: best = (v, (rx, ry, rz))
+        pm.rotation_euler = tuple(_RC(a) for a in best[1]); self._k(pm, f, "rotation_euler")
+        return round(best[0], 3)
     def pulgar_arriba(self, lado, f, dur=30):
         s = -1 if lado == "R" else 1
-        self.mano_en(lado, f, (s * 0.17, -0.19, 0.44)); self.codo_hacia(lado, f, (s * 0.45, 0.25, 0.30))
-        self.pulgar(lado, f, 1.0); self.mano_giro(lado, f, 0, 0, s * -20)
-        self.mano_en(lado, f + 4, (s * 0.17, -0.20, 0.46)); self.mano_en(lado, f + dur, (s * 0.17, -0.19, 0.45))
+        self.mano_en(lado, f, (s * 0.16, -0.21, 0.48)); self.codo_hacia(lado, f, (s * 0.50, 0.25, 0.30))
+        self.mano_en(lado, f + 4, (s * 0.16, -0.215, 0.50)); self.mano_en(lado, f + dur, (s * 0.16, -0.21, 0.49))
+        for fx in (f, f + 4, f + dur): self.orientar_pulgar(lado, fx)
         return f + dur
     def salto(self, f0, alto=0.25, aire=10):
         """Anticipación (se aplasta), salto con estiramiento, aterrizaje con rebote. Pies por IK; las manos acompañan."""
@@ -207,14 +230,16 @@ class ClodAnim:
         f += 5; cuerpo_en(f, 0.01, 1.04)
         f += 5; cuerpo_en(f, 0.0, 1.0)
         return f
-    def rebote(self, f0, veces=2, alto=0.03, cada=7):
-        """Saltitos de alegría sin despegar los pies (rodillas y cuerpo)."""
+    def rebote(self, f0, veces=2, alto=0.03, cada=7, manos=False):
+        """Saltitos de alegría sin despegar los pies. manos=True: las manos acompañan (si no tienen su propio gesto)."""
         f = f0
         for i in range(veces):
-            self.cadera(f, (0, 0, -alto)); self.aplastar(f, 0.92); self.manos_siguen(f0, f, (0, 0, -alto))
-            self.cadera(f + cada // 2, (0, 0, alto * 0.6)); self.aplastar(f + cada // 2, 1.06); self.manos_siguen(f0, f + cada // 2, (0, 0, alto * 0.6))
+            self.cadera(f, (0, 0, -alto)); self.aplastar(f, 0.92)
+            self.cadera(f + cada // 2, (0, 0, alto * 0.6)); self.aplastar(f + cada // 2, 1.06)
+            if manos: self.manos_siguen(f0, f, (0, 0, -alto)); self.manos_siguen(f0, f + cada // 2, (0, 0, alto * 0.6))
             f += cada
-        self.cadera(f); self.aplastar(f, 1.0); self.manos_siguen(f0, f)
+        self.cadera(f); self.aplastar(f, 1.0)
+        if manos: self.manos_siguen(f0, f)
         return f
     def andar(self, f0, pasos=4, zancada=0.25, fp=8, giro_z=0, desde=None):
         """Pasitos de robot: avanza en el mundo (zancada en unidades de diseño) con rebote."""

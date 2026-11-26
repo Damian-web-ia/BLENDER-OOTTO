@@ -33,7 +33,7 @@ def materiales():
     return {
         "naranja": material("Clod_Naranja", (0.95, 0.21, 0.012), rough=0.32, coat=0.45, coat_rough=0.12),
         "oscuro": material("Clod_Gris", (0.035, 0.036, 0.04), rough=0.42, metal=0.35),
-        "pantalla": material("Clod_Pantalla", (0.003, 0.003, 0.005), rough=0.06, coat=1.0, coat_rough=0.02),
+        "pantalla": material("Clod_Pantalla", (0.003, 0.003, 0.005), rough=0.35, coat=0.35, coat_rough=0.18),
         "led": material("Clod_LED", (0.80, 0.94, 1.0), rough=0.5, emision=9.0),
         "simbolo": material("Clod_Simbolo", (0.95, 0.95, 0.93), rough=0.3, emision=1.2, em_color=(1, 1, 1)),
         "mano": material("Clod_Manos", (0.86, 0.86, 0.84), rough=0.36, coat=0.4),
