@@ -135,11 +135,19 @@ class ClodAnim:
         for o, p0 in zip(self.ojos, self.OJO0):
             o.location = p0 + self.V((x, 0, z)); self._k(o, f, "location")
     def _boca_habla(self):
+        """Claves de habla que solo ABREN la boca en vertical (se suman bien a cualquier expresión)."""
         kbs = self.bocaob.data.shape_keys.key_blocks
-        for n in ("abierta", "O"):
-            if n + "_habla" not in kbs:
-                nk = self.bocaob.shape_key_add(name=n + "_habla", from_mix=False); nk.value = 0
-                for i, d in enumerate(kbs[n].data): nk.data[i].co = d.co
+        if "abierta_habla" not in kbs:
+            B = [d.co.copy() for d in kbs["Basis"].data]; n = len(B) // 2
+            xm = max(abs(B[i].x) for i in range(n)) or 1.0
+            a_top, a_bot = 0.30 * 0.05 * self.K, 0.55 * 0.05 * self.K
+            nk = self.bocaob.shape_key_add(name="abierta_habla", from_mix=False); nk.value = 0
+            for i in range(n):
+                tt = max(0.0, 1 - abs(B[i].x / xm) ** 2.6) ** (1 / 2.6)
+                nk.data[i].co = B[i] + Vector((0, 0, a_top * tt)); nk.data[n + i].co = B[n + i] - Vector((0, 0, a_bot * tt))
+        if "O_habla" not in kbs:
+            nk = self.bocaob.shape_key_add(name="O_habla", from_mix=False); nk.value = 0
+            for i, d in enumerate(kbs["O"].data): nk.data[i].co = d.co
         return kbs["abierta_habla"], kbs["O_habla"]
     def hablar(self, lineas, fps=30, desfase=0.0, forma_o=False):
         """lineas: [{"at": seg, "words": [[texto, ini, fin], ...]}]. La boca LED se abre por sílabas."""

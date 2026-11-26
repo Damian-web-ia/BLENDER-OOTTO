@@ -33,9 +33,9 @@ CL.cabeza(F(0.15), -6, -4, 0); CL.cuerpo(F(0.2), 0, 0, 0); CL.mirar(F(0.10), 0, 
 CL.cara(F(0.05), "sorpresa", 0.6); CL.cara(F(0.30), "feliz")
 CL.rebote(F(0.10), veces=2, alto=0.025, cada=7)
 # saludo con la derecha
-CL.mano_en("R", F(0.20), (-0.36, -0.08, 0.60)); CL.codo_hacia("R", F(0.20), (-0.80, 0.30, 0.45)); CL.pulgar("R", F(0.20), 0.7)
-for t, x in ((0.36, -0.31), (0.52, -0.40), (0.68, -0.31), (0.84, -0.39)):
-    CL.mano_en("R", F(t), (x, -0.08, 0.60))
+CL.mano_en("R", F(0.20), (-0.33, -0.06, 0.66)); CL.codo_hacia("R", F(0.20), (-0.80, 0.30, 0.45)); CL.pulgar("R", F(0.20), 0.7)
+for t, x in ((0.36, -0.29), (0.52, -0.37), (0.68, -0.29), (0.84, -0.36)):
+    CL.mano_en("R", F(t), (x, -0.06, 0.665))
 CL.cabeza(F(0.6), -3, 6, 0)
 # "Soy Clod": mano al pecho, se inclina un poco
 CL.mano_en("R", F(1.02), (-0.12, -0.21, 0.45)); CL.codo_hacia("R", F(1.02), (-0.60, 0.20, 0.35)); CL.pulgar("R", F(1.02), 0.2)
@@ -114,9 +114,9 @@ for n, (loc, e, col) in LUZ.items():
     o = bpy.data.objects.get(n)
     if o is None:
         o = bpy.data.objects.new(n, bpy.data.lights.new(n, "AREA")); sc.collection.objects.link(o)
-    o.data.size = 0.6; o.location = loc; o.data.energy = e; o.data.color = col
+    o.data.size = 1.4 if n != "Relleno" else 0.8; o.location = loc; o.data.energy = e; o.data.color = col
     o.rotation_euler = (Vector((0, 0, 0.18)) - o.location).to_track_quat("-Z", "Y").to_euler()
-_m["brillo_led"](sc)
+_m["brillo_led"](sc, umbral=6.0)
 
 # ---------------------------------------------------------------- cámara: 4 planos
 cam = bpy.data.objects.get("CAM")
