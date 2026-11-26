@@ -173,12 +173,12 @@ if "COCHE_Motor" not in bpy.data.objects:
         dsc = cilindro(f"COCHE_Disco{s}", (X_DEL, s * 0.60, Z_RUEDA), 0.15, 0.024, ACERO, seg=64, col=CC, padre=CAR, rot=(R(90), 0, 0))
         for pp in dsc.data.polygons: pp.use_smooth = len(pp.vertices) == 4
         caja(f"COCHE_Pinza{s}", (X_DEL + 0.10, s * 0.585, Z_RUEDA + 0.11), (0.09, 0.07, 0.12), ROJO, bisel=0.012, col=CC, padre=CAR)
-        cilindro(f"COCHE_Amort{s}", (X_DEL, s * 0.52, 0.62), 0.025, 0.34, ACERO, col=CC, padre=CAR)
+        cilindro(f"COCHE_Amort{s}", (X_DEL, s * 0.40, 0.62), 0.025, 0.34, ACERO, col=CC, padre=CAR)
         cu = bpy.data.curves.new(f"COCHE_Muelle{s}", "CURVE"); cu.dimensions = '3D'; cu.bevel_depth = 0.009; cu.bevel_resolution = 3
         sp = cu.splines.new('POLY'); N_ = 160; sp.points.add(N_ - 1)
         for j in range(N_):
             a = j / (N_ - 1) * 2 * math.pi * 6
-            sp.points[j].co = (X_DEL + 0.065 * math.cos(a), s * 0.52 + 0.065 * math.sin(a), 0.47 + 0.26 * j / (N_ - 1), 1)
+            sp.points[j].co = (X_DEL + 0.055 * math.cos(a), s * 0.40 + 0.055 * math.sin(a), 0.47 + 0.26 * j / (N_ - 1), 1)
         o = bpy.data.objects.new(f"COCHE_Muelle{s}", cu); CC.objects.link(o); o.parent = CAR; cu.materials.append(ROJO)
 # las otras tres ruedas
 for (x, s, nm) in ((X_TRAS, -1, "RUEDA_TI"), (X_DEL, 1, "RUEDA_DD"), (X_TRAS, 1, "RUEDA_TD")):
@@ -435,11 +435,12 @@ def luz(n, tipo, loc, mira, color, size=1.0):
     o.rotation_euler = (Vector(mira) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
     if o.data.animation_data: o.data.animation_data_clear()
     return o
-L1 = luz("D_LuzClave", 'AREA', P + Vector((0.9, -1.6, 1.4)), P, (1.0, 0.95, 0.88), 1.3)
+L1 = luz("D_LuzClave", 'SPOT', P + Vector((1.2, -1.5, 1.7)), P, (1.0, 0.95, 0.88))
+L1.data.spot_size = R(32); L1.data.spot_blend = 0.35
 L2 = luz("D_LuzContra", 'AREA', P + Vector((-0.6, 1.4, 0.9)), P, (0.35, 0.62, 1.0), 1.2)
 L3 = luz("D_LuzBajo", 'AREA', P + Vector((0.3, -0.8, -1.0)), P, (1.0, 0.6, 0.3), 1.0)
 L4 = luz("D_LuzFlash", 'POINT', P + Vector((0, -0.25, 0.15)), P, (1.0, 0.85, 0.6))
-for o, e in ((L1, 150), (L2, 320), (L3, 45)):
+for o, e in ((L1, 900), (L2, 200), (L3, 30)):
     for f_, v in ((1, 0), (150, 0), (180, e), (640, e), (650, 0)):
         o.data.energy = v; o.data.keyframe_insert("energy", frame=f_)
 for f_, v in ((1, 0), (189, 0), (190, 600), (194, 300), (205, 0), (556, 0), (590, 0), (592, 500), (600, 0)):
@@ -594,18 +595,18 @@ def ck(f, loc, t, lens, dof=None, fstop=2.8):
 CORTES = [1, 101, 651, 746, 816, 896, FIN + 1]
 W0t = tuple(W0)
 # plano 1: coche con Clod en el capó, acercándose
-ck(1, (-1.30, -2.10, 0.80), (-1.33, 0.30, 0.66), 38)
-ck(100, (-1.30, -1.88, 0.80), (-1.33, 0.30, 0.67), 38)
+ck(1, (-1.25, -2.10, 1.40), (-1.33, 0.35, 0.70), 38)
+ck(100, (-1.27, -1.86, 1.33), (-1.33, 0.35, 0.70), 38)
 # planos 2-3 (continuo): Alex y la rueda -> entramos -> despiece en el aire -> cae
 ck(101, (-0.85, -3.30, 1.45), (-0.86, -0.20, 0.95), 27)
 ck(128, (-0.90, -2.85, 1.38), (-1.00, -0.12, 0.84), 28)
 ck(150, (-1.04, -1.62, 0.92), (-1.24, 0.02, 0.48), 32)
 ck(166, (-1.06, -1.30, 0.78), (-1.27, 0.0, 0.36), 34)
-ck(180, (-0.95, -2.10, 1.40), tuple(P + Vector((0, 0, -0.10))), 35)
+ck(180, (-1.05, -2.25, 1.75), tuple(P + Vector((0, 0, -0.10))), 35)
 def orbita(f, ang, dist=2.30, alt=1.55, mira_z=0.02, lens=36):
     a = R(ang); off = Vector((math.sin(a) * dist, -math.cos(a) * dist, alt))
     ck(f, tuple(P + off), tuple(P + Vector((0, 0, mira_z))), lens)
-orbita(194, -14); orbita(272, -19); orbita(386, -24); orbita(495, -28); orbita(556, -31, mira_z=0.10); orbita(600, -32, mira_z=0.08)
+orbita(194, 18); orbita(272, 21); orbita(386, 24); orbita(495, 27); orbita(556, 29, mira_z=0.10); orbita(600, 30, mira_z=0.08)
 ck(628, (-0.62, -2.55, 1.30), tuple(P + Vector((0, 0, -0.45))), 33)
 ck(650, (-0.70, -2.35, 0.95), tuple(SUELO + Vector((0, 0, 0.10))), 32)
 # plano 4: Clod y el "donut"
