@@ -64,7 +64,7 @@ Diseño:
 12. Fondo del taller con profundidad (fondo desenfocado en primeros planos).
 
 Movimiento:
-1. Respiración y peso en los dos personajes (nunca quietos del todo).
+1. Respiración y peso en los dos personajes (nunca quietos del todo). ✔ 26-11 (capa viva: `capa_viva()` en alex_anim.py y `CL.respirar()` en clod_anim.py; antes/después en `referencias/evolucion/2026-11-26_capa-viva.png` del PC)
 2. Anticipación y rebote en cada gesto (antes de levantar el brazo, baja un poco).
 3. Movimientos con curvas suaves (ease in/out) y gestos que se solapan (cabeza antes que brazo).
 4. Ciclo de andar de Clod con balanceo y de Alex con peso.
