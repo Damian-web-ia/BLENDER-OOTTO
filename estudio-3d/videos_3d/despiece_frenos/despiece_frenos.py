@@ -122,12 +122,12 @@ for o, z_ini in ((O["piston"], -GAP), (O["pad_int"], -GAP)):
 for o in (O["pinza_cuerpo"], O["pad_ext"]):
     kl(o, 1, (0, 0, GAP)); kl(o, FW(1, 14), (0, 0, GAP)); kl(o, FW(1, 14) + 12, (0, 0, 0))
 # --- calor (plano D) y enfriado (plano E)
-kp("calor", 1, 0.0); kp("calor", D0 + 4, 0.0); kp("calor", FW(1, 35), 1.0); kp("calor", FW(1, 38), 1.0); kp("calor", FW(1, 45, True), 0.12); kp("calor", A2 - 2, 0.08)
+kp("calor", 1, 0.0); kp("calor", D0 + 4, 0.0); kp("calor", FW(1, 35), 1.0); kp("calor", FW(1, 41), 1.0); kp("calor", FW(1, 43), 0.3); kp("calor", FW(1, 45, True), 0.0)
 # --- se abre: la pinza y el soporte se apartan, las pastillas se separan y el disco enseña sus canales (plano E)
-kl(O["pinza"], 1, Z0); kl(O["pinza"], E0 + 1, Z0); kl(O["pinza"], E0 + 16, (0.15, 0, -0.02))
-kl(O["soporte"], 1, Z0); kl(O["soporte"], E0 + 3, Z0); kl(O["soporte"], E0 + 18, (0.10, 0, -0.06))
-kl(O["pad_int"], E0 + 2, Z0); kl(O["pad_int"], E0 + 18, (0.03, 0, -0.07))
-kl(O["pad_ext"], E0 + 2, Z0); kl(O["pad_ext"], E0 + 18, (0.03, 0, 0.11))
+kl(O["pinza"], 1, Z0); kl(O["pinza"], E0 + 1, Z0); kl(O["pinza"], E0 + 16, (0.42, 0.06, -0.06))
+kl(O["soporte"], 1, Z0); kl(O["soporte"], E0 + 3, Z0); kl(O["soporte"], E0 + 18, (0.36, 0.04, -0.12))
+kl(O["pad_int"], E0 + 2, Z0); kl(O["pad_int"], E0 + 18, (0.30, 0.02, -0.10))
+kl(O["pad_ext"], E0 + 2, Z0); kl(O["pad_ext"], E0 + 18, (0.30, 0.02, 0.14))
 kl(O["disco_ext"], 1, Z0); kl(O["disco_ext"], E0 + 10, Z0); kl(O["disco_ext"], E0 + 28, (0, 0, 0.048))
 ai = O["aire"]
 kp("aire", 1, 0.0)
@@ -177,13 +177,13 @@ L4 = luz("D_LuzFlash", 'POINT', W0 + Vector((0, -0.25, 0.05)), W0, (1.0, 0.85, 0
 for o, e_ in ((L1, 330), (L2, 110), (L3, 14), (L5, 60)):
     for f_, v in ((1, 0), (100, 0), (124, e_), (A2 - 1, e_), (A2, 0)):
         o.data.energy = v; o.data.keyframe_insert("energy", frame=f_)
-for f_, v in ((1, 0), (D0 + 4, 0), (FW(1, 35), 18), (FW(1, 38), 18), (FW(1, 45, True), 2), (A2, 0)):
+for f_, v in ((1, 0), (D0 + 4, 0), (FW(1, 35), 18), (FW(1, 41), 18), (FW(1, 43), 4), (FW(1, 45, True), 0), (A2, 0)):
     LC.data.energy = v; LC.data.keyframe_insert("energy", frame=f_)
 for f_, v in ((1, 0), (EST - 1, 0), (EST, 140), (EST + 4, 70), (EST + 12, 0)):
     L4.data.energy = v; L4.data.keyframe_insert("energy", frame=f_)
-LI = luz("D_LuzInserto", 'SPOT', Q + Vector((0.35, -0.55, 0.45)), Q, (1.0, 0.96, 0.9)); LI.data.spot_size = R(40); LI.data.spot_blend = 0.5
-LI2 = luz("D_LuzInsertoContra", 'AREA', Q + Vector((-0.3, 0.4, 0.3)), Q, (0.6, 0.75, 1.0), 0.6)
-for o, e_ in ((LI, 140), (LI2, 40)):
+LI = luz("D_LuzInserto", 'SPOT', Q + Vector((-0.30, -0.50, 0.45)), Q, (1.0, 0.96, 0.9)); LI.data.spot_size = R(40); LI.data.spot_blend = 0.5
+LI2 = luz("D_LuzInsertoContra", 'AREA', Q + Vector((0.35, 0.35, 0.3)), Q, (0.6, 0.75, 1.0), 0.6)
+for o, e_ in ((LI, 45), (LI2, 14)):
     for f_, v in ((1, 0), (INS - 1, 0), (INS, e_), (CTA - 1, e_), (CTA, 0)):
         o.data.energy = v; o.data.keyframe_insert("energy", frame=f_)
 
@@ -367,8 +367,8 @@ cl(E0, (0.62, -0.40, 0.42), (0.08, 0.0, 0.02), 34); cl(E0 + 30, (0.58, -0.30, 0.
 cl(A2 - 1, (0.54, -0.28, 0.14), (0.10, 0.0, 0.025), 42, 6.0)
 # consejo: Alex con Clod de fondo -> inserto pastilla nueva / gastada -> Alex
 ck(A2, (-0.30, -2.35, 1.45), (-0.95, -0.05, 1.15), 28); ck(INS - 1, (-0.31, -2.25, 1.45), (-0.95, -0.05, 1.15), 28)
-ck(INS, tuple(Q + Vector((0.46, -0.42, 0.16))), tuple(Q), 48, dof=tuple(Q), fstop=5.6)
-ck(CTA - 1, tuple(Q + Vector((0.42, -0.38, 0.14))), tuple(Q), 50, dof=tuple(Q), fstop=5.6)
+ck(INS, tuple(Q + Vector((-0.50, -0.26, 0.14))), tuple(Q), 48, dof=tuple(Q), fstop=5.6)
+ck(CTA - 1, tuple(Q + Vector((-0.46, -0.24, 0.13))), tuple(Q), 50, dof=tuple(Q), fstop=5.6)
 # síguenos
 ck(CTA, (-0.85, -3.75, 1.30), (-0.88, -0.25, 0.92), 28); ck(FIN, (-0.86, -3.50, 1.28), (-0.88, -0.25, 0.94), 28)
 
