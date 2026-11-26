@@ -11,7 +11,7 @@
 | **Mejora del día** | Movimiento: **capa viva** (Alex cambia el peso de cadera a cadera y balancea la cabeza; Clod respira estirándose un poco). Es aditiva: no pisa los gestos. Medido en el mismo tramo: la cabeza de Alex se mueve 24 mm (antes 13) y la de Clod 14 mm (antes 9). Imagen antes/después en el PC: `EKORUEDAS_ESTUDIO_3D\referencias\evolucion\2026-11-26_capa-viva.png`. |
 | **Sonido** | Voces igualadas, música funk-groove al 20 % con ducking, 4 efectos (arranque metálico de la máquina, clic del contrapeso, pop del susto de Clod, risa corta), -14,8 LUFS. Subtítulos con caja y palabras clave en #FF8400; rótulos "+80 km/h", "CONTRAPESO", "GIRA REDONDA", "GUÁRDALO". |
 | **Ootto** | versión 2 (voz Diego): job `job_efdf10a2d734` · [ver el reel](https://mcp.ootto.ai/w/reel/acc_50544226d762-efdf10a2d734). Versión 1 (Gonzalo): `job_5c2f9c799356`, ya no se publica |
-| **Publicación** | Instagram y YouTube Shorts (Ootto, versión 2): **27-11-2026 a las 19:00** · TikTok (vidIQ): versión 2 preparada para el 27-11 a las 19:00, pendiente del sí de Damián · Público · portada propia |
+| **Publicación** | Instagram y YouTube Shorts (Ootto, versión 2): **27-11-2026 a las 19:00** · TikTok (vidIQ): versión 2 programada para el **27-11-2026 a las 19:00** (Damián dijo sí a las 21:16) · Público · portada propia |
 
 ## Archivos
 | Archivo | Qué es |
