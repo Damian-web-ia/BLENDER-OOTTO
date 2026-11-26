@@ -52,3 +52,12 @@
 - **Cambiar la voz sin rehacer la animación:** `despiece_neumatico_v2.py` lee `voces_alex.json` (tiempos de cada palabra) y estira o encoge la línea de tiempo entera con una función por tramos sacada de palabras clave (cada clave de animación se mueve, con sus asas). Escribe `warp.json`, que usan el montaje y la mezcla de audio. Así una voz nueva solo cuesta generar las frases.
 - **`reel_voice` admite voces que no son premium** (por ejemplo "Gonzalo"). Antes de decir "voz grave" o "voz aguda", medir el tono: Gonzalo ronda 142 Hz (no es grave), pero es la más expresiva; Carlos 102 Hz.
 - **En el montaje no reutilizar `W` para dos cosas** (ancho de pantalla y función de tiempo): la función se llama `WP`.
+
+## 2026-11-26 (19:30) · Reel del equilibrado
+- **Capa viva aditiva** (modificadores de curva tipo seno con `use_additive`): Alex cambia el peso y balancea la cabeza, Clod respira. No hace falta tocar cada gesto y se apaga con `activa=False` para comparar. Medido: cabeza de Alex 13 → 24 mm de movimiento en reposo; Clod 9 → 14 mm.
+- **Neumático tumbado = agujero en el centro:** el rayo para subir a Clod a la pila atravesó el hueco. Poner una tabla encima de la pila.
+- **La pantalla de la equilibradora del taller v2 estaba hundida en el panel** (no se veía): se sube 5,6 mm por su normal.
+- **Dos personajes separados 1,4 m no caben en 9:16 de frente:** o se alinean en profundidad (cámara de lado) o se usa un objetivo corto (17-20 mm) en el plano general.
+- **Rueda que gira:** 18° por fotograma con desenfoque de movimiento se lee bien; el desequilibrio se ve haciendo "saltar" el centro de la rueda 1 cm en cada vuelta.
+- **Mañana en diseño:** Alex tiene la cara muy sonriente aunque la expresión sea "duda" o "enfado": revisar la intensidad de las formas de la boca al hablar.
+

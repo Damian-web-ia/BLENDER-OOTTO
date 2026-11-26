@@ -15,3 +15,10 @@ Lo que ha funcionado y lo que ha fallado, día a día. La skill maestra se mejor
 - Detalle completo en `estudio-3d/LECCIONES.md`. Resumen: bajar la luz (clave 650 W); los textos van colgados de la cámara a 0,4 m y con placa oscura; los subtítulos con caja; en los insertos, cámara alta para que nada pise los títulos; comprobar la portada con `world_to_camera_view`.
 - Al acercarse, la cámara del último plano metió la cabeza de Alex bajo el título: en planos con *push-in*, el título va un 10 % más arriba o la cámara no se acerca.
 - Desde hoy, cada reel carga `estudio-3d/biblioteca/biblioteca_ekoruedas.py` en vez de reconstruirlo todo.
+
+## 2026-11-26 · Reel diario «¿Te tiembla el volante a partir de 80?» (equilibrado)
+- **ChatGPT corta las respuestas largas** porque gasta tokens pensando: la lista de preguntas llegó cortada (34 de 40) y la skill se quedó en la sección 8. Pedir más `max_tokens` (12.000-14.000 para prompt + skill) o pedir la skill en otra llamada; Claude completó lo que faltaba.
+- **Bordes negros en el vídeo sin voz:** `encode_bg.py` no escalaba los fotogramas renderizados al 67 %. Arreglado (escala la tira al tamaño final); hoy se recortó en el montaje con `crop=724:1286:178:317`.
+- **Pasar archivos del PC a Ootto sin carpeta conectada:** Blender sube el archivo con un PUT a la URL firmada de `request_user_media_upload` y luego `confirm_user_media`. Para GitHub hace falta la carpeta conectada.
+- **Datos:** el gancho de síntoma (volante) es el que mejor funciona (1.621 vistas, 10,8x la mediana); el reel 3D con más tiempo de visionado (23 s de media) fue el de humor con Clod.
+
