@@ -183,7 +183,7 @@ def led(nombre, centro, w, h, base, claves, mat, col, lado=1, prof=0.0):
     o = _obj(nombre, bm, mat, col, liso=False); o.location = V(*centro)
     o.shape_key_add(name="Basis", from_mix=False)
     for nk in claves:
-        kb = o.shape_key_add(name=nk, from_mix=False)
+        kb = o.shape_key_add(name=nk, from_mix=False); kb.value = 0.0
         pts = _forma(nk, w, h, lado)
         for i, (x, zt, zb) in enumerate(pts):
             kb.data[i].co = Vector((x * K, 0, zt * K)); kb.data[N_LED + i].co = Vector((x * K, 0, zb * K))
@@ -206,7 +206,7 @@ def construir_clod(origen=(0, 0, 0)):
         P(capsula(f"CLOD_Muslo_{L}", (s * 0.115, -0.012, 0.195), (s * 0.11, 0.0, 0.30), 0.045, M["naranja"], col), f"muslo.{L}")
     # cuerpo
     P(esfera("CLOD_Cuerpo", (0, 0, 0.42), (0.205, 0.165, 0.175), M["naranja"], col, 64, 32), "cuerpo")
-    P(esfera("CLOD_Faja", (0, 0, 0.33), (0.17, 0.14, 0.05), M["oscuro"], col, 48, 16), "cadera")
+    P(esfera("CLOD_Faja", (0, 0, 0.275), (0.15, 0.12, 0.045), M["oscuro"], col, 48, 16), "cadera")
     # símbolo del pecho: 6 barras redondeadas que se cruzan (proyectadas sobre el cuerpo)
     for i in range(6):
         b = caja_redonda(f"CLOD_Simbolo{i}", (0, -0.168, 0.445), (0.016, 0.01, 0.13), 0.006, M["simbolo"], col, seg=3, subdiv=0)
