@@ -61,9 +61,22 @@ class ClodAnim:
         b.location = rest.to_3x3().inverted() @ self.V(off); self._k(b, f, "location")
         self._rot("cadera", f, *giro)
     def aplastar(self, f, s=1.0):
-        """s<1 aplasta, s>1 estira (conserva el volumen). Afecta a cuerpo y cabeza."""
-        b = self.PB["cadera"]; w = 1 / math.sqrt(s)
+        """s<1 aplasta, s>1 estira (conserva el volumen). Afecta a cuerpo, cabeza y brazos (no a las piernas)."""
+        b = self.PB["cuerpo"]; w = 1 / math.sqrt(s)
         b.scale = (w, s, w); self._k(b, f, "scale")
+    def _loc_en(self, obj, f):
+        """Posición clave de un control en el fotograma f (lee sus curvas)."""
+        ad = obj.animation_data; v = list(obj.location)
+        if ad and ad.action:
+            try: curvas = list(ad.action.fcurves)
+            except Exception: curvas = [fc for l in ad.action.layers for s_ in l.strips for cb in s_.channelbags for fc in cb.fcurves]
+            for fc in curvas:
+                if fc.data_path == "location": v[fc.array_index] = fc.evaluate(f)
+        return Vector(v)
+    def manos_siguen(self, f_ref, f, off=(0, 0, 0)):
+        """Las manos conservan la pose que tenían en f_ref, desplazadas con el cuerpo (saltos, rebotes)."""
+        for l in ("R", "L"):
+            o = self.ctrl["CTRLC_mano_" + l]; o.location = self._loc_en(o, f_ref) + self.V(off); self._k(o, f, "location")
     def mover(self, f, pos=(0, 0, 0), giro_z=0):
         """Coloca a Clod en el mundo (metros) y su giro (grados)."""
         self.arm.location = pos; self.arm.rotation_euler = (0, 0, _RC(giro_z))
@@ -159,30 +172,41 @@ class ClodAnim:
         return f
     def pulgar_arriba(self, lado, f, dur=30):
         s = -1 if lado == "R" else 1
-        self.mano_en(lado, f, (s * 0.15, -0.22, 0.43)); self.codo_hacia(lado, f, (s * 0.45, 0.25, 0.30))
+        self.mano_en(lado, f, (s * 0.17, -0.19, 0.44)); self.codo_hacia(lado, f, (s * 0.45, 0.25, 0.30))
         self.pulgar(lado, f, 1.0); self.mano_giro(lado, f, 0, 0, s * -20)
-        self.mano_en(lado, f + 4, (s * 0.15, -0.23, 0.45)); self.mano_en(lado, f + dur, (s * 0.15, -0.22, 0.44))
+        self.mano_en(lado, f + 4, (s * 0.17, -0.20, 0.46)); self.mano_en(lado, f + dur, (s * 0.17, -0.19, 0.45))
         return f + dur
     def salto(self, f0, alto=0.25, aire=10):
-        """Anticipación (se aplasta), salto con estiramiento, aterrizaje con rebote. Pies con IK."""
+        """Anticipación (se aplasta), salto con estiramiento, aterrizaje con rebote. Pies por IK; las manos acompañan."""
         f = f0
-        self.cadera(f); self.aplastar(f, 1.0)
-        f += 5; self.cadera(f, (0, 0, -0.06)); self.aplastar(f, 0.82)
-        f += 4; self.cadera(f, (0, 0, 0.02)); self.aplastar(f, 1.15)
+        def cuerpo_en(fx, dz, sq):
+            self.cadera(fx, (0, 0, dz)); self.aplastar(fx, sq); self.manos_siguen(f0, fx, (0, 0, dz))
+        cuerpo_en(f, 0, 1.0)
+        f += 5; cuerpo_en(f, -0.06, 0.82)
+        f += 4; cuerpo_en(f, 0.02, 1.15)
         for l in ("R", "L"):
             s = -1 if l == "R" else 1
-            self.pie_en(l, f - 4, (s * 0.115, 0.0, 0.07)); self.pie_en(l, f, (s * 0.115, 0.0, 0.07))
+            self.pie_en(l, f0, (s * 0.115, 0.0, 0.07)); self.pie_en(l, f, (s * 0.115, 0.0, 0.07))
         top = f + aire // 2
         for l in ("R", "L"):
             s = -1 if l == "R" else 1; self.pie_en(l, top, (s * 0.115, 0.0, 0.07 + alto))
-        self.cadera(top, (0, 0, alto)); self.aplastar(top, 1.05)
+        cuerpo_en(top, alto, 1.05)
         f = f + aire
         for l in ("R", "L"):
             s = -1 if l == "R" else 1; self.pie_en(l, f, (s * 0.115, 0.0, 0.07))
-        self.cadera(f, (0, 0, 0.0)); self.aplastar(f, 1.1)
-        f += 3; self.cadera(f, (0, 0, -0.05)); self.aplastar(f, 0.85)
-        f += 5; self.cadera(f, (0, 0, 0.01)); self.aplastar(f, 1.04)
-        f += 5; self.cadera(f); self.aplastar(f, 1.0)
+        cuerpo_en(f, 0.0, 1.1)
+        f += 3; cuerpo_en(f, -0.05, 0.85)
+        f += 5; cuerpo_en(f, 0.01, 1.04)
+        f += 5; cuerpo_en(f, 0.0, 1.0)
+        return f
+    def rebote(self, f0, veces=2, alto=0.03, cada=7):
+        """Saltitos de alegría sin despegar los pies (rodillas y cuerpo)."""
+        f = f0
+        for i in range(veces):
+            self.cadera(f, (0, 0, -alto)); self.aplastar(f, 0.92); self.manos_siguen(f0, f, (0, 0, -alto))
+            self.cadera(f + cada // 2, (0, 0, alto * 0.6)); self.aplastar(f + cada // 2, 1.06); self.manos_siguen(f0, f + cada // 2, (0, 0, alto * 0.6))
+            f += cada
+        self.cadera(f); self.aplastar(f, 1.0); self.manos_siguen(f0, f)
         return f
     def andar(self, f0, pasos=4, zancada=0.25, fp=8, giro_z=0, desde=None):
         """Pasitos de robot: avanza en el mundo (zancada en unidades de diseño) con rebote."""
