@@ -43,9 +43,9 @@ cadera(F(0.20), (0, 0, -0.012))                    # pequeño rebote al girarse
 cadera(F(0.45), (0, 0, 0))
 # saludo con la mano derecha, a la altura de la cabeza y cerca del cuerpo
 mano_en("R", F(0.02), (-0.31, -0.03, 0.89)); mano_pose("R", F(0.02), "relajada")
-mano_en("R", F(0.42), (-0.33, -0.14, 1.60)); codo_hacia("R", F(0.42), (-0.80, 0.10, 1.12)); mano_pose("R", F(0.42), "abierta")
+mano_en("R", F(0.42), (-0.37, -0.14, 1.60)); codo_hacia("R", F(0.42), (-0.80, 0.10, 1.12)); mano_pose("R", F(0.42), "abierta")
 orientar_mano("R", F(0.42), palma_hacia=(0, -1, 0), dedos_hacia=(0, 0, 1))
-for t, x in ((0.58, -0.22), (0.74, -0.36), (0.90, -0.23), (1.05, -0.34)):
+for t, x in ((0.58, -0.29), (0.74, -0.40), (0.90, -0.29), (1.05, -0.38)):   # la mano nunca tapa la cara
     mano_en("R", F(t), (x, -0.14, 1.61))
 mano_pose("R", F(1.05), "abierta")
 # ================================================================== PLANO 2 · medio 3/4: "Soy Alex. Mira esto:"
