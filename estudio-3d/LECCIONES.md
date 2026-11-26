@@ -20,3 +20,14 @@
 - En Blender, importar el FBX con `temp_override` de una vista 3D (si no, falla `mode_set`).
 - **Brazos de Alex v2: usar IK, no rotaciones sueltas.** Rotar los huesos `mixamorig:RightArm/ForeArm` a mano dejó el brazo dislocado (hombro hundido, codo recto, muñeca doblada). Solución: restricción IK en `RightForeArm` (chain_count=2) con un empty de objetivo para la mano y otro de polo para el codo (pole_angle −135° en este rig, codo hacia fuera y abajo). Para saludar: codo a la altura del hombro y antebrazo vertical; el saludo se anima moviendo solo el objetivo de la mano de lado a lado. Ejemplo: `biblioteca\personajes\alex\alex_v2_saludo.blend`.
 - Antes de renderizar, revisar siempre fotogramas de cerca (vista frontal, a 2,5 m) en los momentos de más movimiento.
+
+## 2026-11-26 (noche) · Alex con expresiones y Clod v2
+- **Hombro con pico al subir el brazo:** la malla de Tripo tenía 7 vértices salidos junto al cuello y cortes bruscos de peso entre Shoulder, Arm y Neck. Se alisaron los picos (moviendo también todas las shape keys) y se suavizaron los pesos en una zona acotada. Medir antes de corregir: largo de aristas en pose contra reposo (`metrica_alex`).
+- **Sonrisa que cerraba los ojos:** la forma de sonrisa subía el párpado inferior. Se anula el movimiento vertical cerca del ojo.
+- **Encuadre vertical:** gestos amplios (manos a 0,45 m del eje) se salían por los lados en 9:16. Regla: manos a menos de 0,35 m del eje y comprobación automática de encuadre antes de cada render.
+- **Clod por código mejor que con Tripo:** un robot de piezas rígidas no necesita pesos ni retopología y nunca se deforma mal. Tripo se queda para personajes orgánicos.
+- **Pantalla LED:** con una sola tira de 32 columnas se hacen todas las formas (ojos, arcos, enfado, boca) como shape keys; el habla debe sumarse solo en vertical o deforma la expresión.
+- **Pulgar arriba de Clod:** girar la muñeca buscando que el pulgar apunte a +Z (`orientar_pulgar`), no a ojo.
+- **Pantalla negra:** el barniz fuerte hacía espejo y se veía gris; poco barniz y poco especular.
+- **Copias base64 largas:** al pasar audio de Ootto al PC, comprobar con md5 por trozos; un fallo de copia dejó el audio con errores de CRC.
+- **Diálogo entre dos:** montar la pista de voces una vez (con sus silencios) y animar cada boca con sus propios tiempos.
