@@ -120,6 +120,9 @@ EJE = (PIV.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()   # hacia fue
 # pila de neumáticos para Clod (detrás, a la derecha de la máquina)
 PILA_POS = Vector((1.30, 0.80, 0.0))
 T_["pila_neumaticos"]("Pila_Clod", tuple(PILA_POS), 3, M, CE, giro=0.3)
+TOP_PILA = 3.02 * ANCHO                                          # 3 neumáticos tumbados
+TABLA = caja("Pila_Tabla", tuple(PILA_POS + Vector((0, 0, TOP_PILA + 0.0125))), (0.50, 0.46, 0.025), M["madera"], bisel=0.003, col=CE)
+TABLA.rotation_euler = (0, 0, 0.3)
 
 # ================================================================ LUCES
 def luz(n, tipo, loc, mira, color, size=1.0):
@@ -159,8 +162,8 @@ RUEDA_A = en_alex(W)
 # Clod de pie sobre la pila (altura medida con un rayo)
 bpy.context.view_layer.update()
 dg = bpy.context.evaluated_depsgraph_get()
-hit, loc_h, *_ = sc.ray_cast(dg, PILA_POS + Vector((0, 0, 3.0)), Vector((0, 0, -1)))
-CLOD_POS = (PILA_POS.x, PILA_POS.y, (loc_h.z if hit else 0.62) - 0.003)
+hit, loc_h, *_ = sc.ray_cast(dg, PILA_POS + Vector((0, 0, 2.0)), Vector((0, 0, -1)))
+CLOD_POS = (PILA_POS.x, PILA_POS.y, (loc_h.z if hit else TOP_PILA + 0.025) - 0.002)
 CLOD_GIRO = -40
 CL.reposo(1); CL.mover(1, CLOD_POS, CLOD_GIRO)
 
