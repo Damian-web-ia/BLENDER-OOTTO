@@ -329,10 +329,10 @@ cara(1, "sonrisa", 0.4)
 # Clod sobre el capó, cerca del parabrisas (altura medida con un rayo sobre la carrocería)
 bpy.context.view_layer.update()
 dg = bpy.context.evaluated_depsgraph_get()
-XC, YC = -1.02, 0.55
+XC, YC = -1.55, 0.62
 hit, loc_h, *_ = sc.ray_cast(dg, Vector((XC, YC, 3.0)), Vector((0, 0, -1)))
 CLOD_CAPO = (XC, YC, (loc_h.z if hit else 0.90) - 0.004)
-CLOD_GIRO = 8
+CLOD_GIRO = 10
 
 # ---- Clod: SOLO gestos de fondo (no habla)
 CL.reposo(1); CL.mover(1, CLOD_CAPO, CLOD_GIRO); CL.cara(1, "contento"); CL.cabeza(1, -6, 0, 10); CL.mirar(1, 0.01, 0.0)
@@ -478,8 +478,8 @@ macro(222, 30, -0.36, 0.18, 1.30, 28, 40, dof=False)
 macro(246, 34, -0.22, 0.285, 0.60, 18, 55, 2.8)                         # carcasa: hilos de poliéster
 macro(312, 46, -0.22, 0.285, 0.55, 22, 55, 2.8)
 macro(330, 44, -0.06, 0.16, 1.25, 30, 40, dof=False)
-macro(362, 52, 0.06 + 0.0725, 0.2135, 0.42, 34, 60, 2.8)                 # talón: haz de alambres y relleno
-macro(425, 60, 0.06 + 0.0725, 0.2135, 0.40, 38, 60, 2.8)
+macro(362, 52, 0.06 + 0.0725, 0.2135, 0.27, 22, 70, 2.8)                 # talón: haz de alambres y relleno
+macro(425, 60, 0.06 + 0.0725, 0.2135, 0.25, 24, 70, 2.8)
 macro(440, 58, 0.20, 0.16, 1.25, 34, 40, dof=False)
 macro(466, 62, 0.32, 0.299, 0.52, 48, 55, 2.8)                          # cinturones: cables de acero cruzados
 macro(494, 70, 0.32, 0.299, 0.48, 52, 55, 2.8)
@@ -489,8 +489,8 @@ ck(574, (-0.70, -2.60, 1.35), tuple(P + Vector((0, 0, -0.45))), 33)
 ck(600, (-0.75, -2.40, 0.95), tuple(SUELO + Vector((0, 0, 0.10))), 32)
 ck(605, (-0.76, -2.36, 0.94), tuple(SUELO + Vector((0, 0, 0.10))), 32)
 # consejo: Alex con Clod de fondo, detalle del bulto, Alex otra vez
-ck(606, (-0.36, -2.30, 1.48), (-0.78, -0.10, 1.20), 30)
-ck(639, (-0.37, -2.20, 1.48), (-0.78, -0.10, 1.20), 30)
+ck(606, (-0.30, -2.35, 1.45), (-0.95, -0.05, 1.15), 28)
+ck(639, (-0.31, -2.25, 1.45), (-0.95, -0.05, 1.15), 28)
 th_w = R(BULTO_ANG + GIRO_FIN); rb = R_LL + 0.52 * (R_EXT - R_LL)
 B = SUELO + Vector((rb * math.cos(th_w), rb * math.sin(th_w), ANCHO / 2 + 0.012))
 ck(640, tuple(B + Vector((0.34, -0.30, 0.10))), tuple(B + Vector((0, 0, -0.01))), 45, dof=tuple(B), fstop=4.0)
@@ -498,8 +498,8 @@ ck(691, tuple(B + Vector((0.29, -0.26, 0.09))), tuple(B + Vector((0, 0, -0.01)))
 LB = luz("D_LuzBulto", 'SPOT', B + Vector((-0.55, 0.05, 0.14)), B, (1.0, 0.96, 0.9)); LB.data.spot_size = R(40); LB.data.spot_blend = 0.4
 for f_, v in ((1, 0), (639, 0), (640, 160), (691, 160), (692, 0)):
     LB.data.energy = v; LB.data.keyframe_insert("energy", frame=f_)
-ck(692, (-0.40, -2.15, 1.47), (-0.78, -0.10, 1.20), 30)
-ck(752, (-0.41, -2.05, 1.47), (-0.78, -0.10, 1.20), 30)
+ck(692, (-0.32, -2.20, 1.45), (-0.95, -0.05, 1.15), 28)
+ck(752, (-0.33, -2.10, 1.45), (-0.95, -0.05, 1.15), 28)
 # síguenos: los dos y el neumático
 ck(753, (-0.85, -3.75, 1.30), (-0.88, -0.25, 0.92), 28)
 ck(FIN, (-0.86, -3.50, 1.28), (-0.88, -0.25, 0.94), 28)

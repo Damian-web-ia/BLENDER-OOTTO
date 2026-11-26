@@ -63,7 +63,7 @@ def materiales_reales():
     m, n = _mat("R_Poliester", (0.80, 0.72, 0.52), 0.55, spec=0.3)
     if n: _nodos_trenza(m, escala=(260.0, 1.0), giro=0.9, fuerza=0.5, color_rampa=((0.62, 0.53, 0.35), (0.88, 0.81, 0.62)))
     M["poliester"] = m
-    m, n = _mat("R_CableAcero", (0.60, 0.61, 0.63), 0.34, metal=1.0)
+    m, n = _mat("R_CableAcero", (0.58, 0.59, 0.61), 0.48, metal=1.0)
     if n: _nodos_trenza(m, escala=(520.0, 1.0), giro=0.75, fuerza=0.8, color_rampa=((0.42, 0.43, 0.45), (0.74, 0.75, 0.77)))
     M["acero"] = m
     m, n = _mat("R_AlambreLaton", (0.78, 0.55, 0.32), 0.30, metal=1.0)
