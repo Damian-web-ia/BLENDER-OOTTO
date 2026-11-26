@@ -18,8 +18,8 @@ todo_reposo(1); sc.frame_set(1); calibrar_palma()
 for l in ("R", "L"): brazo_caido(l, 1)
 
 # --- 0. espera mirando a un lado
-cara(1, "neutra"); cabeza(1, 2, 0, 25); columna(1, 0, 0, 6)
-cabeza(F(-0.35), 2, 0, 25)
+cara(1, "concentrado", 0.6); cabeza(1, 4, 0, 35); columna(1, 0, 0, 10)
+cabeza(F(-0.35), 4, 0, 35); cara(F(-0.3), "concentrado", 0.6)
 # --- 1. "¡Eh, hola!": gira a cámara, cejas arriba, sonrisa y saludo
 cabeza(F(0.15), -4, -3, 0); columna(F(0.2), 0, 0, 0); cara(F(0.1), "sorpresa", 0.35); cara(F(0.5), "sonrisa")
 f = F(0.0); s = -1
@@ -29,6 +29,8 @@ mano_en("R", F(0.45), (-0.44, -0.10, 1.57)); codo_hacia("R", F(0.45), (-0.95, 0.
 mano_en("R", F(0.62), (-0.36, -0.10, 1.54)); mano_en("R", F(0.80), (-0.52, -0.10, 1.54)); mano_en("R", F(0.98), (-0.40, -0.10, 1.55))
 # --- 2. "Soy Alex": se toca el pecho
 mano_en("R", F(1.25), (-0.06, -0.24, 1.22)); codo_hacia("R", F(1.25), (-0.7, 0.0, 0.9)); mano_pose("R", F(1.25), "abierta")
+orientar_mano("R", F(1.25), palma_hacia=(0, 1, 0), dedos_hacia=(1, 0, 0.3))
+mano_pose("L", F(1.25), "relajada")
 cabeza(F(1.3), 4, -4, 0); cara(F(1.3), "sonrisa", 0.8)
 # --- 3. "Mira esto:": abre las manos
 for l in ("R", "L"):
@@ -39,7 +41,7 @@ cabeza(F(2.0), 0, 0, 0); cara(F(2.0), "picaro", 0.6)
 cara(F(2.7), "risa"); cabeza(F(2.8), -6, 4, 0)
 for l in ("R", "L"):
     sx = -1 if l == "R" else 1
-    mano_en(l, F(2.8), (sx * 0.46, -0.20, 1.15))
+    mano_en(l, F(2.8), (sx * 0.46, -0.20, 1.15)); mano_pose(l, F(2.8), "abierta"); mano_pose(l, F(3.35), "abierta")
 # --- 5. "enfadarme...": cejas abajo, puños, se inclina hacia delante
 cara(F(3.45), "enfado"); cabeza(F(3.55), 8, 0, 0); columna(F(3.6), 6, 0, 0)
 for l in ("R", "L"):
@@ -106,7 +108,7 @@ cam = L["CAM"]; cam.animation_data_clear(); cam.data.lens = 40; cam.data.sensor_
 def ck(f, loc, t):
     cam.location = loc; cam.rotation_euler = (Vector(t) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
     cam.keyframe_insert("location", frame=f); cam.keyframe_insert("rotation_euler", frame=f)
-ck(1, (0.30, -2.45, 1.42), (0, 0, 1.24)); ck(FIN, (0.18, -2.05, 1.45), (0, 0, 1.28))
+ck(1, (0.25, -2.15, 1.47), (0, 0, 1.30)); ck(FIN, (0.14, -1.80, 1.49), (0, 0, 1.33))
 sc.camera = cam; sc.render.resolution_x, sc.render.resolution_y = 1080, 1920; sc.render.resolution_percentage = 67
 sc.eevee.taa_render_samples = 48; sc.render.fps = 30
 try: sc.view_settings.look = "AgX - Medium High Contrast"
