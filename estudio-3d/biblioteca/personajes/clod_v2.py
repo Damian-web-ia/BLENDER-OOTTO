@@ -31,7 +31,7 @@ def material(nombre, color, rough=0.4, metal=0.0, coat=0.0, coat_rough=0.05, emi
 
 def materiales():
     return {
-        "naranja": material("Clod_Naranja", (0.92, 0.27, 0.03), rough=0.32, coat=0.8, coat_rough=0.06),
+        "naranja": material("Clod_Naranja", (0.95, 0.21, 0.012), rough=0.30, coat=0.8, coat_rough=0.06),
         "oscuro": material("Clod_Gris", (0.035, 0.036, 0.04), rough=0.42, metal=0.35),
         "pantalla": material("Clod_Pantalla", (0.003, 0.003, 0.005), rough=0.06, coat=1.0, coat_rough=0.02),
         "led": material("Clod_LED", (0.80, 0.94, 1.0), rough=0.5, emision=7.0),
@@ -323,6 +323,21 @@ def calibrar_polos(arm):
         ik.pole_angle = R(mejor[1]); res[hn] = (mejor[1], round(mejor[0], 4))
     arm["polos"] = str(res)
     return res
+
+
+def brillo_led(escena=None, umbral=3.0, fuerza=0.35, tam=0.35):
+    """Resplandor suave de los LED (compositor, Bloom). Solo brilla lo que pasa del umbral."""
+    sc = escena or bpy.context.scene
+    ng = sc.compositing_node_group
+    if ng is None:
+        ng = bpy.data.node_groups.new("Composicion", "CompositorNodeTree"); sc.compositing_node_group = ng
+        rl = ng.nodes.new("CompositorNodeRLayers"); gl = ng.nodes.new("CompositorNodeGlare"); out = ng.nodes.new("NodeGroupOutput")
+        ng.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+        ng.links.new(rl.outputs["Image"], gl.inputs["Image"]); ng.links.new(gl.outputs["Image"], out.inputs[0])
+    gl = [n for n in ng.nodes if n.bl_idname == "CompositorNodeGlare"][0]
+    gl.inputs["Type"].default_value = 'Bloom'
+    gl.inputs["Threshold"].default_value = umbral; gl.inputs["Strength"].default_value = fuerza; gl.inputs["Size"].default_value = tam
+    return gl
 
 
 if __name__ == "__main__" and "--" in sys.argv:
