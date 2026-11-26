@@ -1,4 +1,4 @@
-# ALEX v2 · FUNCIONES DE ANIMACIÓN (exec() después de cargar alex_v2_rig.blend o su colección)
+# ALEX v2 · FUNCIONES DE ANIMACIÓN · v2 de movimiento (26-11-2026: capa_viva). exec() después de cargar alex_v2_rig.blend o su colección
 # Unidades: metros y grados, en el espacio del personaje (mira hacia -Y):
 #   +X = izquierda del personaje, -Y = adelante, +Z = arriba.  Lado "R" = derecho, "L" = izquierdo.
 # Todo se anima con fotogramas clave (curvas Bézier suaves). Brazos y piernas por IK.
@@ -461,3 +461,42 @@ def hablar(lineas, fps=30, desfase=0.0):
                     kb.value = v; kb.keyframe_insert("value", frame=fx)
         fin = int(round((t0 + ln["words"][-1][2]) * fps)) + 1
         boca(fin + 3, 0)
+
+# ======================================================================
+# CAPA VIVA (v2 de la biblioteca de movimiento, 26-11-2026) · Alex nunca queda quieto del todo.
+# Se SUMA a las claves que ya haya (modificadores de curva aditivos), así que no pisa gestos ni respiración:
+#   - cambio de peso lento de cadera a cadera (los pies siguen clavados por IK),
+#   - pequeño balanceo de la cabeza con un periodo distinto (para que no parezca un metrónomo).
+# Uso: al final de la escena, después de suavizar():  capa_viva()   ·   apagar: capa_viva(activa=False)
+def _curvas_de(idb):
+    ad = getattr(idb, "animation_data", None)
+    if not ad or not ad.action: return []
+    try: return list(ad.action.fcurves)
+    except Exception: return [fc for l in ad.action.layers for s_ in l.strips for cb in s_.channelbags for fc in cb.fcurves]
+
+def _seno_aditivo(fc, amplitud, periodo, fase=0.0, nombre="VIVA"):
+    for m in list(fc.modifiers):
+        if m.type == 'FNGENERATOR': fc.modifiers.remove(m)   # las capas vivas son los únicos generadores
+    if abs(amplitud) < 1e-7: return None
+    m = fc.modifiers.new('FNGENERATOR'); m.function_type = 'SIN'; m.use_additive = True
+    m.amplitude = amplitud; m.phase_multiplier = 2 * math.pi / periodo; m.phase_offset = fase; m.value_offset = 0.0
+    return m
+
+def capa_viva(peso=0.012, periodo_peso=170, cabeza_grados=0.9, periodo_cabeza=113, activa=True):
+    """peso: metros de vaivén lateral de la cadera; cabeza_grados: balanceo de la cabeza."""
+    f0 = bpy.context.scene.frame_start
+    b = B("Hips"); rest = b.bone.matrix_local.to_3x3().inverted()
+    if not any(fc.data_path == 'pose.bones["mixamorig:Hips"].location' for fc in _curvas_de(ALEX)): cadera(f0)
+    lat = rest @ Vector((peso / S, 0, 0)); baja = rest @ Vector((0, 0, -0.25 * peso / S))
+    hn = B("Head"); hn.rotation_mode = 'QUATERNION'
+    if not any(fc.data_path == 'pose.bones["mixamorig:Head"].rotation_quaternion' for fc in _curvas_de(ALEX)): cabeza(f0)
+    for fc in _curvas_de(ALEX):
+        if fc.data_path == 'pose.bones["mixamorig:Hips"].location':
+            i = fc.array_index
+            _seno_aditivo(fc, (lat[i] if activa else 0), periodo_peso)
+            # al pasar el peso de un lado a otro la cadera baja un poco (doble frecuencia)
+            m2 = fc.modifiers.new('FNGENERATOR'); m2.function_type = 'SIN'; m2.use_additive = True
+            m2.amplitude = baja[i] if activa else 0.0; m2.phase_multiplier = 4 * math.pi / periodo_peso; m2.phase_offset = math.pi / 2
+        elif fc.data_path == 'pose.bones["mixamorig:Head"].rotation_quaternion' and fc.array_index in (1, 3):
+            a = math.radians(cabeza_grados) / 2 * (1.0 if fc.array_index == 1 else 0.7)
+            _seno_aditivo(fc, a if activa else 0, periodo_cabeza, fase=1.3 * fc.array_index)

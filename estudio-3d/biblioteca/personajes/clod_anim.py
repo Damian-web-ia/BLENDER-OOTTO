@@ -271,3 +271,29 @@ class ClodAnim:
                         if k.interpolation == 'LINEAR': continue
                         k.interpolation = 'BEZIER'; k.handle_left_type = k.handle_right_type = 'AUTO_CLAMPED'
                     fc.update()
+
+# ======================================================================
+# CAPA VIVA DE CLOD (26-11-2026): respira con el cuerpo (estira y ensancha un poco) y balancea la cabeza.
+# Aditiva (modificadores de curva), no pisa saltos ni sustos. Uso al final:  CL.respirar()   ·   apagar: CL.respirar(activa=False)
+def _clod_respirar(self, amplitud=0.018, periodo=46, cabeza_grados=2.0, periodo_cabeza=97, activa=True):
+    f0 = bpy.context.scene.frame_start
+    def curvas(idb):
+        ad = getattr(idb, "animation_data", None)
+        if not ad or not ad.action: return []
+        try: return list(ad.action.fcurves)
+        except Exception: return [fc for l in ad.action.layers for s_ in l.strips for cb in s_.channelbags for fc in cb.fcurves]
+    dp_s = 'pose.bones["cuerpo"].scale'; dp_h = 'pose.bones["cabeza"].rotation_quaternion'
+    if not any(fc.data_path == dp_s for fc in curvas(self.arm)): self.aplastar(f0, 1.0)
+    if not any(fc.data_path == dp_h for fc in curvas(self.arm)): self.cabeza(f0)
+    for fc in curvas(self.arm):
+        for m in list(fc.modifiers):
+            if m.type == 'FNGENERATOR': fc.modifiers.remove(m)
+        if not activa: continue
+        amp = 0.0
+        if fc.data_path == dp_s: amp = amplitud if fc.array_index == 1 else -amplitud * 0.5; per = periodo; fase = 0.0
+        elif fc.data_path == dp_h and fc.array_index in (1, 2):
+            amp = math.radians(cabeza_grados) / 2; per = periodo_cabeza; fase = 0.9 * fc.array_index
+        if amp:
+            m = fc.modifiers.new('FNGENERATOR'); m.function_type = 'SIN'; m.use_additive = True
+            m.amplitude = amp; m.phase_multiplier = 2 * math.pi / per; m.phase_offset = fase
+ClodAnim.respirar = _clod_respirar
