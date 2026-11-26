@@ -390,3 +390,74 @@ def agacharse(f0, dur=40, mano_lado="R", objetivo=None):
     for l in ("R", "L"): rodilla(l, f); brazo_caido(l, f); mano_pose(l, f, "relajada")
     f += 8; cadera(f); columna(f); cabeza(f)
     return f
+
+# ======================================================================
+# CARA: expresiones con shape keys (creadas por alex_cara.py)
+MALLA = bpy.data.objects.get("ALEX_v2_Malla")
+CARA_KEYS = ("CejaArriba_R", "CejaArriba_L", "CejaEnfado_R", "CejaEnfado_L", "CejaTriste_R", "CejaTriste_L",
+             "OjoAbierto_R", "OjoAbierto_L", "Sonrisa_R", "Sonrisa_L", "BocaTriste_R", "BocaTriste_L",
+             "Boca_O", "Boca_Ancha", "Nariz_Arruga")
+EXPRESIONES = {
+    "neutra":    {},
+    "sonrisa":   {"Sonrisa_R": 1, "Sonrisa_L": 1, "CejaArriba_R": 0.25, "CejaArriba_L": 0.25},
+    "risa":      {"Sonrisa_R": 1, "Sonrisa_L": 1, "CejaArriba_R": 0.5, "CejaArriba_L": 0.5, "Boca_Ancha": 0.4},
+    "picaro":    {"Sonrisa_L": 0.9, "CejaArriba_R": 0.8, "Sonrisa_R": 0.15},
+    "enfado":    {"CejaEnfado_R": 1, "CejaEnfado_L": 1, "BocaTriste_R": 0.45, "BocaTriste_L": 0.45, "Nariz_Arruga": 0.7},
+    "sorpresa":  {"CejaArriba_R": 1, "CejaArriba_L": 1, "OjoAbierto_R": 1, "OjoAbierto_L": 1, "Boca_O": 0.5},
+    "triste":    {"CejaTriste_R": 1, "CejaTriste_L": 1, "BocaTriste_R": 0.9, "BocaTriste_L": 0.9},
+    "duda":      {"CejaArriba_L": 0.9, "CejaEnfado_R": 0.35, "BocaTriste_R": 0.3, "Sonrisa_L": 0.2},
+    "concentrado": {"CejaEnfado_R": 0.4, "CejaEnfado_L": 0.4, "Boca_O": 0.1},
+}
+def _sk(nombre): return MALLA.data.shape_keys.key_blocks[nombre]
+def cara(f, expresion="neutra", intensidad=1.0, **extra):
+    """Pone una expresión (todas las claves de cara) en el fotograma f. extra: ajustes finos (p. ej. Boca_O=0.3)."""
+    vals = dict(EXPRESIONES[expresion]); vals.update(extra)
+    for n in CARA_KEYS:
+        kb = _sk(n); kb.value = max(0.0, min(1.0, vals.get(n, 0.0) * (intensidad if n not in extra else 1.0)))
+        kb.keyframe_insert("value", frame=f)
+
+def parpadeo(f, cierre=1.0, lado=None):
+    """Parpadeo de 6 fotogramas (o guiño si lado = "R"/"L")."""
+    for L in (("R", "L") if lado is None else (lado,)):
+        kb = _sk("Parpado_" + L)
+        for df, v in ((-1, 0.0), (1, cierre), (2, cierre), (5, 0.0)):
+            kb.value = v; kb.keyframe_insert("value", frame=f + df)
+
+def parpadeos(f0, f1, cada=(70, 110), evitar=()):
+    import random; rnd = random.Random(7); f = f0 + rnd.randint(10, 40)
+    while f < f1 - 6:
+        if all(abs(f - e) > 8 for e in evitar): parpadeo(f)
+        f += rnd.randint(*cada)
+
+VOCAL_O = ("o", "u", "ó", "ú")
+def _boca_o_habla():
+    """Copia de Boca_O solo para el habla (así no pisa la Boca_O de las expresiones)."""
+    kbs = MALLA.data.shape_keys.key_blocks
+    if "Boca_O_habla" not in kbs:
+        nk = MALLA.shape_key_add(name="Boca_O_habla", from_mix=False)
+        src = kbs["Boca_O"]
+        for i, d in enumerate(src.data): nk.data[i].co = d.co
+    return kbs["Boca_O_habla"]
+def hablar(lineas, fps=30, desfase=0.0):
+    """Boca sincronizada con la voz: mandíbula por sílabas + forma de 'o' en palabras con o/u."""
+    boca(1, 0)
+    for ln in lineas:
+        t0 = ln["at"] + desfase
+        for i, w in enumerate(ln["words"]):
+            txt, a, b = w[0].lower(), w[1], w[2]
+            fa = int(round((t0 + a) * fps)) + 1; fb = max(int(round((t0 + b) * fps)) + 1, fa + 3)
+            vocales = max(1, sum(ch in "aeiouáéíóú" for ch in txt))
+            n = max(1, min(vocales, (fb - fa) // 3))
+            boca(fa - 1, 0.08)
+            for k in range(n):
+                fk = fa + int((k + 0.5) * (fb - fa) / n)
+                amp = 0.55 + 0.45 * (((i + k) * 37) % 5) / 4
+                boca(fk, amp)
+                if k < n - 1: boca(fa + int((k + 1) * (fb - fa) / n), 0.25)
+            boca(fb, 0.12)
+            if any(c in txt for c in VOCAL_O):
+                kb = _boca_o_habla()
+                for fx, v in ((fa - 1, 0.0), ((fa + fb) // 2, 0.45), (fb + 1, 0.0)):
+                    kb.value = v; kb.keyframe_insert("value", frame=fx)
+        fin = int(round((t0 + ln["words"][-1][2]) * fps)) + 1
+        boca(fin + 3, 0)
