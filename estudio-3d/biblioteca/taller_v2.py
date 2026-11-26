@@ -114,7 +114,7 @@ def _perfil(n_flanco, n_banda):
     interior = [(0.36 * W * s, R_LLANTA + 0.002, None) for s in np.linspace(-1, 1, 6)[1:-1]]
     return prof + interior
 
-def _dibujo(theta, s, n_pasos=64):
+def _dibujo(theta, s, n_pasos=40):
     """Profundidad del dibujo (m) en el ángulo theta y la posición s (-1..1) de la banda. Devuelve (prof, es_ranura_ppal)."""
     a = abs(s); fase = theta * n_pasos / (2 * math.pi) + 1.25 * a
     fr = fase - math.floor(fase)
@@ -125,13 +125,13 @@ def _dibujo(theta, s, n_pasos=64):
     if a < 0.19:                                               # nervio central con laminillas finas
         f2 = (theta * n_pasos / (2 * math.pi) + 0.5) % 1.0
         return (0.0025 if f2 < 0.035 else 0.0), False
-    if fr < 0.13:                                              # ranuras laterales en V (direccional)
+    if fr < 0.17 and 0.3 < a or (fr < 0.17 and a >= 0.19):                                              # ranuras laterales en V (direccional)
         return (0.0065 if a < 0.94 else 0.0065 * (1 - (a - 0.94) / 0.06)), False
     if a > 0.68 and abs(fr - 0.56) < 0.02:                     # laminilla del hombro
         return 0.002, False
     return 0.0, False
 
-def malla_neumatico(nombre, n_u=512, n_flanco=24, n_banda=110, n_pasos=64, nervios=True):
+def malla_neumatico(nombre, n_u=800, n_flanco=24, n_banda=110, n_pasos=40, nervios=True):
     """Crea (o devuelve) la malla del neumático, con shape key 'gastado' (dibujo hasta el testigo de 1,6 mm)."""
     me = bpy.data.meshes.get(nombre)
     if me: return me
@@ -213,7 +213,7 @@ def rueda(nombre, pos, rot=(0, 0, 0), detalle="alto", con_llanta=True, M=None, c
     raiz.empty_display_size = 0.35; raiz.location = pos; raiz.rotation_euler = rot
     if padre: raiz.parent = padre
     mn = malla_neumatico("NEU_alto" if detalle == "alto" else "NEU_bajo",
-                         *((512, 24, 110, 64) if detalle == "alto" else (192, 12, 34, 48)))
+                         *((800, 24, 110, 40) if detalle == "alto" else (252, 12, 30, 36)))
     t = _obj(nombre + "_Neumatico", mn, M["goma"], col, padre=raiz)
     if con_llanta:
         ml = malla_llanta("LLANTA_5x2")
@@ -225,7 +225,7 @@ def rueda(nombre, pos, rot=(0, 0, 0), detalle="alto", con_llanta=True, M=None, c
 def pila_neumaticos(nombre, pos, n=4, M=None, col=None, giro=0.0):
     M = M or materiales(); raiz = bpy.data.objects.new(nombre, None); (col or _col()).objects.link(raiz)
     raiz.location = pos; raiz.rotation_euler = (0, 0, giro)
-    mn = malla_neumatico("NEU_bajo", 192, 12, 34, 48)
+    mn = malla_neumatico("NEU_bajo", 252, 12, 30, 36)
     for k in range(n):
         o = _obj(f"{nombre}_{k}", mn, M["goma"], col, padre=raiz, loc=(0.004 * ((k * 7) % 3 - 1), 0.004 * ((k * 5) % 3 - 1), ANCHO * 0.5 + k * ANCHO * 1.01))
         o.rotation_euler = (0, 0, R(k * 37))
@@ -233,7 +233,7 @@ def pila_neumaticos(nombre, pos, n=4, M=None, col=None, giro=0.0):
 
 # ------------------------------------------------------------------ MÁQUINAS Y MOBILIARIO
 def estanteria_neumaticos(x0, y, M, col, bahias=3, niveles=(0.10, 1.02, 1.94), ancho=2.5):
-    mn = malla_neumatico("NEU_bajo", 192, 12, 34, 48)
+    mn = malla_neumatico("NEU_bajo", 252, 12, 30, 36)
     for b in range(bahias):
         xc = x0 + b * ancho
         for sx in (-1, 1):
