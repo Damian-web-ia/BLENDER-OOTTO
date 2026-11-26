@@ -61,8 +61,8 @@ orientar_mano("L", F(2.00), dedos_hacia=(-0.55, 0.15, 0.85), pulgar_hacia=(-0.3,
 mano_en("L", F(2.18), (0.20, -0.21, 1.31)); mano_en("L", F(2.32), (0.21, -0.21, 1.30))
 cabeza(F(2.00), -3, 3, 0); cara(F(2.00), "picaro", 0.7)
 # ================================================================== PLANO 3 · primer plano: "ya puedo sonreír, enfadarme..."
+mano_en("L", F(2.50), (0.20, -0.16, 1.10))                        # baja en vertical (sale por abajo)
 for l in ("R", "L"):
-    s = _sx(l); mano_en(l, F(2.50), (s * 0.19, -0.18, 1.12))        # bajan en vertical (salen por abajo)
     brazo_caido(l, F(2.66)); mano_pose(l, F(2.66), "relajada"); mano_giro(l, F(2.66))
 cara(F(2.70), "risa", 1.0); cabeza(F(2.80), -6, 5, 0)
 cadera(F(2.80), (0, 0, 0.008)); cadera(F(3.00), (0, 0, -0.006)); cadera(F(3.20), (0, 0, 0.004)); cadera(F(3.40), (0, 0, 0))
