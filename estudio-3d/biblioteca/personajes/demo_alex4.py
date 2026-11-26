@@ -72,32 +72,32 @@ cabeza(F(3.30), -4, 4, 0); cara(F(3.36), "risa", 0.9)
 cara(F(3.52), "enfado"); cabeza(F(3.58), 8, 0, 0); columna(F(3.62), 7, 0, 0)
 for l in ("R", "L"):
     s = _sx(l)
-    mano_en(l, F(3.68), (s * 0.13, -0.27, 1.20)); codo_hacia(l, F(3.68), (s * 0.70, 0.35, 1.00)); mano_pose(l, F(3.68), "puño")
+    mano_en(l, F(3.68), (s * 0.12, -0.27, 1.23)); codo_hacia(l, F(3.68), (s * 0.70, 0.35, 1.00)); mano_pose(l, F(3.68), "puño")
 for t, dz in ((3.82, 0.025), (3.96, -0.005), (4.10, 0.02), (4.24, 0.0)):
     for l in ("R", "L"):
-        s = _sx(l); mano_en(l, F(t), (s * 0.13, -0.27, 1.20 + dz))
+        s = _sx(l); mano_en(l, F(t), (s * 0.12, -0.27, 1.23 + dz))
 cara(F(4.30), "enfado", 0.95); cabeza(F(4.30), 9, 0, 0)
 for l in ("R", "L"):
-    s = _sx(l); mano_en(l, CORTES[3] - 1, (s * 0.13, -0.27, 1.21))   # los puños aguantan hasta el corte
+    s = _sx(l); mano_en(l, CORTES[3] - 1, (s * 0.12, -0.27, 1.24))   # los puños aguantan hasta el corte
 # ================================================================== PLANO 4 · general: "¡y hasta sorprenderme!"
 cara(F(4.46), "enfado", 0.9)
 cara(F(4.58), "sorpresa", 1.0); cabeza(F(4.60), -10, 0, 0); columna(F(4.60), -7, 0, 0); cadera(F(4.60), (0, 0.05, 0.005))
 for l in ("R", "L"):
     s = _sx(l)
-    mano_en(l, F(4.60), (s * 0.34, -0.20, 1.50)); codo_hacia(l, F(4.60), (s * 0.85, 0.15, 1.05)); mano_pose(l, F(4.60), "abierta")
+    mano_en(l, F(4.60), (s * 0.30, -0.20, 1.50)); codo_hacia(l, F(4.60), (s * 0.85, 0.15, 1.05)); mano_pose(l, F(4.60), "abierta")
     orientar_mano(l, F(4.60), palma_hacia=(0, -1, 0), dedos_hacia=(s * 0.3, 0, 1))
-    mano_en(l, F(4.78), (s * 0.35, -0.20, 1.53))                  # pequeño rebote
-    mano_en(l, F(5.30), (s * 0.34, -0.20, 1.51))
+    mano_en(l, F(4.78), (s * 0.31, -0.20, 1.53))                  # pequeño rebote
+    mano_en(l, F(5.30), (s * 0.30, -0.20, 1.51))
 cadera(F(4.78), (0, 0.055, 0.0)); cabeza(F(4.80), -9, 0, 0)
 cara(F(5.30), "sorpresa", 0.9); cadera(F(5.30), (0, 0.05, 0.0))
 # ================================================================== PLANO 5 · medio + acercamiento: "Bueno, ¿qué? ¿Empezamos?"
 cara(F(5.58), "picaro"); cabeza(F(5.68), 0, 7, 0); columna(F(5.68), 0, 0, 0); cadera(F(5.68), (0, 0, 0))
 for l in ("R", "L"):
     s = _sx(l)
-    mano_en(l, F(5.75), (s * 0.31, -0.25, 1.02)); codo_hacia(l, F(5.75), (s * 0.70, 0.30, 0.85)); mano_pose(l, F(5.75), "abierta")
-    orientar_mano(l, F(5.75), palma_hacia=(0, 0, 1), dedos_hacia=(s * 0.5, -1, 0))
+    mano_en(l, F(5.75), (s * 0.28, -0.25, 1.02)); codo_hacia(l, F(5.75), (s * 0.70, 0.30, 0.85)); mano_pose(l, F(5.75), "abierta")
+    orientar_mano(l, F(5.75), palma_hacia=(0, 0, 1), dedos_hacia=(s * 0.25, -1, 0))
     hombro(l, F(6.02), 13)
-    mano_en(l, F(6.02), (s * 0.315, -0.25, 1.05))
+    mano_en(l, F(6.02), (s * 0.285, -0.25, 1.05))
 cabeza(F(6.02), 0, 9, 0)
 for l in ("R", "L"): hombro(l, F(6.20), 0)
 # "¿Empezamos?": mano izquierda a la cadera, pulgar arriba con la derecha y guiño
@@ -160,10 +160,10 @@ def ck(f, loc, t, lens):
 PLANOS = [  # por plano: [(fotograma, posición, mira, focal), ...]
     [(CORTES[0], (0.10, -3.05, 1.10), (0, 0, 1.04), 35), (CORTES[1] - 1, (0.08, -2.80, 1.12), (0, 0, 1.06), 35)],      # 1 general
     [(CORTES[1], (0.80, -2.05, 1.48), (0, 0, 1.34), 35), (CORTES[2] - 1, (0.74, -1.95, 1.48), (0, 0, 1.35), 35)],      # 2 medio 3/4 (su izquierda)
-    [(CORTES[2], (0.05, -1.42, 1.56), (0, 0, 1.45), 35), (CORTES[3] - 1, (0.03, -1.30, 1.57), (0, 0, 1.46), 35)],      # 3 primer plano
-    [(CORTES[3], (-0.40, -2.80, 1.28), (0.05, 0, 1.24), 35), (CORTES[4] - 1, (-0.36, -2.70, 1.29), (0.05, 0, 1.25), 35)],  # 4 general (su derecha)
-    [(CORTES[4], (0.12, -2.68, 1.28), (0, 0, 1.22), 35), (F(6.25), (0.11, -2.62, 1.29), (0, 0, 1.23), 35),
-     (CORTES[5] - 1, (0.05, -1.80, 1.45), (0, 0, 1.37), 35)],                                                       # 5 medio -> medio corto
+    [(CORTES[2], (0.05, -1.42, 1.56), (0, 0, 1.45), 35), (CORTES[3] - 1, (0.03, -1.36, 1.57), (0, 0, 1.46), 35)],      # 3 primer plano
+    [(CORTES[3], (-0.25, -2.85, 1.28), (0, 0, 1.24), 35), (CORTES[4] - 1, (-0.22, -2.75, 1.29), (0, 0, 1.25), 35)],  # 4 general (su derecha)
+    [(CORTES[4], (0.0, -2.72, 1.28), (0, 0, 1.22), 35), (F(6.25), (0.0, -2.66, 1.29), (0, 0, 1.23), 35),
+     (CORTES[5] - 1, (0.02, -1.80, 1.45), (0, 0, 1.37), 35)],                                                       # 5 medio -> medio corto
 ]
 for claves in PLANOS:
     for (f, p, t, lens) in claves: ck(f, p, t, lens)
