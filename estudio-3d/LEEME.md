@@ -38,4 +38,4 @@ Los reels nuevos usan **Alex v2** y **Clod v2**, no los de bloques de `bibliotec
 Cada reel tiene su propia carpeta en el escritorio, `CLAUDE VIDEOS\AAAA-MM-DD_TITULO`, y en GitHub, `reels-diarios/`.
 
 ## Personajes de dibujos (cartoon 3D)
-- `personajes_cartoon/rulo/rulo.py`: personaje original de prueba (Rulo) con brazos de goma (B-Bones) y pelo con físicas (complemento Wiggle Bones). Genera la escena, la animación de 8 s y hornea el pelo. En el PC: `EKORUEDAS_ESTUDIO_3D\personajes_cartoon\rulo\`.
+- `biblioteca/personajes/rulo_canal_nuevo/rulo.py`: Rulo, personaje original **reservado para el canal nuevo (no taller)** con brazos de goma (B-Bones) y pelo con físicas (complemento Wiggle Bones). Genera la escena, la animación de 8 s y hornea el pelo. En el PC: `EKORUEDAS_ESTUDIO_3D\personajes_cartoon\rulo\`.
