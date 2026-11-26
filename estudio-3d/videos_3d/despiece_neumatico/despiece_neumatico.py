@@ -528,11 +528,11 @@ CL.cara(F(25.1), "contento")
 kl(ALEX, 745, ALEX_POS, (0, 0, R(ALEX_GIRO))); kl(ALEX, 746, ALEX_POS, (0, 0, R(-4)))
 todo_reposo(746)
 for l in ("R", "L"): brazo_caido(l, 746); mano_pose(l, 746, "relajada")
-cara(746, "concentrado", 0.7); cabeza(746, 2, 0, 0); columna(746, 2, 0, 0)
+cara(746, "duda", 0.5); cabeza(746, 2, 0, 0); columna(746, 2, 0, 0)
 # "si ves un bulto o un corte en el lateral": mano abierta hacia el neumático (a su derecha, abajo)
 mano_en("R", F(25.75), (-0.34, -0.28, 1.04)); codo_hacia("R", F(25.75), (-0.70, 0.05, 1.00)); mano_pose("R", F(25.75), "abierta")
 orientar_mano("R", F(25.75), palma_hacia=(0, -0.3, 1), dedos_hacia=(-1, -0.4, -0.3))
-cabeza(F(25.8), 8, 0, -18); cara(F(25.8), "concentrado", 0.9)
+cabeza(F(25.8), 8, 0, -18); cara(F(25.8), "duda", 0.8)
 mano_en("R", F(27.6), (-0.35, -0.29, 1.03))
 # "no esperes": índice arriba, mirando a cámara
 cara(F(27.8), "enfado", 0.35); cabeza(F(27.85), 0, 4, 0)
@@ -649,7 +649,7 @@ for o in [CL.arm] + list(CL.ctrl.values()):
 sc.camera = cam
 sc.render.resolution_x, sc.render.resolution_y = 1080, 1920; sc.render.resolution_percentage = 67
 sc.eevee.taa_render_samples = 40; sc.render.fps = 30; sc.frame_start, sc.frame_end = 1, FIN
-try: sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.45
+try: sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.45; sc.render.motion_blur_position = 'START'
 except Exception: pass
 sc.view_settings.exposure = -0.1
 result = {"ok": True, "fin": FIN, "P": list(P), "suelo": list(SUELO), "bulto": list(B), "verts_trozos": len(TROZOS.data.vertices)}
