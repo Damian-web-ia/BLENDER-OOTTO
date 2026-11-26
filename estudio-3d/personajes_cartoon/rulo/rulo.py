@@ -289,7 +289,16 @@ if estrella.data.polygons[0].normal.y > 0:
 arm_d = bpy.data.armatures.new("Rig_Rulo"); RIG = bpy.data.objects.new("Rig_Rulo", arm_d); COL.objects.link(RIG)
 arm_d.display_type = 'BBONE'
 bpy.context.view_layer.objects.active = RIG; RIG.select_set(True)
-bpy.ops.object.mode_set(mode='EDIT')
+def modo(m):
+    wm = bpy.context.window_manager
+    win = wm.windows[0] if wm.windows else None
+    kw = dict(active_object=RIG, object=RIG, selected_objects=[RIG], view_layer=bpy.context.view_layer)
+    if win:
+        kw["window"] = win; kw["screen"] = win.screen
+        ar = next((a for a in win.screen.areas if a.type == 'VIEW_3D'), win.screen.areas[0]); kw["area"] = ar
+    with bpy.context.temp_override(**kw):
+        bpy.ops.object.mode_set(mode=m)
+modo('EDIT')
 EB = arm_d.edit_bones
 def hueso(n, h, t, padre=None, con=False, segs=1):
     b = EB.new(n); b.head = h; b.tail = t
@@ -322,7 +331,7 @@ for i, (a, b1, b2, cc, r0) in enumerate(MECHONES):
         hueso(n, ks[j], ks[j + 1], "cabeza" if j == 0 else f"pelo{i:02d}_{j - 1}", j > 0)
         nombres.append(n)
     MECH_HUESOS.append(nombres)
-bpy.ops.object.mode_set(mode='OBJECT')
+modo('OBJECT')
 
 # ------------------------------------------------------------------ pieles (deformación)
 def deformado(ob, grupos):
