@@ -188,7 +188,7 @@ for s in (1, -1):
     o = elipsoide(f"Oreja.{'L' if s > 0 else 'R'}", p, (0.045, 0.06, 0.075), M_PIEL, 24, 16); contorno(o, 0.006); RIGIDOS.append((o, "cabeza"))
 
 # casquete de pelo con borde en zigzag
-bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=64, v_segments=40, radius=1.0)
+bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=160, v_segments=96, radius=1.0)
 quitar = []
 for vt in bm.verts:
     ux, uy, uz = vt.co
