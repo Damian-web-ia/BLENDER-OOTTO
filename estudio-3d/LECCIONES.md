@@ -49,3 +49,6 @@
 - **Referencia de estilo que le gusta a Damián:** el vídeo de la caja de cambios del Jesko (piezas metálicas con detalle, planos macro con desenfoque, fondo de estudio). Para piezas pequeñas (talón) subir el diafragma (f/7) o no se ve nada enfocado.
 - **Sin brillos de colores para marcar la capa activa:** se marca con el plano macro, el rótulo y la línea al borde de la pieza.
 - **Clod no habla** (decisión de Damián): solo hace gestos de fondo (encogerse de hombros, taparse la cara, señalar, decir que no con el dedo, saltar). Todas las voces son de Alex. Clod sobre el capó, a un lado de Alex para que no lo tape.
+- **Cambiar la voz sin rehacer la animación:** `despiece_neumatico_v2.py` lee `voces_alex.json` (tiempos de cada palabra) y estira o encoge la línea de tiempo entera con una función por tramos sacada de palabras clave (cada clave de animación se mueve, con sus asas). Escribe `warp.json`, que usan el montaje y la mezcla de audio. Así una voz nueva solo cuesta generar las frases.
+- **`reel_voice` admite voces que no son premium** (por ejemplo "Gonzalo"). Antes de decir "voz grave" o "voz aguda", medir el tono: Gonzalo ronda 142 Hz (no es grave), pero es la más expresiva; Carlos 102 Hz.
+- **En el montaje no reutilizar `W` para dos cosas** (ancho de pantalla y función de tiempo): la función se llama `WP`.

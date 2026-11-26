@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 SRC, ANCLAS, AUDIO, OUT, WARPJ, VOZJ = sys.argv[1:7]
 PRUEBA = [int(x) for x in sys.argv[7:]]
 _wp = json.load(open(WARPJ))["warp"] if WARPJ != "none" else [(1, 1)]
-def W(x):
+def WP(x):
     xs = [a for a, b in _wp]; ys = [b for a, b in _wp]
     if x <= xs[0]: return x
     if x >= xs[-1]: return ys[-1] + (x - xs[-1])
@@ -44,9 +44,9 @@ for k, g in enumerate(GRUPOS):
     else: fin = 99.0                      # el último (la llamada a seguir) se queda hasta el final
     GRUPOS[k] = (g, g[0][1] - 0.04, fin)
 def y_sub(f):
-    if f <= W(129): return 0.80
-    if f <= W(605): return 0.895
-    if f <= W(752): return 0.80
+    if f <= WP(129): return 0.80
+    if f <= WP(605): return 0.895
+    if f <= WP(752): return 0.80
     return 0.14
 def subtitulo(d, f):
     t = T(f)
@@ -69,10 +69,10 @@ def subtitulo(d, f):
 
 # ---------------------------------------------------------------- gancho
 def gancho(img, d, f):
-    if f > W(76): return
+    if f > WP(76): return
     p = ease_back((f - 4) / 7.0) if f >= 4 else 0.0
     if p <= 0: return
-    a = 1.0 if f < W(66) else max(0.0, (W(76) - f) / 10)
+    a = 1.0 if f < WP(66) else max(0.0, (WP(76) - f) / 10)
     capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
     sz = int(104 * (0.6 + 0.4 * p))
     dd.text((W / 2, 0.100 * H), "¿SOLO GOMA", font=fnt(sz, "Black"), fill=BLANCO + (int(255 * a),), anchor="mm", stroke_width=12, stroke_fill=(0, 0, 0, int(255 * a)))
@@ -81,11 +81,11 @@ def gancho(img, d, f):
 
 # ---------------------------------------------------------------- rótulos de las capas
 CAPAS = [  # clave, desde, título, explicación, lado del ancla, color
- ("alma", W(153), "ALMA INTERNA", "goma que retiene el aire", "i", (90, 170, 255)),
- ("carcasa", W(235), "CARCASA", "hilos de poliéster: peso y golpes", "d", (255, 196, 80)),
- ("talones", W(360), "TALONES", "haz de alambres de acero", "i", (255, 140, 50)),
- ("cinturones", W(447), "CINTURONES", "cables de acero cruzados", "d", (190, 220, 255)),
- ("banda", W(523), "BANDA DE RODADURA", "lo único que toca el suelo", "i", (255, 212, 0)),
+ ("alma", WP(153), "ALMA INTERNA", "goma que retiene el aire", "i", (90, 170, 255)),
+ ("carcasa", WP(235), "CARCASA", "hilos de poliéster: peso y golpes", "d", (255, 196, 80)),
+ ("talones", WP(360), "TALONES", "haz de alambres de acero", "i", (255, 140, 50)),
+ ("cinturones", WP(447), "CINTURONES", "cables de acero cruzados", "d", (190, 220, 255)),
+ ("banda", WP(523), "BANDA DE RODADURA", "lo único que toca el suelo", "i", (255, 212, 0)),
 ]
 def pastilla(dd, cx, cy, texto, sub, color, escala=1.0, alfa=255, ancla_x=None):
     ft = fnt(int(60 * escala), "Black"); fs = fnt(int(37 * escala), "SemiBold")
@@ -98,10 +98,10 @@ def pastilla(dd, cx, cy, texto, sub, color, escala=1.0, alfa=255, ancla_x=None):
     if sub: dd.text((x0 + bw / 2 + 4 * escala, y0 + 99 * escala), sub, font=fs, fill=(235, 235, 235, alfa), anchor="mm")
     return (x0, y0, x0 + bw, y0 + bh)
 def rotulos(img, f):
-    if not (W(153) <= f <= W(560)) or str(f) not in anclas: return
+    if not (WP(153) <= f <= WP(560)) or str(f) not in anclas: return
     A = anclas[str(f)]; capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
     activo = max([k for k, c in enumerate(CAPAS) if f >= c[1]], default=-1)
-    salida = 1.0 if f < W(548) else max(0.0, (W(560) - f) / 12)
+    salida = 1.0 if f < WP(548) else max(0.0, (WP(560) - f) / 12)
     for k, (cl, f0, tit, sub, lado, col) in enumerate(CAPAS):
         if f < f0: continue
         pt = A[cl]["f"] if k == activo else A[cl][lado]
@@ -110,7 +110,7 @@ def rotulos(img, f):
         p = ease_back((f - f0) / 8.0); alfa = int(255 * salida)
         if k == activo:
             # cuadro grande arriba con línea al borde de la capa
-            by = 0.090 * H if f < W(523) else 0.062 * H
+            by = 0.090 * H if f < WP(523) else 0.062 * H
             caja = pastilla(dd, W / 2, by, tit, sub, col, escala=0.75 + 0.25 * p, alfa=alfa)
             bx = (caja[0] + caja[2]) / 2 if False else (caja[0] + 40 if lado == "i" else caja[2] - 40)
             dd.line((bx, caja[3], px, py), fill=col + (alfa,), width=4)
@@ -127,14 +127,14 @@ def rotulos(img, f):
 
 # ---------------------------------------------------------------- aviso del bulto
 def bulto(img, f):
-    if not (W(641) <= f <= W(691)) or "bulto" not in anclas.get(str(f), {}): return
+    if not (WP(641) <= f <= WP(691)) or "bulto" not in anclas.get(str(f), {}): return
     b = anclas[str(f)]["bulto"]
     if b is None: return
     cx, cy = b[0] * W, (1 - b[1]) * H - 0.075 * H; capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
-    f0b = W(641); prog = min(1.0, (f - f0b) / 10.0); r = 190 + 10 * math.sin((f - f0b) * 0.4)
+    f0b = WP(641); prog = min(1.0, (f - f0b) / 10.0); r = 190 + 10 * math.sin((f - f0b) * 0.4)
     dd.arc((cx - r, cy - r * 0.75, cx + r, cy + r * 0.75), start=-90, end=-90 + 360 * prog, fill=(255, 40, 40, 255), width=14)
-    if f >= W(646):
-        p = ease_back((f - W(646)) / 8.0)
+    if f >= WP(646):
+        p = ease_back((f - WP(646)) / 8.0)
         pastilla(dd, W / 2, cy - r * 0.75 - 110, "BULTO = PELIGRO", "la carcasa está rota por dentro", (255, 60, 60), escala=0.8 + 0.2 * p)
     img.alpha_composite(capa)
 
