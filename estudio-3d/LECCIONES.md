@@ -41,3 +41,11 @@
 - **Personajes muy pequeños (Clod mide 0,26 m):** subirlo a algo (capó, neumático tumbado) para que salga grande en 9:16 y además da juego cómico.
 - **Comprobar encuadres con renders rápidos de verdad** (30 %, 12 muestras, ~1 s por fotograma): `probar_fotogramas.py`. La vista `look` engaña en vertical.
 - **Rótulos que siguen a las piezas:** las posiciones en pantalla se calculan evaluando las curvas de animación (`anclas.py`), sin mover la escena; luego el montaje dibuja los textos con PIL.
+
+## 2026-11-26 (tarde, 2) · Despiece v2 realista (lo que pidió Damián)
+- **No vale "algo circular que cambia de color".** Cada pieza se modela como es: carcasa = 900 hilos de poliéster que abrazan el talón; cinturones = cables de acero trenzados a ±24° (cruzados); talón = haz de 4x4 alambres con baño de latón + relleno de goma dura; banda con su dibujo; flancos con nervios y marcado en relieve (205/55 R16 91V, TUBELESS, RADIAL; nunca marcas).
+- **Hilos y cables como tubos con UV** (`neumatico_real.malla_tubos`, todo con numpy, ~600.000 vértices en total, se construye en 2 s). El UV a lo largo del cable permite un relieve de trenzado realista.
+- **Cables muy finos brillan con ruido** a resolución de reel: radio 0,7 mm, 300 por cinturón y rugosidad 0,48.
+- **Referencia de estilo que le gusta a Damián:** el vídeo de la caja de cambios del Jesko (piezas metálicas con detalle, planos macro con desenfoque, fondo de estudio). Para piezas pequeñas (talón) subir el diafragma (f/7) o no se ve nada enfocado.
+- **Sin brillos de colores para marcar la capa activa:** se marca con el plano macro, el rótulo y la línea al borde de la pieza.
+- **Clod no habla** (decisión de Damián): solo hace gestos de fondo (encogerse de hombros, taparse la cara, señalar, decir que no con el dedo, saltar). Todas las voces son de Alex. Clod sobre el capó, a un lado de Alex para que no lo tape.

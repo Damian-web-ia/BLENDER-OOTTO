@@ -10,7 +10,9 @@ Estudio 3D de los reels diarios. Blender hace la imagen; Ootto pone el sonido y 
 - Cada vídeo diario: voces (2-6 tomas) + montaje. Si un día no se gasta, el saldo pasa a los siguientes; nunca gastar más de 15 en un día sin preguntar.
 
 ## Formato que más gusta a Damián (26-11-2026): el DESPIECE 3D
-- Se ve el coche por fuera, la cámara entra (rayos X: la carrocería se vuelve azul y transparente), se ve la pieza, se explica, **se rompe en miles de trozos** y se explica cada capa con rótulos. Alex explica, Clod pone el humor.
+- Se ve el coche por fuera, la cámara entra (rayos X: la carrocería se vuelve azul y transparente), se ve la pieza, se explica, **se rompe en miles de trozos** y se explica cada capa con rótulos y **planos macro realistas** (estilo del vídeo de la caja de cambios).
+- **Alex pone todas las voces. Clod NO habla**: solo gestos y caras graciosas de fondo (desde el 26-11-2026, por petición de Damián).
+- Piezas realistas en `biblioteca/neumatico_real.py`; versión buena: `videos_3d/despiece_neumatico/despiece_neumatico_v2.py`.
 - Primer ejemplo completo: `videos_3d/despiece_neumatico/` (script de Blender, anclas de rótulos, montaje con subtítulos y mezcla de audio).
 - Encaja con lo viral ahora (revelación/transformación en 3D en los primeros segundos, pregunta de gancho, rótulos grandes, efectos de sonido). Próximas piezas: pastillas y disco de freno, amortiguador, embrague, batería, filtro de aceite.
 
