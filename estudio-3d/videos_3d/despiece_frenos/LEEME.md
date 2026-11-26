@@ -10,7 +10,7 @@
 | **Montaje** | `montaje_frenos.py`: gancho "¿QUÉ PASA AL FRENAR?", subtítulos palabra a palabra, rótulos de cada pieza con línea a su sitio (`anclas_frenos.json`), avisos "¿CHIRRÍA? / ¿VIBRA EL VOLANTE? / ¡NO LO DEJES!" y NUEVA / GASTADA. |
 | **Sonido** | `mezcla_frenos.ogg`: voz, música electrónica minimal con ducking, efectos (estallido, chirrido sintetizado, vibración, aire por los canales, campanitas en cada rótulo), -14 LUFS. |
 | **Vídeo final** | `estudio-3d/videos/2026-11-26_despiece_frenos_voz_diego.mp4` (26,7 s, -14,3 LUFS) y portada `2026-11-26_despiece_frenos_portada.jpg`. Copias en el PC: `CLAUDE VIDEOS` y `evolucion_videos`. |
-| **Publicación** | Domingo 06-12-2026 a las 20:30 (Europe/Madrid). Instagram + YouTube por Ootto: reel 62696 (`media_c944ad73de`, portada `media_4156dda749`). TikTok por vidIQ: post `659aaba0-1e0c-4564-aa25-c677a31f9356`, programado. |
+| **Publicación** | Publicado el 26-11-2026 a las 23:23, a petición de Damián (se quitó la programación del 06-12). Instagram por Ootto: https://www.instagram.com/reel/DgOK0HvuXbd/ · YouTube por vidIQ: https://www.youtube.com/watch?v=psIf9sMLZGk · TikTok por vidIQ: https://www.tiktok.com/@ekoruedas/video/7712609303290449191 (post vidIQ `659aaba0-1e0c-4564-aa25-c677a31f9356`). |
 
 ## Pie de publicación
 
