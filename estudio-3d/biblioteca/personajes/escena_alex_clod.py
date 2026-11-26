@@ -38,12 +38,12 @@ for o in bpy.data.objects:
     if o.name.startswith("CTRL_") and o.animation_data: o.animation_data_clear()
 sk = MALLA.data.shape_keys
 if sk.animation_data and sk.animation_data.action: sk.animation_data.action = None
-ALEX.location = (0, 0, 0); ALEX.rotation_euler = (0, 0, math.radians(20))     # un poco girado hacia Clod
+ALEX.location = (0, 0, 0); ALEX.rotation_euler = (0, 0, math.radians(10))     # un poco girado hacia Clod
 CL = ClodAnim()
 for ob in [CL.arm] + list(CL.ctrl.values()) + CL.ojos + [CL.bocaob]:
     ob.animation_data_clear()
     if getattr(ob.data, "shape_keys", None) and ob.data.shape_keys.animation_data: ob.data.shape_keys.animation_data_clear()
-POS_CLOD = (0.62, -0.05, 0.90); GIRO_CLOD = -45
+POS_CLOD = (0.40, -0.55, 0.90); GIRO_CLOD = -50     # delante y a la derecha de Alex (más cerca de cámara)
 CL.mover(1, POS_CLOD, GIRO_CLOD)
 todo_reposo(1); sc.frame_set(1); calibrar_palma()
 for l in ("R", "L"): brazo_caido(l, 1)
@@ -51,76 +51,76 @@ CL.reposo(1)
 def SX(l): return -1 if l == "R" else 1
 
 # ================================================================ ALEX
-cara(1, "sonrisa", 0.3); cabeza(1, 16, 0, 50); columna(1, 0, 0, 8)
-cara(F(0.70), "sorpresa", 0.4); cabeza(F(0.78), 18, 3, 54)
-cara(F(1.60), "sonrisa", 0.8); columna(F(2.0), 4, 0, 12); cabeza(F(2.3), 18, 6, 52)
+cara(1, "sonrisa", 0.3); cabeza(1, 25, 0, 26); columna(1, 4, 0, 6)
+cara(F(0.70), "sorpresa", 0.4); cabeza(F(0.78), 26, 3, 28)
+cara(F(1.60), "sonrisa", 0.8); columna(F(2.0), 6, 0, 8); cabeza(F(2.3), 26, 6, 26)
 # "¡Anda! Y yo ya puedo sonreír."
-cara(F(2.85), "sorpresa", 0.8); cabeza(F(2.98), -3, 0, 18); columna(F(2.98), -2, 0, 4)
+cara(F(2.85), "sorpresa", 0.8); cabeza(F(2.98), -3, 0, -12); columna(F(2.98), -2, 0, -4)
 mano_en("R", F(3.05), (-0.31, -0.03, 0.89))
 mano_en("R", F(3.35), (-0.07, -0.24, 1.22)); codo_hacia("R", F(3.35), (-0.70, 0.00, 0.90)); mano_pose("R", F(3.35), "abierta")
 orientar_mano("R", F(3.35), palma_hacia=(0, 1, 0), dedos_hacia=(1, 0, 0.3))
-mano_en("R", F(3.80), (-0.06, -0.25, 1.23)); cara(F(3.40), "sonrisa", 0.8); cabeza(F(3.45), 5, -4, 6)
-cara(F(4.02), "risa"); cabeza(F(4.12), -6, 5, 6)
+mano_en("R", F(3.80), (-0.06, -0.25, 1.23)); cara(F(3.40), "sonrisa", 0.8); cabeza(F(3.45), 5, -4, -12)
+cara(F(4.02), "risa"); cabeza(F(4.12), -6, 5, -10)
 for l in ("R", "L"):
-    mano_en(l, F(4.15), (SX(l) * 0.36, -0.20, 1.13)); codo_hacia(l, F(4.15), (SX(l) * 0.8, 0.3, 0.9)); mano_pose(l, F(4.15), "abierta")
-    mano_en(l, F(4.62), (SX(l) * 0.37, -0.20, 1.15)); mano_pose(l, F(4.62), "abierta")
+    mano_en(l, F(4.15), (SX(l) * 0.27, -0.26, 1.16)); codo_hacia(l, F(4.15), (SX(l) * 0.8, 0.3, 0.9)); mano_pose(l, F(4.15), "abierta")
+    mano_en(l, F(4.62), (SX(l) * 0.28, -0.26, 1.18)); mano_pose(l, F(4.62), "abierta")
 # escucha a Clod: "¿Y enfadarte?"
 for l in ("R", "L"): brazo_caido(l, F(5.00)); mano_pose(l, F(5.00), "relajada"); mano_giro(l, F(5.00))
-cara(F(5.05), "sonrisa", 0.6); cabeza(F(5.10), 16, 0, 50); columna(F(5.1), 0, 0, 10)
-cara(F(5.60), "duda", 0.6); cabeza(F(5.70), 15, -5, 48)
+cara(F(5.05), "sonrisa", 0.6); cabeza(F(5.10), 25, 0, 26); columna(F(5.1), 4, 0, 6)
+cara(F(5.60), "duda", 0.6); cabeza(F(5.70), 24, -5, 24)
 # "¡Grrr! ¿Así?"
-cara(F(5.98), "enfado"); cabeza(F(6.05), 8, 0, 2); columna(F(6.05), 7, 0, 0)
+cara(F(5.98), "enfado"); cabeza(F(6.05), 8, 0, -6); columna(F(6.05), 7, 0, 0)
 for l in ("R", "L"):
     mano_en(l, F(6.10), (SX(l) * 0.12, -0.27, 1.23)); codo_hacia(l, F(6.10), (SX(l) * 0.70, 0.35, 1.00)); mano_pose(l, F(6.10), "puño")
 for t, dz in ((6.20, 0.025), (6.30, -0.005), (6.40, 0.02), (6.50, 0.0)):
     for l in ("R", "L"): mano_en(l, F(t), (SX(l) * 0.12, -0.27, 1.23 + dz))
-cara(F(6.60), "duda"); cabeza(F(6.72), 8, -8, 44); columna(F(6.72), 0, 0, 10)
+cara(F(6.60), "duda"); cabeza(F(6.72), 22, -8, 24); columna(F(6.72), 4, 0, 6)
 for l in ("R", "L"): brazo_caido(l, F(6.95)); mano_pose(l, F(6.95), "relajada")
 # Clod se ríe
-cara(F(7.60), "risa"); cabeza(F(7.70), -4, 4, 42)
+cara(F(7.60), "risa"); cabeza(F(7.70), 18, 4, 24)
 cadera(F(7.6), (0, 0, 0)); cadera(F(7.75), (0, 0, -0.008)); cadera(F(7.9), (0, 0, 0.004)); cadera(F(8.05), (0, 0, 0))
-cara(F(8.7), "sonrisa"); cabeza(F(9.15), 2, -4, 6); columna(F(9.15), 0, 0, 0)
+cara(F(8.7), "sonrisa"); cabeza(F(9.15), 2, -4, -6); columna(F(9.15), 0, 0, 0)
 # "¡Empezamos!": pulgar arriba a cámara, mano izquierda en la cadera y guiño
 mano_en("L", F(9.45), (0.27, -0.02, 1.00)); codo_hacia("L", F(9.45), (0.55, 0.10, 1.10)); mano_pose("L", F(9.45), "relajada")
 mano_en("R", F(9.40), (-0.14, -0.32, 1.22)); codo_hacia("R", F(9.40), (-0.70, 0.10, 0.80)); mano_pose("R", F(9.40), "pulgar")
 orientar_mano("R", F(9.40), pulgar_hacia=(0, 0, 1), dedos_hacia=(0.6, -0.4, 0))
 mano_en("R", F(9.55), (-0.14, -0.33, 1.27)); orientar_mano("R", F(9.55), pulgar_hacia=(0, 0, 1), dedos_hacia=(0.6, -0.4, 0))
 mano_en("R", F(9.70), (-0.14, -0.32, 1.24))
-cara(F(9.50), "sonrisa"); cabeza(F(9.55), 3, -6, 4)
+cara(F(9.50), "sonrisa"); cabeza(F(9.55), 3, -6, -6)
 parpadeo(F(10.45), 1.0, lado="L")
 mano_en("R", FIN - 8, (-0.14, -0.32, 1.25)); orientar_mano("R", FIN - 8, pulgar_hacia=(0, 0, 1), dedos_hacia=(0.6, -0.4, 0))
-cara(FIN, "sonrisa", 0.85); cabeza(FIN, 2, -4, 6); mano_en("L", FIN, (0.27, -0.02, 1.00))
+cara(FIN, "sonrisa", 0.85); cabeza(FIN, 2, -4, -6); mano_en("L", FIN, (0.27, -0.02, 1.00))
 
 # ================================================================ CLOD
-CL.cara(1, "contento"); CL.cabeza(1, -12, 0, -38); CL.mirar(1, -0.02, 0.01)
+CL.cara(1, "contento"); CL.cabeza(1, -20, 0, -50); CL.cuerpo(1, 0, 0, -30); CL.mirar(1, -0.02, 0.012)
 # "¡Alex, mira!": saluda a Alex
-CL.cabeza(F(0.45), -8, 0, -34); CL.cara(F(0.58), "feliz"); CL.cabeza(F(0.66), -16, 4, -40)
+CL.cabeza(F(0.45), -14, 0, -44); CL.cara(F(0.58), "feliz"); CL.cabeza(F(0.66), -22, 4, -52)
 fs = CL.saludo("R", F(0.50), ciclos=2, vel=5)
 # "¡Tengo pantalla nueva!": se señala la pantalla y mira a cámara
 for l in ("R", "L"):
     CL.mano_en(l, F(1.62), (SX(l) * 0.26, -0.13, 0.62)); CL.codo_hacia(l, F(1.62), (SX(l) * 0.70, 0.20, 0.45)); CL.pulgar(l, F(1.62), 1.0)
     CL.mano_en(l, F(2.55), (SX(l) * 0.26, -0.135, 0.63))
-CL.cabeza(F(1.62), -6, 0, 28); CL.mirar(F(1.62), 0.02, 0.012); CL.cara(F(1.60), "feliz")
+CL.cabeza(F(1.62), -6, 0, 28); CL.cuerpo(F(1.62), 0, 0, 10); CL.mirar(F(1.62), 0.02, 0.012); CL.cara(F(1.60), "feliz")
 CL.mirar(F(2.05), -0.015, 0.012); CL.mirar(F(2.40), 0.02, 0.012)
 # escucha a Alex
 for l in ("R", "L"): CL.brazo_caido(l, F(2.85))
-CL.cabeza(F(3.00), -15, 6, -40); CL.mirar(F(3.00), -0.02, 0.012); CL.cara(F(2.95), "sorpresa", 0.5)
+CL.cabeza(F(3.00), -20, 6, -50); CL.cuerpo(F(3.0), 0, 0, -30); CL.mirar(F(3.00), -0.02, 0.012); CL.cara(F(2.95), "sorpresa", 0.5)
 CL.cara(F(4.08), "feliz"); CL.rebote(F(4.15), veces=2, alto=0.025, cada=7)
 # "¿Y enfadarte?": pícaro, mano a la "barbilla"
-CL.cara(F(4.95), "contento"); CL.cabeza(F(5.02), -12, -10, -34); CL.mirar(F(5.0), -0.02, 0.006)
+CL.cara(F(4.95), "contento"); CL.cabeza(F(5.02), -18, -10, -46); CL.mirar(F(5.0), -0.02, 0.006)
 CL.mano_en("R", F(5.05), (-0.12, -0.20, 0.50)); CL.codo_hacia("R", F(5.05), (-0.60, 0.20, 0.35)); CL.pulgar("R", F(5.05), 0.3)
 CL.mano_en("R", F(5.70), (-0.12, -0.205, 0.51))
 # "¡Grrr!": susto
-CL.cara(F(6.08), "susto"); CL.cuerpo(F(6.15), -6, 0, 0)
+CL.cara(F(6.08), "susto"); CL.cuerpo(F(6.15), -6, 0, -30)
 CL.aplastar(F(6.06), 1.0); CL.aplastar(F(6.14), 1.13); CL.aplastar(F(6.28), 0.95); CL.aplastar(F(6.42), 1.0)
 for l in ("R", "L"):
     CL.mano_en(l, F(6.15), (SX(l) * 0.27, -0.10, 0.62)); CL.codo_hacia(l, F(6.15), (SX(l) * 0.75, 0.15, 0.45)); CL.pulgar(l, F(6.15), 1.0)
     CL.mano_en(l, F(6.55), (SX(l) * 0.27, -0.10, 0.61))
-CL.cara(F(6.80), "contento"); CL.cuerpo(F(6.85), 0, 0, 0)
+CL.cara(F(6.80), "contento"); CL.cuerpo(F(6.85), 0, 0, -30)
 for l in ("R", "L"): CL.brazo_caido(l, F(6.95))
 # "¡Ja, ja! ¡Perfecto! ¿Empezamos?"
-CL.cara(F(7.45), "risa"); CL.cabeza(F(7.55), -10, 8, -30); CL.rebote(F(7.50), veces=2, alto=0.03, cada=7)
-CL.cara(F(8.06), "feliz"); CL.cabeza(F(8.10), -6, 0, 26); CL.mirar(F(8.1), 0.02, 0.01)
+CL.cara(F(7.45), "risa"); CL.cabeza(F(7.55), -16, 8, -42); CL.rebote(F(7.50), veces=2, alto=0.03, cada=7)
+CL.cara(F(8.06), "feliz"); CL.cabeza(F(8.10), -6, 0, 26); CL.cuerpo(F(8.1), 0, 0, 10); CL.mirar(F(8.1), 0.02, 0.01)
 fp = CL.pulgar_arriba("L", F(8.00), dur=18)
 for l in ("R", "L"):
     CL.mano_en(l, F(8.85), (SX(l) * 0.30, -0.08, 0.52)); CL.codo_hacia(l, F(8.85), (SX(l) * 0.70, 0.25, 0.40)); CL.pulgar(l, F(8.85), 0.6)
@@ -163,11 +163,11 @@ def mat(nombre, color, rough, metal=0.0):
     b.inputs["Roughness"].default_value = rough; b.inputs["Metallic"].default_value = metal
     return m
 madera = mat("Banco_Madera", (0.30, 0.17, 0.08), 0.55); metal_ = mat("Banco_Metal", (0.05, 0.05, 0.055), 0.4, 0.6)
-mx, my = 0.64, -0.02
-caja("Banco_Tablero", (mx, my, 0.875), (0.62, 0.46, 0.05), madera)
-for i, (dx, dy) in enumerate(((-0.27, -0.19), (0.27, -0.19), (-0.27, 0.19), (0.27, 0.19))):
+mx, my = 0.42, -0.55
+caja("Banco_Tablero", (mx, my, 0.875), (0.55, 0.40, 0.05), madera)
+for i, (dx, dy) in enumerate(((-0.235, -0.16), (0.235, -0.16), (-0.235, 0.16), (0.235, 0.16))):
     caja(f"Banco_Pata{i}", (mx + dx, my + dy, 0.425), (0.04, 0.04, 0.85), metal_)
-caja("Banco_Balda", (mx, my, 0.18), (0.58, 0.42, 0.025), metal_)
+caja("Banco_Balda", (mx, my, 0.18), (0.51, 0.36, 0.025), metal_)
 if "Ciclorama" not in bpy.data.objects:
     m_ = mat("Estudio", (0.20, 0.045, 0.06), 0.9)
     mesh = bpy.data.meshes.new("Ciclorama"); bm = bmesh.new(); prof = [(-8, 0)]
@@ -189,7 +189,7 @@ for n, (loc, e, col) in LUZ.items():
     if o is None:
         o = bpy.data.objects.new(n, bpy.data.lights.new(n, "AREA")); sc.collection.objects.link(o); o.data.size = 1.5
     o.location = loc; o.data.energy = e; o.data.color = col
-    o.rotation_euler = (Vector((0.3, 0, 1.25)) - o.location).to_track_quat("-Z", "Y").to_euler()
+    o.rotation_euler = (Vector((0.2, -0.25, 1.2)) - o.location).to_track_quat("-Z", "Y").to_euler()
 _m["brillo_led"](sc, umbral=6.0)
 
 # ---------------------------------------------------------------- cámara: 5 planos
@@ -203,11 +203,11 @@ def ck(f, loc, t, lens):
     cam.data.lens = lens
     cam.keyframe_insert("location", frame=f); cam.keyframe_insert("rotation_euler", frame=f); cam.data.keyframe_insert("lens", frame=f)
 PLANOS = [
-    [(CORTES[0], (0.42, -2.75, 1.32), (0.30, -0.03, 1.24), 28), (CORTES[1] - 1, (0.40, -2.60, 1.33), (0.30, -0.03, 1.25), 28)],   # 1 los dos
-    [(CORTES[1], (0.34, -1.55, 1.52), (0.04, 0, 1.40), 35), (CORTES[2] - 1, (0.32, -1.46, 1.53), (0.04, 0, 1.41), 35)],           # 2 Alex medio
-    [(CORTES[2], (0.20, -0.78, 1.22), (0.62, -0.05, 1.12), 45), (CORTES[3] - 1, (0.22, -0.74, 1.21), (0.62, -0.05, 1.12), 45)],    # 3 Clod
-    [(CORTES[3], (0.42, -1.32, 1.56), (0.04, 0, 1.49), 40), (CORTES[4] - 1, (0.40, -1.25, 1.56), (0.04, 0, 1.49), 40)],           # 4 Alex cerca
-    [(CORTES[4], (0.55, -2.75, 1.32), (0.32, -0.03, 1.24), 28), (CORTES[5] - 1, (0.42, -2.25, 1.36), (0.30, -0.03, 1.28), 28)],   # 5 los dos, acercándose
+    [(CORTES[0], (0.12, -2.40, 1.30), (0.16, -0.25, 1.20), 30), (CORTES[1] - 1, (0.12, -2.28, 1.31), (0.16, -0.25, 1.21), 30)],   # 1 los dos
+    [(CORTES[1], (-0.08, -1.75, 1.50), (0.06, 0, 1.38), 30), (CORTES[2] - 1, (-0.07, -1.65, 1.51), (0.06, 0, 1.39), 30)],         # 2 Alex medio
+    [(CORTES[2], (-0.30, -0.95, 1.25), (0.40, -0.55, 1.12), 45), (CORTES[3] - 1, (-0.27, -0.92, 1.24), (0.40, -0.55, 1.12), 45)],  # 3 Clod
+    [(CORTES[3], (0.05, -1.32, 1.56), (0.01, 0, 1.49), 40), (CORTES[4] - 1, (0.05, -1.25, 1.56), (0.01, 0, 1.49), 40)],           # 4 Alex cerca
+    [(CORTES[4], (0.20, -2.45, 1.30), (0.17, -0.25, 1.20), 30), (CORTES[5] - 1, (0.16, -2.00, 1.34), (0.17, -0.25, 1.26), 30)],   # 5 los dos, acercándose
 ]
 for claves in PLANOS:
     for (f_, p, t, lens) in claves: ck(f_, p, t, lens)
