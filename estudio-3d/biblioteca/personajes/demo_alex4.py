@@ -54,12 +54,11 @@ orientar_mano("R", F(1.32), palma_hacia=(0, 1, 0), dedos_hacia=(1, 0, 0.3))
 brazo_caido("L", F(1.32)); mano_pose("L", F(1.32), "relajada"); brazo_caido("L", F(1.72)); mano_pose("L", F(1.72), "relajada")
 cabeza(F(1.35), 5, -4, 0); cara(F(1.35), "sonrisa", 0.8)
 mano_en("R", F(1.70), (-0.06, -0.25, 1.23))
-# "Mira esto": enmarca la cara con las manos bajo la barbilla (palmas arriba), sin taparla
-for l in ("R", "L"):
-    s = _sx(l)
-    mano_en(l, F(2.00), (s * 0.12, -0.17, 1.41)); codo_hacia(l, F(2.00), (s * 0.55, 0.05, 1.00)); mano_pose(l, F(2.00), "abierta")
-    orientar_mano(l, F(2.00), palma_hacia=(0, 0, 1), dedos_hacia=(s * 1, -0.4, 0.35))
-    mano_en(l, F(2.30), (s * 0.125, -0.17, 1.42))
+# "Mira esto": con el índice izquierdo se señala la cara desde abajo (sin taparla); la derecha baja relajada
+brazo_caido("R", F(1.98)); mano_pose("R", F(1.98), "relajada"); mano_giro("R", F(1.98))
+mano_en("L", F(2.00), (0.21, -0.21, 1.29)); codo_hacia("L", F(2.00), (0.60, 0.05, 0.95)); mano_pose("L", F(2.00), "señalar")
+orientar_mano("L", F(2.00), dedos_hacia=(-0.55, 0.15, 0.85), pulgar_hacia=(-0.3, -1, 0))
+mano_en("L", F(2.18), (0.20, -0.21, 1.31)); mano_en("L", F(2.32), (0.21, -0.21, 1.30))
 cabeza(F(2.00), -3, 3, 0); cara(F(2.00), "picaro", 0.7)
 # ================================================================== PLANO 3 · primer plano: "ya puedo sonreír, enfadarme..."
 for l in ("R", "L"):
