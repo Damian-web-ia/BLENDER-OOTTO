@@ -32,3 +32,12 @@
 - **Copias base64 largas:** al pasar audio de Ootto al PC, comprobar con md5 por trozos; un fallo de copia dejó el audio con errores de CRC.
 - **Diálogo entre dos:** montar la pista de voces una vez (con sus silencios) y animar cada boca con sus propios tiempos.
 - **La vista previa de `look` con `frames` no usa el formato 9:16:** enseña más a los lados que el render final. Para los planos verticales, fiarse de `comprobar_encuadre()` (usa el formato real) o de un fotograma del render.
+
+## 2026-11-26 (tarde) · Despiece 3D del neumático
+- **Rayos X sin tocar cada material a mano:** un atributo de tipo *View Layer* llamado `xray` (propiedad de la escena animada de 0 a 1) mezcla cada material del coche con transparente + emisión azul en los bordes (Layer Weight). Los materiales compartidos con el taller (gomas, llantas) se copian antes para que el taller no se vuelva transparente.
+- **Miles de trozos en una sola malla:** 2.160 cajitas sobre la superficie del neumático y una shape key `explota` con cada trozo ya desplazado y girado. Barato de renderizar y se puede invertir para que vuelvan.
+- **Cortes de plano y desenfoque de movimiento:** con `motion_blur_position = 'START'` y claves constantes en el último fotograma de cada plano no se mezclan dos planos en un fotograma.
+- **Booleanas con el cortador oculto:** ocultar el cilindro con `hide_set(True)` y `hide_render`, no con `hide_viewport` (si no, la booleana puede dejar de evaluarlo).
+- **Personajes muy pequeños (Clod mide 0,26 m):** subirlo a algo (capó, neumático tumbado) para que salga grande en 9:16 y además da juego cómico.
+- **Comprobar encuadres con renders rápidos de verdad** (30 %, 12 muestras, ~1 s por fotograma): `probar_fotogramas.py`. La vista `look` engaña en vertical.
+- **Rótulos que siguen a las piezas:** las posiciones en pantalla se calculan evaluando las curvas de animación (`anclas.py`), sin mover la escena; luego el montaje dibuja los textos con PIL.
