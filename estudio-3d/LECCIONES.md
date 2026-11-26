@@ -52,6 +52,7 @@
 - **Cambiar la voz sin rehacer la animación:** `despiece_neumatico_v2.py` lee `voces_alex.json` (tiempos de cada palabra) y estira o encoge la línea de tiempo entera con una función por tramos sacada de palabras clave (cada clave de animación se mueve, con sus asas). Escribe `warp.json`, que usan el montaje y la mezcla de audio. Así una voz nueva solo cuesta generar las frases.
 - **`reel_voice` admite voces que no son premium** (por ejemplo "Gonzalo"). Antes de decir "voz grave" o "voz aguda", medir el tono: Gonzalo ronda 142 Hz (no es grave), pero es la más expresiva; Carlos 102 Hz.
 - **En el montaje no reutilizar `W` para dos cosas** (ancho de pantalla y función de tiempo): la función se llama `WP`.
+- **Voces con el mismo nombre:** en Ootto hay dos "Gonzalo" (Panamá y España). Pedirla por nombre dio la de Panamá y a Damián le sonó latina. Pedir siempre la voz por su id (`reel_voice="cartesia-…"`) y comprobar el acento en `voice_list`. Damián quiere **español de España** para Alex.
 
 ## 2026-11-26 (19:30) · Reel del equilibrado
 - **Capa viva aditiva** (modificadores de curva tipo seno con `use_additive`): Alex cambia el peso y balancea la cabeza, Clod respira. No hace falta tocar cada gesto y se apaga con `activa=False` para comparar. Medido: cabeza de Alex 13 → 24 mm de movimiento en reposo; Clod 9 → 14 mm.

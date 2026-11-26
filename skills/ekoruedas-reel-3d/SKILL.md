@@ -39,7 +39,7 @@ Esos datos solo pueden aparecer en el pie de texto y se deben copiar del bloque 
 - Mecánico de unos 45 años, piel morena y barba corta canosa.
 - Mono negro liso con ribetes naranjas.
 - Serio, seco y claro; puede usar ironía contenida y una media sonrisa.
-- Desde el 26-11-2026, Alex pone **todas las voces**, con voz **Gonzalo**.
+- Desde el 26-11-2026, Alex pone **todas las voces**, con voz **Diego** (España): `reel_voice="cartesia-399002e9-7f7d-42d4-a6a8-9b91bd809b9d"`. Pedirla siempre por este id: hay voces con el mismo nombre y otro acento (el "Gonzalo" de Panamá sonaba latino y Damián no lo quiere). Acento de España siempre.
 - Animar la mandíbula según los tiempos de voz.
 - Usar el rig de Alex v2 y las poses disponibles.
 - Mantener respiración y cambios de peso continuos: Alex nunca queda completamente inmóvil.
@@ -155,7 +155,7 @@ Guardar también el prompt y la skill utilizados, siguiendo la estructura existe
 
 1. Preparar el guion final con todas las frases habladas por Alex.
 2. Generar las voces en Ootto **antes de animar**.
-3. Usar **Gonzalo** para Alex.
+3. Usar **Diego** para Alex, por su id (`cartesia-399002e9-7f7d-42d4-a6a8-9b91bd809b9d`).
 4. No generar ni asignar ninguna voz a Clod.
 5. Dividir la locución por frases para facilitar ajuste y edición.
 6. Medir los tiempos por palabra y guardar el resultado en:
@@ -336,7 +336,7 @@ Antes de escribir una afirmación mecánica:
 
 ## 8. Sonido
 
-- Alex es la única voz (Ootto, `reel_voice` "Gonzalo", desde el 26-11-2026). Clod no habla: sus reacciones se oyen con efectos cortos.
+- Alex es la única voz (Ootto, `reel_voice="cartesia-399002e9-7f7d-42d4-a6a8-9b91bd809b9d"` = Diego, español de España, elegido por Damián el 26-11-2026 a las 20:21). Clod no habla: sus reacciones se oyen con efectos cortos.
 - Voces primero, frase a frase, con la emoción del guion; los tiempos de cada palabra (`words`) van a `data/voces.json` y mandan sobre la animación.
 - Música suave de `/work/audio/music_library` a ~0,2, con `sidechaincompress` bajo la voz.
 - 2-4 efectos de `/work/audio/sfx` o `/work/project/public/sfx_pack`, cada uno ligado a una acción visible.

@@ -5,7 +5,7 @@ Estudio 3D de los reels diarios. Blender hace la imagen; Ootto pone el sonido y 
 ## Créditos de Ootto (desde el 26-11-2026): presupuesto diario
 - Plan Self-serve de Ootto: 600 créditos al mes; se renueva el día 24 de cada mes.
 - Damián dijo el 24-11 que le quedaban unos 200. Hasta el 24-12 hay 28 días: **como mucho unos 7 créditos al día**, dejando un 10 % de reserva.
-- La animación 3D se hace en Blender, en su PC, y no gasta créditos. Ootto se usa solo para las voces (Alex = "Gonzalo" desde el 26-11-2026, elegida por Damián; antes "Carlos"), la música y los efectos del montaje.
+- La animación 3D se hace en Blender, en su PC, y no gasta créditos. Ootto se usa solo para las voces (Alex = "Diego", voz de España, id cartesia-399002e9-7f7d-42d4-a6a8-9b91bd809b9d, desde el 26-11-2026; Damián quiere acento de España, nunca latino), la música y los efectos del montaje.
 - No usar `image_generate` ni `video_generate` de Ootto para los vídeos (regla de Jesko). Si algún día hace falta un clip de IA, pedir permiso y apuntar el gasto.
 - Cada vídeo diario: voces (2-6 tomas) + montaje. Si un día no se gasta, el saldo pasa a los siguientes; nunca gastar más de 15 en un día sin preguntar.
 
