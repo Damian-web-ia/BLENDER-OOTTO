@@ -1,4 +1,6 @@
-# ALEX v2 · EXPRESIONES FACIALES (shape keys). Se ejecuta una vez sobre alex_v2_rig.blend.
+# ALEX v2 · EXPRESIONES FACIALES (shape keys). Se ejecuta una vez sobre alex_v2_rig.blend
+# (antes se subdivide una vez la parte delantera de la cara para que las expresiones deformen suave).
+GANANCIA = 1.7   # intensidad general de las expresiones
 # Puntos de referencia medidos en una vista ortográfica frontal (metros, mundo; Alex en el origen, 1,75 m):
 import bpy, math
 from mathutils import Vector
@@ -32,7 +34,7 @@ def key(nombre, fn):
     for i, p in enumerate(W):
         d = fn(p)
         if d is None or d.length < 1e-7: continue
-        kb.data[i].co = basis.data[i].co + inv3 @ d; n += 1
+        kb.data[i].co = basis.data[i].co + inv3 @ (d * (1.0 if nombre.startswith(('Parpado', 'Boca_O', 'Boca_Ancha')) else GANANCIA)); n += 1
     return n
 
 stats = {}
