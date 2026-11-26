@@ -200,7 +200,7 @@ cabeza(F(20.2), 4, 3, 30)                                                   # mi
 ALEX.rotation_euler = (0, 0, R(ALEX_GIRO)); ALEX.keyframe_insert("rotation_euler", frame=F(20.45))
 ALEX.rotation_euler = (0, 0, R(48)); ALEX.keyframe_insert("rotation_euler", frame=F(21.0))
 ALEX.rotation_euler = (0, 0, R(48)); ALEX.keyframe_insert("rotation_euler", frame=F(25.45))
-ALEX.rotation_euler = (0, 0, R(-18)); ALEX.keyframe_insert("rotation_euler", frame=F(25.95))
+ALEX.rotation_euler = (0, 0, R(4)); ALEX.keyframe_insert("rotation_euler", frame=F(25.95))
 ALEX.rotation_euler = (0, 0, R(ALEX_GIRO)); ALEX.keyframe_insert("rotation_euler", frame=1)
 cara(F(20.6), "duda", 0.6)
 # "Clod, ni te acerques": mano de stop hacia Clod
@@ -314,7 +314,7 @@ PLANOS = [
     # 4a pantalla con flechas
     [(tuple(PANT + NPANT * 0.72), tuple(PANT), 30), (tuple(PANT + NPANT * 0.66), tuple(PANT), 30)],
     # 4b la llanta parada: el contrapeso arriba
-    [(tuple(W + EJE * 0.85 + Vector((0, 0, 0.10))), tuple(W + Vector((0, 0, 0.10))), 40), (tuple(W + EJE * 0.78 + Vector((0, 0, 0.12))), tuple(W + Vector((0, 0, 0.12))), 40)],
+    [(tuple(W + EJE * 0.62 + Vector((0, 0, 0.24))), tuple(W + Vector((0, 0, 0.17))), 40), (tuple(W + EJE * 0.56 + Vector((0, 0, 0.24))), tuple(W + Vector((0, 0, 0.175))), 40)],
     # 5 gira redonda (plano algo más abierto)
     [(tuple(W + EJE * 1.70 + LADO * 0.70 + Vector((0, 0, 0.45))), tuple(W + Vector((0, 0, -0.05))), 30), (tuple(W + EJE * 1.62 + LADO * 0.45 + Vector((0, 0, 0.40))), tuple(W + Vector((0, 0, -0.05))), 30)],
     # 6 plano general bajo: Alex, máquina parada y Clod en la pila
@@ -322,7 +322,7 @@ PLANOS = [
     # 7 los dos: Alex en primer término a la izquierda, Clod detrás a la derecha
     [((-1.30, -2.25, 1.30), (0.95, -0.45, 0.98), 24), ((-1.22, -2.15, 1.30), (0.95, -0.45, 0.99), 24)],
     # 8 cierre: los dos, acercándose
-    [((-0.85, -2.30, 1.35), (0.70, -0.50, 1.08), 26), ((-0.75, -2.10, 1.35), (0.70, -0.50, 1.10), 26)],
+    [((0.62, -3.30, 1.25), (0.66, -0.40, 1.02), 22), ((0.62, -3.10, 1.27), (0.66, -0.40, 1.05), 22)],
 ]
 for i, claves in enumerate(PLANOS):
     (p0, t0, l0), (p1, t1, l1) = claves
