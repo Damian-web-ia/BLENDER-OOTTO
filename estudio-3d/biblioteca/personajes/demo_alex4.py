@@ -51,15 +51,15 @@ mano_pose("R", F(1.05), "abierta")
 # ================================================================== PLANO 2 · medio 3/4: "Soy Alex. Mira esto:"
 mano_en("R", F(1.32), (-0.07, -0.24, 1.22)); codo_hacia("R", F(1.32), (-0.70, 0.00, 0.90)); mano_pose("R", F(1.32), "abierta")
 orientar_mano("R", F(1.32), palma_hacia=(0, 1, 0), dedos_hacia=(1, 0, 0.3))
-mano_pose("L", F(1.32), "relajada")
+brazo_caido("L", F(1.32)); mano_pose("L", F(1.32), "relajada"); brazo_caido("L", F(1.72)); mano_pose("L", F(1.72), "relajada")
 cabeza(F(1.35), 5, -4, 0); cara(F(1.35), "sonrisa", 0.8)
 mano_en("R", F(1.70), (-0.06, -0.25, 1.23))
-# "Mira esto": los dos índices señalan su cara desde los lados
+# "Mira esto": enmarca la cara con las manos bajo la barbilla (palmas arriba), sin taparla
 for l in ("R", "L"):
     s = _sx(l)
-    mano_en(l, F(2.00), (s * 0.20, -0.22, 1.47)); codo_hacia(l, F(2.00), (s * 0.60, 0.05, 1.05)); mano_pose(l, F(2.00), "señalar")
-    orientar_mano(l, F(2.00), dedos_hacia=(-s * 1, -0.2, 0.25), pulgar_hacia=(0, 0, 1))
-    mano_en(l, F(2.30), (s * 0.19, -0.22, 1.48))
+    mano_en(l, F(2.00), (s * 0.12, -0.17, 1.41)); codo_hacia(l, F(2.00), (s * 0.55, 0.05, 1.00)); mano_pose(l, F(2.00), "abierta")
+    orientar_mano(l, F(2.00), palma_hacia=(0, 0, 1), dedos_hacia=(s * 1, -0.4, 0.35))
+    mano_en(l, F(2.30), (s * 0.125, -0.17, 1.42))
 cabeza(F(2.00), -3, 3, 0); cara(F(2.00), "picaro", 0.7)
 # ================================================================== PLANO 3 · primer plano: "ya puedo sonreír, enfadarme..."
 for l in ("R", "L"):
@@ -68,6 +68,7 @@ for l in ("R", "L"):
 cara(F(2.70), "risa", 1.0); cabeza(F(2.80), -6, 5, 0)
 cadera(F(2.80), (0, 0, 0.008)); cadera(F(3.00), (0, 0, -0.006)); cadera(F(3.20), (0, 0, 0.004)); cadera(F(3.40), (0, 0, 0))
 cabeza(F(3.30), -4, 4, 0); cara(F(3.36), "risa", 0.9)
+for l in ("R", "L"): brazo_caido(l, F(3.40)); mano_pose(l, F(3.40), "relajada")      # quietas hasta el enfado
 # enfadarme: cejas abajo, puños delante del pecho, se inclina
 cara(F(3.52), "enfado"); cabeza(F(3.58), 8, 0, 0); columna(F(3.62), 7, 0, 0)
 for l in ("R", "L"):
