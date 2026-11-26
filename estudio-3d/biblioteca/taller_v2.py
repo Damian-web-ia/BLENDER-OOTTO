@@ -125,7 +125,7 @@ def _dibujo(theta, s, n_pasos=40):
     if a < 0.19:                                               # nervio central con laminillas finas
         f2 = (theta * n_pasos / (2 * math.pi) + 0.5) % 1.0
         return (0.0025 if f2 < 0.035 else 0.0), False
-    if fr < 0.17 and 0.3 < a or (fr < 0.17 and a >= 0.19):                                              # ranuras laterales en V (direccional)
+    if fr < 0.17:                                              # ranuras laterales en V (direccional)
         return (0.0065 if a < 0.94 else 0.0065 * (1 - (a - 0.94) / 0.06)), False
     if a > 0.68 and abs(fr - 0.56) < 0.02:                     # laminilla del hombro
         return 0.002, False
@@ -160,7 +160,7 @@ def malla_neumatico(nombre, n_u=800, n_flanco=24, n_banda=110, n_pasos=40, nervi
     tmp = bpy.data.objects.new("_tmp_" + nombre, me); bpy.context.scene.collection.objects.link(tmp)
     tmp.shape_key_add(name="Basis", from_mix=False)
     kb = tmp.shape_key_add(name="gastado", from_mix=False)
-    kb.data.foreach_set("co", np.array(Vg, dtype=np.float32).ravel())
+    kb.data.foreach_set("co", np.array(Vg, dtype=np.float32).ravel()); kb.value = 0.0   # nuevo por defecto
     bpy.data.objects.remove(tmp, do_unlink=True)
     me["dot"] = 0
     return me
