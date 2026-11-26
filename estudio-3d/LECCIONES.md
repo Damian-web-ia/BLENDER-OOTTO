@@ -77,3 +77,6 @@
 - Ootto sube como máximo 3 vídeos a YouTube al día por marca. Lo que pasa del tope queda en cola con su hora (`held_for: cap`); no se vuelve a subir.
 - Desde ahora, todo en los tres sitios (YouTube, Instagram, TikTok) a la misma hora, y comprobar YouTube con `own_media_list(platform="youtube")` después de cada publicación.
 - Cola de YouTube de los vídeos ya publicados: frenos 27-11 10:28 · ruedas delante o detrás 29-11 9:56 · invierno 29-11 10:43.
+- 26-11, 21:55: primer vídeo en YouTube, por vidIQ (Damián conectó su cuenta de Google a vidIQ a las 21:52). "¿Por qué rascan las marchas? Así funciona una caja de cambios manual", público: https://www.youtube.com/watch?v=x5FS1ogsBQw. Se eligió un reel que no estaba en la cola de YouTube de Ootto para que no saliera repetido.
+- vidIQ (plan gratis) también sube como máximo 3 vídeos al día a YouTube; el contador vuelve a cero a medianoche de California (9:00 en España).
+- Plan: si la subida de Ootto del 27-11 a las 10:28 (frenos) no llega, YouTube pasa a vidIQ (en el mismo borrador que TikTok).
