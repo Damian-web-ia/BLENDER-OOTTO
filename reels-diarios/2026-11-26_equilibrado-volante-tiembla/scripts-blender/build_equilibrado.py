@@ -45,6 +45,7 @@ cap = bpy.data.objects.get("Equi_Capota")
 if cap: cap.hide_render = True; cap.hide_set(True)          # capota levantada (fuera de cuadro)
 # pantalla oscura con flechas naranjas (sin cifras)
 pant = bpy.data.objects["Equi_Pantalla"]
+pant.location = Vector(pant.location) + pant.rotation_euler.to_matrix() @ Vector((0, 0, 0.056))   # la pantalla estaba hundida en el panel
 m_pant = mat("EQ_PantallaOscura", (0.01, 0.012, 0.016), rough=0.2, emis=0.4, ecol=(0.05, 0.12, 0.2))
 pant.data.materials.clear(); pant.data.materials.append(m_pant)
 m_fle = mat("EQ_FlechaNaranja", (1.0, 0.52, 0.0), rough=0.4, emis=5.0, ecol=(1.0, 0.52, 0.0))
@@ -118,7 +119,7 @@ W = mundo(PIV)                                                  # centro de la r
 EJE = (PIV.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()   # hacia fuera de la máquina
 
 # pila de neumáticos para Clod (detrás, a la derecha de la máquina)
-PILA_POS = Vector((1.30, 0.80, 0.0))
+PILA_POS = Vector((1.40, -0.55, 0.0))
 T_["pila_neumaticos"]("Pila_Clod", tuple(PILA_POS), 3, M, CE, giro=0.3)
 TOP_PILA = 3.02 * ANCHO                                          # 3 neumáticos tumbados
 TABLA = caja("Pila_Tabla", tuple(PILA_POS + Vector((0, 0, TOP_PILA + 0.0125))), (0.50, 0.46, 0.025), M["madera"], bisel=0.003, col=CE)
@@ -165,6 +166,8 @@ dg = bpy.context.evaluated_depsgraph_get()
 hit, loc_h, *_ = sc.ray_cast(dg, PILA_POS + Vector((0, 0, 2.0)), Vector((0, 0, -1)))
 CLOD_POS = (PILA_POS.x, PILA_POS.y, (loc_h.z if hit else TOP_PILA + 0.025) - 0.002)
 CLOD_GIRO = -40
+for o_ in bpy.data.objects:
+    if o_.name.startswith("T2_LuzTecho"): o_.data.energy = 170
 CL.reposo(1); CL.mover(1, CLOD_POS, CLOD_GIRO)
 
 # ---------------------------------------------------------------- ALEX
@@ -193,10 +196,15 @@ mano_en("L", F(17.7), (0.24, -0.06, 0.95))                                  # an
 mano_en("L", F(18.0), (0.30, -0.30, 1.12)); codo_hacia("L", F(18.0), (0.70, 0.15, 0.85)); mano_pose("L", F(18.0), "abierta")
 orientar_mano("L", F(18.0), palma_hacia=(0, 0, 1), dedos_hacia=(0.6, -1, 0))
 mano_en("L", F(19.5), (0.31, -0.31, 1.13))
-cabeza(F(20.2), 4, 3, 30)                                                   # mira hacia Clod
+cabeza(F(20.2), 4, 3, 30)                                                   # mira hacia Clod (la cabeza antes que el cuerpo)
+ALEX.rotation_euler = (0, 0, R(ALEX_GIRO)); ALEX.keyframe_insert("rotation_euler", frame=F(20.45))
+ALEX.rotation_euler = (0, 0, R(48)); ALEX.keyframe_insert("rotation_euler", frame=F(21.0))
+ALEX.rotation_euler = (0, 0, R(48)); ALEX.keyframe_insert("rotation_euler", frame=F(25.45))
+ALEX.rotation_euler = (0, 0, R(-18)); ALEX.keyframe_insert("rotation_euler", frame=F(25.95))
+ALEX.rotation_euler = (0, 0, R(ALEX_GIRO)); ALEX.keyframe_insert("rotation_euler", frame=1)
 cara(F(20.6), "duda", 0.6)
 # "Clod, ni te acerques": mano de stop hacia Clod
-cabeza(F(21.05), 2, 2, 38); cara(F(21.15), "enfado", 0.55); columna(F(21.2), 0, 0, 10)
+cabeza(F(21.05), 2, 2, 12); cara(F(21.15), "enfado", 0.55); columna(F(21.2), 0, 0, 10)
 mano_en("L", F(21.15), (0.25, -0.20, 1.05))
 mano_en("L", F(21.40), (0.32, -0.30, 1.30)); codo_hacia("L", F(21.40), (0.70, 0.20, 1.00)); mano_pose("L", F(21.40), "abierta")
 orientar_mano("L", F(21.40), palma_hacia=(0.6, -0.8, 0.0), dedos_hacia=(0, 0, 1))
@@ -207,10 +215,10 @@ mano_en("L", F(23.6), (0.21, -0.31, 1.19)); cara(F(22.6), "neutra")
 # "Tú, bastante más": palma hacia Clod, media sonrisa pícara
 mano_en("L", F(24.0), (0.30, -0.28, 1.12)); mano_pose("L", F(24.0), "abierta")
 orientar_mano("L", F(24.0), palma_hacia=(0, 0, 1), dedos_hacia=(0.7, -0.7, 0))
-cara(F(24.2), "picaro", 0.8); cabeza(F(24.3), -2, 4, 34)
+cara(F(24.2), "picaro", 0.8); cabeza(F(24.3), -2, 4, 10)
 mano_en("L", F(25.2), (0.31, -0.29, 1.13)); brazo_caido("L", F(25.6)); mano_pose("L", F(25.6), "relajada")
 # consejo final, a cámara
-cabeza(F(25.9), 2, 0, -10); columna(F(25.9), 2, 0, -6); cara(F(26.0), "neutra")
+cabeza(F(25.9), 2, 0, -8); columna(F(25.9), 2, 0, -6); cara(F(26.0), "neutra")
 cabeza(F(27.6), 6, 0, -10); cabeza(F(27.9), 0, 0, -10)                     # asiente en "profesional"
 mano_en("R", F(28.3), (-0.20, -0.06, 0.98))                                 # anticipación
 mano_en("R", F(28.6), (-0.16, -0.32, 1.18)); codo_hacia("R", F(28.6), (-0.70, 0.10, 0.80)); mano_pose("R", F(28.6), "señalar")
@@ -230,10 +238,11 @@ CL.mano_en("R", F(3.8), (-0.12, -0.205, 0.53)); CL.brazo_caido("R", F(4.3))
 # P6: intenta hacer de contrapeso: se inclina hacia la rueda con los brazos estirados
 CL.cara(F(17.6), "serio"); CL.cabeza(F(17.6), 4, 0, 6); CL.mirar(F(17.6), -0.015, -0.012)
 CL.cuerpo(F(17.9), -4, 0, 0)                                               # anticipación (se echa atrás)
-for l in ("R", "L"):
-    CL.mano_en(l, F(18.4), (SX(l) * 0.20, -0.34, 0.50)); CL.codo_hacia(l, F(18.4), (SX(l) * 0.60, 0.10, 0.45)); CL.pulgar(l, F(18.4), 0.8)
-    CL.mano_en(l, F(20.9), (SX(l) * 0.21, -0.36, 0.49))
-CL.cuerpo(F(18.4), 18, 4, 0); CL.cuerpo(F(19.3), 22, -4, 0); CL.cuerpo(F(20.2), 20, 5, 0); CL.cuerpo(F(20.9), 22, 0, 0)
+CL.mano_en("R", F(18.4), (-0.40, -0.06, 0.56)); CL.codo_hacia("R", F(18.4), (-0.45, 0.40, 0.45)); CL.pulgar("R", F(18.4), 0.8)
+CL.mano_en("L", F(18.4), (-0.12, -0.30, 0.54)); CL.codo_hacia("L", F(18.4), (0.40, -0.10, 0.40)); CL.pulgar("L", F(18.4), 0.8)
+CL.mano_en("R", F(20.9), (-0.41, -0.07, 0.55)); CL.mano_en("L", F(20.9), (-0.13, -0.31, 0.53))
+CL.cuerpo(F(18.4), 4, -16, -10); CL.cuerpo(F(19.3), 4, -22, -10); CL.cuerpo(F(20.2), 4, -17, -10); CL.cuerpo(F(20.9), 4, -21, -10)
+CL.cabeza(F(18.4), 6, -6, -20)
 CL.rebote(F(19.0), veces=2, alto=0.02, cada=8)
 # "Clod, ni te acerques": susto con aplastar y estirar, se echa atrás y encoge
 CL.cara(F(21.25), "susto"); CL.cuerpo(F(21.30), -8, 0, 0)
@@ -292,27 +301,28 @@ def ck(f, loc, t, lens):
     cam.keyframe_insert("location", frame=f); cam.keyframe_insert("rotation_euler", frame=f); cam.data.keyframe_insert("lens", frame=f)
 A_CAB = mundo(ALEX, (0, -0.05, 1.55))
 CORTES = [1, F(2.18), F(4.40), F(10.55), F(12.45), F(14.33), F(17.45), F(21.18), F(25.60), FIN + 1]
+PANT = mundo(pant); NPANT = (pant.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()
 LADO = Vector((EJE.y, -EJE.x, 0)).normalized()     # perpendicular al eje, en horizontal
 if LADO.y > 0: LADO = -LADO
 PLANOS = [
     # 1 gancho: Alex de cerca, acercándose
-    [((0.05 + A_CAB.x, A_CAB.y - 1.25, 1.50), (A_CAB.x, A_CAB.y, 1.34), 38), ((0.05 + A_CAB.x, A_CAB.y - 1.08, 1.50), (A_CAB.x, A_CAB.y, 1.36), 38)],
-    # 2 Alex, la equilibradora y Clod de fondo
-    [((0.55, -3.30, 1.30), (0.62, 0.05, 0.95), 26), ((0.55, -3.15, 1.30), (0.62, 0.05, 0.96), 26)],
+    [((0.10, -2.10, 1.55), (0.0, -0.55, 1.42), 40), ((0.10, -1.92, 1.55), (0.0, -0.55, 1.44), 40)],
+    # 2 Alex, la equilibradora y Clod en la pila
+    [((0.62, -3.70, 1.20), (0.62, -0.20, 0.92), 22), ((0.62, -3.55, 1.20), (0.62, -0.20, 0.93), 22)],
     # 3 macro: la rueda gira y salta (desequilibrio)
-    [(tuple(W + EJE * 1.05 + LADO * 0.30 + Vector((0, 0, 0.20))), tuple(W), 34), (tuple(W + EJE * 0.95 - LADO * 0.10 + Vector((0, 0, 0.16))), tuple(W), 34)],
+    [(tuple(W + EJE * 1.50 + LADO * 0.35 + Vector((0, 0, 0.25))), tuple(W), 38), (tuple(W + EJE * 1.38 - LADO * 0.12 + Vector((0, 0, 0.20))), tuple(W), 38)],
     # 4a pantalla con flechas
-    [(tuple(mundo(pant, (0, -0.05, 0.42))), tuple(mundo(pant)), 45), (tuple(mundo(pant, (0, -0.06, 0.38))), tuple(mundo(pant)), 45)],
-    # 4b macro de la llanta: el contrapeso
-    [(tuple(W + EJE * 0.55 + Vector((0, 0, 0.30))), tuple(W + Vector((0, 0, R_LL - 0.03))), 45), (tuple(W + EJE * 0.50 + Vector((0, 0, 0.29))), tuple(W + Vector((0, 0, R_LL - 0.03))), 45)],
+    [(tuple(PANT + NPANT * 0.72), tuple(PANT), 30), (tuple(PANT + NPANT * 0.66), tuple(PANT), 30)],
+    # 4b la llanta parada: el contrapeso arriba
+    [(tuple(W + EJE * 0.85 + Vector((0, 0, 0.10))), tuple(W + Vector((0, 0, 0.10))), 40), (tuple(W + EJE * 0.78 + Vector((0, 0, 0.12))), tuple(W + Vector((0, 0, 0.12))), 40)],
     # 5 gira redonda (plano algo más abierto)
-    [(tuple(W + EJE * 1.35 + LADO * 0.55 + Vector((0, 0, 0.30))), tuple(W + Vector((0, 0, -0.05))), 30), (tuple(W + EJE * 1.30 + LADO * 0.35 + Vector((0, 0, 0.28))), tuple(W + Vector((0, 0, -0.05))), 30)],
+    [(tuple(W + EJE * 1.70 + LADO * 0.70 + Vector((0, 0, 0.45))), tuple(W + Vector((0, 0, -0.05))), 30), (tuple(W + EJE * 1.62 + LADO * 0.45 + Vector((0, 0, 0.40))), tuple(W + Vector((0, 0, -0.05))), 30)],
     # 6 plano general bajo: Alex, máquina parada y Clod en la pila
-    [((0.45, -3.05, 0.95), (0.65, 0.10, 0.95), 24), ((0.50, -2.90, 0.97), (0.65, 0.10, 0.97), 24)],
-    # 7 los dos: Alex en primer término, Clod detrás en la pila
-    [((1.55, -2.05, 1.30), (0.62, 0.15, 1.10), 30), ((1.50, -1.95, 1.30), (0.62, 0.15, 1.10), 30)],
+    [((0.65, -3.60, 0.85), (0.65, -0.30, 0.95), 22), ((0.65, -3.45, 0.88), (0.65, -0.30, 0.96), 22)],
+    # 7 los dos: Alex en primer término a la izquierda, Clod detrás a la derecha
+    [((-1.30, -2.25, 1.30), (0.95, -0.45, 0.98), 24), ((-1.22, -2.15, 1.30), (0.95, -0.45, 0.99), 24)],
     # 8 cierre: los dos, acercándose
-    [((0.95, -2.35, 1.35), (0.62, 0.10, 1.15), 28), ((0.90, -2.10, 1.35), (0.62, 0.10, 1.16), 28)],
+    [((-0.85, -2.30, 1.35), (0.70, -0.50, 1.08), 26), ((-0.75, -2.10, 1.35), (0.70, -0.50, 1.10), 26)],
 ]
 for i, claves in enumerate(PLANOS):
     (p0, t0, l0), (p1, t1, l1) = claves
@@ -339,7 +349,7 @@ sc.render.resolution_x, sc.render.resolution_y = 1080, 1920; sc.render.resolutio
 sc.eevee.taa_render_samples = 48; sc.render.fps = 30; sc.frame_start, sc.frame_end = 1, FIN
 try: sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.45; sc.render.motion_blur_position = 'START'
 except Exception: pass
-sc.view_settings.exposure = -0.1
+sc.view_settings.exposure = -0.45
 _m["brillo_led"](sc, umbral=6.0)
 
 # ---------------------------------------------------------------- comprobación del encuadre por plano
