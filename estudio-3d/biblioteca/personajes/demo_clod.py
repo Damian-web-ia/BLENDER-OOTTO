@@ -14,7 +14,7 @@ sc = bpy.context.scene
 D = 0.6
 VOZ = [{"at": D, "words": [["¡Hola", 0.119, 0.36], ["hola", 0.36, 0.68], ["Soy", 0.68, 0.84], ["Clod", 0.84, 1.24], ["¡Mira", 1.43, 1.66], ["mi", 1.66, 1.74], ["pantalla", 1.74, 2.14], ["nueva", 2.14, 2.46], ["Feliz", 2.47, 3.12], ["sorprendido", 3.13, 3.98], ["enfadado", 4.0, 4.64], ["y", 4.64, 4.72], ["triste", 4.72, 5.04], ["¡Ja", 5.40, 5.48], ["¿Vamos", 5.48, 5.72], ["allá", 5.72, 6.04]]}]
 def F(t): return int(round((D + t) * 30)) + 1
-FIN = F(6.04) + 50
+FIN = F(6.04) + 62
 CORTES = [1, F(1.36), F(3.99), F(5.30), FIN + 1]
 
 CL = ClodAnim()
@@ -33,9 +33,9 @@ CL.cabeza(F(0.15), -6, -4, 0); CL.cuerpo(F(0.2), 0, 0, 0); CL.mirar(F(0.10), 0, 
 CL.cara(F(0.05), "sorpresa", 0.6); CL.cara(F(0.30), "feliz")
 CL.rebote(F(0.10), veces=2, alto=0.025, cada=7)
 # saludo con la derecha
-CL.mano_en("R", F(0.20), (-0.30, -0.06, 0.62)); CL.codo_hacia("R", F(0.20), (-0.70, 0.30, 0.45)); CL.pulgar("R", F(0.20), 0.7)
-for t, x in ((0.36, -0.22), (0.52, -0.33), (0.68, -0.22), (0.84, -0.32)):
-    CL.mano_en("R", F(t), (x, -0.07, 0.64))
+CL.mano_en("R", F(0.20), (-0.36, -0.08, 0.60)); CL.codo_hacia("R", F(0.20), (-0.80, 0.30, 0.45)); CL.pulgar("R", F(0.20), 0.7)
+for t, x in ((0.36, -0.31), (0.52, -0.40), (0.68, -0.31), (0.84, -0.39)):
+    CL.mano_en("R", F(t), (x, -0.08, 0.60))
 CL.cabeza(F(0.6), -3, 6, 0)
 # "Soy Clod": mano al pecho, se inclina un poco
 CL.mano_en("R", F(1.02), (-0.12, -0.21, 0.45)); CL.codo_hacia("R", F(1.02), (-0.60, 0.20, 0.35)); CL.pulgar("R", F(1.02), 0.2)
@@ -76,7 +76,7 @@ CL.cabeza(F(5.22), 17, 7, 0); CL.cara(F(5.22), "triste")
 CL.cara(F(5.34), "risa"); CL.cabeza(F(5.40), -8, -4, 0); CL.cuerpo(F(5.40), -3, 0, 0); CL.mirar(F(5.34), 0, 0); CL.aplastar(F(5.38), 1.08)
 CL.aplastar(F(5.50), 1.0)
 for l in ("R", "L"): CL.brazo_caido(l, F(5.40))
-CL.mano_en("L", F(5.40), (0.30, -0.07, 0.48))
+CL.mano_en("L", F(5.40), (0.225, -0.01, 0.33)); CL.codo_hacia("L", F(5.40), (0.70, 0.10, 0.45))   # mano en la cadera
 f_pulgar = F(5.50)
 CL.pulgar_arriba("R", f_pulgar, dur=26)
 CL.cara(F(5.75), "feliz"); CL.cabeza(F(5.75), -2, -7, 0)
@@ -131,7 +131,7 @@ def ck(f, loc, t, lens):
 PLANOS = [
     [(CORTES[0], (0.10, -1.10, 0.20), (0, 0, 0.165), 50), (CORTES[1] - 1, (0.08, -1.00, 0.20), (0, 0, 0.165), 50)],
     [(CORTES[1], (0.04, -0.84, 0.27), (0, 0, 0.215), 50), (CORTES[2] - 1, (0.03, -0.77, 0.27), (0, 0, 0.215), 50)],
-    [(CORTES[2], (0.32, -0.66, 0.24), (0, 0, 0.20), 50), (CORTES[3] - 1, (0.29, -0.61, 0.235), (0, 0, 0.20), 50)],
+    [(CORTES[2], (0.42, -0.86, 0.25), (0, 0, 0.20), 50), (CORTES[3] - 1, (0.38, -0.80, 0.245), (0, 0, 0.20), 50)],
     [(CORTES[3], (-0.08, -1.05, 0.21), (0, 0, 0.18), 50), (CORTES[4] - 1, (-0.06, -0.92, 0.22), (0, 0, 0.20), 50)],
 ]
 for claves in PLANOS:

@@ -141,7 +141,7 @@ class ClodAnim:
                 nk = self.bocaob.shape_key_add(name=n + "_habla", from_mix=False); nk.value = 0
                 for i, d in enumerate(kbs[n].data): nk.data[i].co = d.co
         return kbs["abierta_habla"], kbs["O_habla"]
-    def hablar(self, lineas, fps=30, desfase=0.0):
+    def hablar(self, lineas, fps=30, desfase=0.0, forma_o=False):
         """lineas: [{"at": seg, "words": [[texto, ini, fin], ...]}]. La boca LED se abre por sílabas."""
         ab, oo = self._boca_habla()
         for kb in (ab, oo): kb.value = 0; kb.keyframe_insert("value", frame=1)
@@ -157,7 +157,7 @@ class ClodAnim:
                     ab.value = 0.5 + 0.5 * (((i + k) * 37) % 5) / 4; ab.keyframe_insert("value", frame=fk)
                     if k < n - 1: ab.value = 0.15; ab.keyframe_insert("value", frame=fa + int((k + 1) * (fb - fa) / n))
                 ab.value = 0.05; ab.keyframe_insert("value", frame=fb)
-                if any(c in txt for c in "ouóú"):
+                if forma_o and any(c in txt for c in "ouóú"):     # en LED se suma a la O de la sorpresa: apagado por defecto
                     for fx, v in ((fa - 1, 0), ((fa + fb) // 2, 0.55), (fb + 1, 0)): oo.value = v; oo.keyframe_insert("value", frame=fx)
             fin = int(round((t0 + ln["words"][-1][2]) * fps)) + 1
             ab.value = 0; ab.keyframe_insert("value", frame=fin + 2)
