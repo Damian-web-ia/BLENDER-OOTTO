@@ -39,20 +39,19 @@ def key(nombre, fn):
     return kb, n
 
 def driver(kb, expr, vars_):
+    """vars_: (nombre, hueso1, hueso2) → distancia entre las cabezas de los dos huesos (LOC_DIFF)."""
     kb.driver_remove("value")
     fc = kb.driver_add("value"); dr = fc.driver; dr.type = 'SCRIPTED'
     for nombre, b1, b2 in vars_:
-        v = dr.variables.new(); v.name = nombre; v.type = 'ROTATION_DIFF'
+        v = dr.variables.new(); v.name = nombre; v.type = 'LOC_DIFF'
         v.targets[0].id = arm; v.targets[0].bone_target = "mixamorig:" + b1
         v.targets[1].id = arm; v.targets[1].bone_target = "mixamorig:" + b2
     dr.expression = expr
     for m in fc.modifiers: fc.modifiers.remove(m)
 
-def rot_diff(b1, b2):
+def dist(b1, b2):
     bpy.context.view_layer.update()
-    m1 = (aw @ arm.pose.bones["mixamorig:" + b1].matrix).to_quaternion()
-    m2 = (aw @ arm.pose.bones["mixamorig:" + b2].matrix).to_quaternion()
-    return m1.rotation_difference(m2).angle
+    return ((aw @ arm.pose.bones["mixamorig:" + b1].head) - (aw @ arm.pose.bones["mixamorig:" + b2].head)).length
 
 stats = {}
 for L, s in (("Right", -1), ("Left", 1)):
@@ -72,7 +71,9 @@ for L, s in (("Right", -1), ("Left", 1)):
         if w <= 0: return None
         return N[i] * 0.020 * w + (eh - p).normalized() * 0.004 * w
     kb, n = key("Biceps_" + lado, biceps); stats[kb.name] = n
-    driver(kb, f"max(0, min(1.3, (codo - {rot_diff(L + 'Arm', L + 'ForeArm'):.4f}) / 1.75))", [("codo", L + "Arm", L + "ForeArm")])
+    D0 = dist(L + "Arm", L + "Hand")          # brazo estirado: hombro-muñeca
+    FLEX = f"max(0, min(1.3, ({D0:.4f} - mh) / {D0 - 0.17:.4f}))"
+    driver(kb, FLEX, [("mh", L + "Arm", L + "Hand")])
 
     def triceps(i, info=info):
         if peso_grupo(i, ("mixamorig:" + L + "Arm",)) < 0.2: return None
@@ -81,8 +82,9 @@ for L, s in (("Right", -1), ("Left", 1)):
         if w <= 0: return None
         return N[i] * 0.010 * w
     kb, n = key("Triceps_" + lado, triceps); stats[kb.name] = n
-    driver(kb, f"max(0, min(1, (brazo - {rot_diff('Spine2', L + 'Arm'):.4f}) / 1.6)) * max(0, 1 - max(0, (codo - {rot_diff(L + 'Arm', L + 'ForeArm'):.4f}) / 1.2))",
-           [("brazo", "Spine2", L + "Arm"), ("codo", L + "Arm", L + "ForeArm")])
+    E0 = dist(L + "ForeArm", L + "UpLeg")     # codo-cadera en reposo
+    ALZA = f"max(0, min(1.2, (ec - {E0:.4f}) / 0.45))"
+    driver(kb, ALZA + f" * max(0, 1 - max(0, ({D0:.4f} - mh) / 0.12))", [("ec", L + "ForeArm", L + "UpLeg"), ("mh", L + "Arm", L + "Hand")])
 
     def deltoide(i, info=info):
         p, fac, rd, r = info(i)
@@ -91,7 +93,7 @@ for L, s in (("Right", -1), ("Left", 1)):
         if w <= 0: return None
         return N[i] * 0.012 * w + Vector((0, 0, 0.004)) * w
     kb, n = key("Deltoide_" + lado, deltoide); stats[kb.name] = n
-    driver(kb, f"max(0, min(1.2, (brazo - {rot_diff('Spine2', L + 'Arm'):.4f}) / 1.4))", [("brazo", "Spine2", L + "Arm")])
+    driver(kb, ALZA, [("ec", L + "ForeArm", L + "UpLeg")])
 
     def pectoral(i, L=L, s=s):
         p = W[i]
@@ -102,7 +104,9 @@ for L, s in (("Right", -1), ("Left", 1)):
         if w <= 0: return None
         return N[i] * 0.008 * w + Vector((-s * 0.006, 0, 0)) * w
     kb, n = key("Pectoral_" + lado, pectoral); stats[kb.name] = n
-    driver(kb, f"max(0, min(1, (brazo - {rot_diff('Spine2', L + 'Arm'):.4f}) / 1.3))", [("brazo", "Spine2", L + "Arm")])
+    OTRO = ("Left" if L == "Right" else "Right") + "Arm"
+    C0 = dist(L + "ForeArm", OTRO)
+    driver(kb, f"max(0, min(1, ({C0:.4f} - cx) / 0.22))", [("cx", L + "ForeArm", OTRO)])
 
     def antebrazo(i, eh=eh, et=et):
         if peso_grupo(i, ("mixamorig:" + L + "ForeArm",)) < 0.3: return None
@@ -111,6 +115,6 @@ for L, s in (("Right", -1), ("Left", 1)):
         if w <= 0: return None
         return N[i] * 0.006 * w
     kb, n = key("Antebrazo_" + lado, antebrazo); stats[kb.name] = n
-    driver(kb, f"max(0, min(1, (codo - {rot_diff(L + 'Arm', L + 'ForeArm'):.4f}) / 2.0))", [("codo", L + "Arm", L + "ForeArm")])
+    driver(kb, FLEX + " * 0.8", [("mh", L + "Arm", L + "Hand")])
 
 result = stats
