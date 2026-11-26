@@ -62,3 +62,12 @@
 - **Rueda que gira:** 18° por fotograma con desenfoque de movimiento se lee bien; el desequilibrio se ve haciendo "saltar" el centro de la rueda 1 cm en cada vuelta.
 - **Mañana en diseño:** Alex tiene la cara muy sonriente aunque la expresión sea "duda" o "enfado": revisar la intensidad de las formas de la boca al hablar.
 
+
+## 2026-11-26 (noche) · Personaje de dibujos con pelo físico (Rulo)
+- **Wiggle Bones 1.1.2** instalado desde extensions.blender.org (comprobado su sha256; sin permisos de red ni de archivos). Sirve para pelo, orejas, colas y ropa con rebote.
+- **Hornear sin el operador del complemento:** se activa `scene.wiggle.enable`, se avanza fotograma a fotograma (25 de "preroll" para que el pelo ya esté asentado), se guarda `matrix_basis` de cada hueso de pelo y luego se apaga la simulación y se ponen las claves. Así el render en segundo plano no depende del complemento.
+- **Mechones = tubo de 22 anillos + cadena de 3 huesos** (rigidez 520/380/260 de raíz a punta, amortiguación 1,2/0,9/0,7, gravedad 0,35). El contorno de cada mechón adelgaza hacia la punta con un grupo de vértices en el Solidify.
+- **Brazos y piernas de goma:** huesos B-Bone de 8 segmentos con tiradores automáticos: el codo se curva solo, como en los dibujos clásicos.
+- **Aspecto de dibujo en EEVEE:** Diffuse → Shader to RGB → rampa constante (sombra azulada) × color, y contorno con Solidify invertido + material negro con backface culling. Transformación de color "Standard" (AgX apaga los colores planos).
+- **Franja gris en la frente:** era la sombra del casquete de pelo; se quita con `visible_shadow = False` en el casquete.
+- **`mode_set` tras `read_homefile(use_empty=True)`** falla por contexto: usar `temp_override` con ventana, área y objeto activo.
