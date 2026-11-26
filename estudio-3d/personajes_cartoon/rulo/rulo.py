@@ -22,7 +22,7 @@ sc.render.resolution_x, sc.render.resolution_y = 1080, 1920
 sc.view_settings.view_transform = 'Standard'
 try: sc.view_settings.look = 'None'
 except Exception: pass
-sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.4
+sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.3
 try: sc.eevee.taa_render_samples = 32
 except Exception: pass
 try: sc.eevee.use_raytracing = False
@@ -193,13 +193,14 @@ quitar = []
 for vt in bm.verts:
     ux, uy, uz = vt.co
     ang = math.atan2(ux, -uy)
-    umbral = 0.10 - 0.45 * uy + (0.05 * (abs(((ang * 7 / math.pi) % 2) - 1) - 0.5) if uy < 0.2 else 0.0)
+    umbral = 0.15 - 0.55 * uy + (0.05 * (abs(((ang * 7 / math.pi) % 2) - 1) - 0.5) if uy < 0.2 else 0.0)
     if uz < umbral: quitar.append(vt)
 bmesh.ops.delete(bm, geom=quitar, context='VERTS')
-for vt in bm.verts: vt.co = Vector((vt.co.x * RA * 1.05, vt.co.y * RB * 1.05, vt.co.z * RC * 1.05))
+for vt in bm.verts: vt.co = Vector((vt.co.x * RA * 1.035, vt.co.y * RB * 1.035, vt.co.z * RC * 1.035))
 me = bpy.data.meshes.new("PeloCasquete"); bm.to_mesh(me); bm.free()
 casq = bpy.data.objects.new("PeloCasquete", me); COL.objects.link(casq); casq.location = C
 me.materials.append(M_PELO); me.shade_smooth(); contorno(casq, 0.007); RIGIDOS.append((casq, "cabeza"))
+casq.visible_shadow = False   # su sombra dibujaba una franja gris en la frente
 
 # ojos (blanco + pupila + brillo); el parpadeo escala el blanco (y lo que cuelga de él)
 OJOS = {}
@@ -214,7 +215,7 @@ for s in (1, -1):
     # ceja
     pts = []
     for t in (0.0, 0.5, 1.0):
-        pc, nc = en_cabeza((0.30 * s + (t - 0.5) * 0.30, -1, 0.62 - 0.12 * abs(t - 0.5)), 0.012)
+        pc, nc = en_cabeza((0.30 * s + (t - 0.5) * 0.30, -1, 0.80 - 0.14 * abs(t - 0.5)), 0.014)
         pts.append(pc)
     ceja = tubo(f"Ceja.{lado}", [bez(pts, i / 10) for i in range(11)], [0.016 * (0.6 + 0.4 * math.sin(math.pi * i / 10)) for i in range(11)], M_NEGRO, 8)
     RIGIDOS.append((ceja, "cabeza")); OJOS[lado] = OJOS[lado] + (ceja,)
@@ -264,6 +265,7 @@ MECHONES = [
     ((0.18, 0.25, 1.40), (0.26, 0.40, 1.40), (0.32, 0.46, 1.30), (0.32, 0.50, 1.16), 0.055),
 ]
 NANILLOS = 22
+MECHONES = [(a, tuple(Vector(a) + (Vector(b) - Vector(a)) * 0.88), tuple(Vector(a) + (Vector(c) - Vector(a)) * 0.88), tuple(Vector(a) + (Vector(d) - Vector(a)) * 0.88), r) for a, b, c, d, r in MECHONES]
 def radio_mechon(r0, t): return max(0.003, r0 * (0.6 + 2 * t) * (1 - t) / 0.85)
 
 # ------------------------------------------------------------------ cuerpo
@@ -541,9 +543,9 @@ def brazo(L, f, sup, inf, mano=()):
 # convención: en Y, negativo = el brazo sube hacia fuera (para los dos lados, ya corregido por sgn)
 for L in ("L", "R"):
     brazo(L, 1, [(Y, -8)], []) if L == "L" else None
-brazo("R", 1, [(Y, -145), (X, -10)], [(Y, -20)])
+brazo("R", 1, [(Y, -118), (X, -28)], [(Y, -20)])
 for k, f in enumerate((6, 12, 18, 24, 30)):
-    brazo("R", f, [(Y, -145), (X, -10)], [(Y, 25 if k % 2 == 0 else -25)], [(Y, 15 if k % 2 == 0 else -15)])
+    brazo("R", f, [(Y, -118), (X, -28)], [(Y, 28 if k % 2 == 0 else -28)], [(Y, 15 if k % 2 == 0 else -15)])
 brazo("L", 30, [(Y, -10)], [(Y, -8)]); brazo("R", 38, [(Y, -10)], [(Y, -8)])
 for L in ("L", "R"):
     brazo(L, 46, [(X, 45), (Y, -10)], [(X, 25)])
