@@ -50,13 +50,23 @@ def mat_fondo():
     m = bpy.data.materials.new("Fondo"); m.use_nodes = True
     b = m.node_tree.nodes["Principled BSDF"]; b.inputs["Base Color"].default_value = (0.018, 0.021, 0.027, 1)
     b.inputs["Roughness"].default_value = 0.55; return m
-bpy.ops.mesh.primitive_plane_add(size=1); suelo = bpy.context.object; suelo.scale = (14, 14, 1)
-bpy.ops.object.modifier_add(type='BEVEL')
-suelo.data.materials.append(mat_fondo())
-# ciclorama: pared curva detrás
-bpy.ops.mesh.primitive_cylinder_add(vertices=96, radius=4.5, depth=8, location=(0, 1.2, 4)); cic = bpy.context.object
+bpy.ops.mesh.primitive_plane_add(size=1); suelo = bpy.context.object
+mat_fondo()
+# fondo: pared detrás con curva suave hacia el suelo (ciclorama abierto, la cámara queda fuera)
+import bmesh
+bm = bmesh.new(); prev = None; filas = []
+for i in range(25):
+    a = math.radians(90 * i / 24); r = 1.6
+    y = 3.0 + (math.sin(a) * r if i else 0) - r; z = r - math.cos(a) * r
+    filas.append([bm.verts.new((x, 3.0 - r + math.sin(a) * r, z)) for x in (-9, 9)])
+top = [bm.verts.new((x, 3.0, 9)) for x in (-9, 9)]; filas.append(top)
+front = [bm.verts.new((x, -9, 0)) for x in (-9, 9)]; filas.insert(0, front)
+for a_, b_ in zip(filas[:-1], filas[1:]): bm.faces.new((a_[0], a_[1], b_[1], b_[0]))
+md = bpy.data.meshes.new("Ciclorama"); bm.to_mesh(md); bm.free()
+cic = bpy.data.objects.new("Ciclorama", md); sc.collection.objects.link(cic)
+for pl in md.polygons: pl.use_smooth = True
 cic.data.materials.append(bpy.data.materials["Fondo"])
-for o in (suelo, cic): o.visible_shadow = True
+bpy.data.objects.remove(suelo)
 def luz(n, loc, e, tam, col, mira=(0, 0, 1.2)):
     d = bpy.data.lights.new(n, 'AREA'); d.energy = e; d.size = tam; d.color = col; d.shape = 'DISK'
     o = bpy.data.objects.new(n, d); sc.collection.objects.link(o); o.location = loc
