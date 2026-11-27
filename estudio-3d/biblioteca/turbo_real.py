@@ -131,17 +131,18 @@ def _mat(nombre, color, metal=0.0, rugo=0.4, coat=0.0, ruido=0.0, escala=900.0, 
     return m
 
 
-def _mat_calor(nombre, color, rugo=0.62):
-    """Fundición de la turbina: con el valor 'Calor' (0..1) pasa de gris oscuro a rojo cereza y naranja (cuerpo negro)."""
-    m = _mat(nombre, color, metal=0.9, rugo=rugo, ruido=0.55, escala=1100)
+def _mat_calor(nombre, color, rugo=0.58):
+    """Fundición de la turbina: con el valor 'Calor' (0..1) pasa de gris oscuro a rojo cereza y naranja (como el hierro al rojo)."""
+    m = _mat(nombre, color, metal=0.85, rugo=rugo, ruido=0.55, escala=1100)
     nt = m.node_tree; b = nt.nodes["Principled BSDF"]
     val = nt.nodes.new("ShaderNodeValue"); val.name = "Calor"; val.outputs[0].default_value = 0.0
-    tmp = nt.nodes.new("ShaderNodeMapRange"); tmp.inputs["To Min"].default_value = 700.0; tmp.inputs["To Max"].default_value = 1080.0
-    nt.links.new(val.outputs[0], tmp.inputs["Value"])
-    bb = nt.nodes.new("ShaderNodeBlackbody"); nt.links.new(tmp.outputs["Result"], bb.inputs["Temperature"])
-    st = nt.nodes.new("ShaderNodeMath"); st.operation = 'POWER'; st.inputs[1].default_value = 2.2; nt.links.new(val.outputs[0], st.inputs[0])
-    st2 = nt.nodes.new("ShaderNodeMath"); st2.operation = 'MULTIPLY'; st2.inputs[1].default_value = 3.2; nt.links.new(st.outputs[0], st2.inputs[0])
-    nt.links.new(bb.outputs["Color"], b.inputs["Emission Color"]); nt.links.new(st2.outputs[0], b.inputs["Emission Strength"])
+    rp = nt.nodes.new("ShaderNodeValToRGB")
+    rp.color_ramp.elements[0].position = 0.0; rp.color_ramp.elements[0].color = (0.55, 0.035, 0.0, 1)       # rojo cereza oscuro
+    rp.color_ramp.elements[1].position = 1.0; rp.color_ramp.elements[1].color = (1.0, 0.30, 0.03, 1)        # naranja
+    nt.links.new(val.outputs[0], rp.inputs["Fac"])
+    st = nt.nodes.new("ShaderNodeMath"); st.operation = 'POWER'; st.inputs[1].default_value = 1.6; nt.links.new(val.outputs[0], st.inputs[0])
+    st2 = nt.nodes.new("ShaderNodeMath"); st2.operation = 'MULTIPLY'; st2.inputs[1].default_value = 2.0; nt.links.new(st.outputs[0], st2.inputs[0])
+    nt.links.new(rp.outputs["Color"], b.inputs["Emission Color"]); nt.links.new(st2.outputs[0], b.inputs["Emission Strength"])
     return m
 
 
@@ -150,7 +151,7 @@ def materiales():
     M["alu_fundido"] = _mat("TUR_AluminioFundido", (0.56, 0.57, 0.59), metal=1.0, rugo=0.48, ruido=0.55, escala=1500)
     M["alu_rueda"] = _mat("TUR_RuedaCompresor", (0.90, 0.91, 0.92), metal=1.0, rugo=0.13, ruido=0.05, escala=3200, aniso=0.45, rug_var=0.04)
     M["hierro"] = _mat("TUR_CarcasaCentral", (0.26, 0.26, 0.27), metal=1.0, rugo=0.58, ruido=0.6, escala=1200)
-    M["turbina_fund"] = _mat_calor("TUR_CarcasaTurbina", (0.17, 0.16, 0.155))
+    M["turbina_fund"] = _mat_calor("TUR_CarcasaTurbina", (0.10, 0.095, 0.09))
     M["inconel"] = _mat("TUR_RuedaTurbina", (0.42, 0.41, 0.40), metal=1.0, rugo=0.32, ruido=0.25, escala=2600)
     M["acero"] = _mat("TUR_AceroEje", (0.80, 0.80, 0.82), metal=1.0, rugo=0.12, aniso=0.6, ruido=0.03, escala=4000, rug_var=0.03)
     M["bronce"] = _mat("TUR_Bronce", (0.80, 0.52, 0.28), metal=1.0, rugo=0.28, ruido=0.08, escala=3000)
@@ -159,8 +160,8 @@ def materiales():
     M["actuador"] = _mat("TUR_Actuador", (0.025, 0.026, 0.03), metal=0.6, rugo=0.38, coat=0.3, ruido=0.08, escala=1600)
     M["goma"] = _mat("TUR_Manguito", (0.02, 0.02, 0.022), rugo=0.75, ruido=0.25, escala=900)
     M["corte"] = _mat("TUR_Corte", (0.74, 0.75, 0.77), metal=1.0, rugo=0.36, aniso=0.5, ruido=0.06, escala=4000)
-    M["aire"] = _mat("TUR_Aire", (0.3, 0.65, 1.0), emis=(0.25, 0.62, 1.0), fuerza=5.0)
-    M["escape"] = _mat("TUR_GasEscape", (0.6, 0.4, 0.3), emis=(1.0, 0.42, 0.10), fuerza=6.0)
+    M["aire"] = _mat("TUR_Aire", (0.3, 0.65, 1.0), emis=(0.30, 0.68, 1.0), fuerza=10.0)
+    M["escape"] = _mat("TUR_GasEscape", (0.6, 0.4, 0.3), emis=(1.0, 0.58, 0.16), fuerza=14.0)
     M["aceite"] = _mat("TUR_Aceite", (0.95, 0.60, 0.15), rugo=0.08, coat=1.0, emis=(1.0, 0.55, 0.12), fuerza=0.6)
     return M
 

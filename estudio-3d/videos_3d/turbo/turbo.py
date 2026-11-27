@@ -182,9 +182,9 @@ def camino(o, f0, puntos, paso):
         o.location = p; o.keyframe_insert("location", frame=f0 + int(round(k * paso)))
     return f0 + int(round((len(puntos) - 1) * paso))
 # aire (azul): entra axial, la rueda lo lanza hacia fuera y la caracola lo lleva hasta la salida
-for i in range(46):
-    o = bolita(f"TUR_Aire_{i}", O["M"]["aire"], rnd.uniform(0.0011, 0.0019))
-    f0 = L3_COMP - 16 + int(i * (EXP0 - 30 - (L3_COMP - 16)) / 46)
+for i in range(64):
+    o = bolita(f"TUR_Aire_{i}", O["M"]["aire"], rnd.uniform(0.0022, 0.0032))
+    f0 = L3_COMP - 16 + int(i * (EXP0 - 30 - (L3_COMP - 16)) / 64)
     u0 = rnd.uniform(0.04, 0.55); i0 = int(u0 * NC); phi = math.radians(95) + TAU * 0.93 * u0
     pts = [polar(0.17, rnd.uniform(0.0, 0.017), rnd.uniform(0, TAU)), polar(0.088, rnd.uniform(0.004, 0.017), phi - 1.6),
            polar(0.058, rnd.uniform(0.008, 0.016), phi - 1.1), polar(0.0345, 0.027, phi - 0.4)]
@@ -194,9 +194,9 @@ for i in range(46):
     vis(o, 1, False); vis(o, f0, True); fin_ = camino(o, f0, pts, 3.2); vis(o, fin_, False)
 # gases de escape (naranja): entran por la brida, recorren la caracola hacia dentro, empujan la rueda y salen por el eje
 c_in, rd_in, _ = EJ_T[-1]; tg_in = (EJ_T[-1][0] - EJ_T[NC][0]).normalized()
-for i in range(48):
-    o = bolita(f"TUR_Escape_{i}", O["M"]["escape"], rnd.uniform(0.0013, 0.0022))
-    f0 = L2_ESC - 8 + int(i * (EXP0 - 26 - (L2_ESC - 8)) / 48)
+for i in range(64):
+    o = bolita(f"TUR_Escape_{i}", O["M"]["escape"], rnd.uniform(0.0024, 0.0034))
+    f0 = L2_ESC - 8 + int(i * (EXP0 - 26 - (L2_ESC - 8)) / 64)
     u1 = rnd.uniform(0.08, 0.75); phi = math.radians(-85) - TAU * 0.93 * u1
     pts = [c_in + tg_in * 0.09 + Vector((rnd.uniform(-0.004, 0.004), 0, 0)), en_tubo(EJ_T[-1], 0.5)]
     for u in (1 - (1 - u1) * k / 3 for k in range(1, 4)):
@@ -365,14 +365,14 @@ PLANOS = [  # (desde, hasta, cam_ini, cam_fin, mira_ini, mira_fin, lente)
     (1, P1, None, None, E, E, 50),                                                                         # órbita del turbo cerrado
     (P1 + 1, E_ABRE + 22, (0.30, -2.30, 1.26), (0.26, -2.10, 1.24), (-0.16, 0, 1.08), (-0.14, 0, 1.06), 40),   # Maite: "vamos a abrirla"
     (E_ABRE + 23, SOPLA0 - 1, (0.0, -0.60, 1.00), (0.0, -0.54, 0.995), E, E, 50),                          # corte: turbina, compresor, eje
-    (SOPLA0, L2_ESC - 1, (0.03, -0.42, 1.07), (0.04, -0.39, 1.06), (0.15, 0.0, 1.01), (0.15, 0.0, 1.01), 33),  # Clod sopla
+    (SOPLA0, L2_ESC - 1, (-0.10, -0.31, 1.12), (-0.08, -0.28, 1.11), (0.13, 0.0, 1.03), (0.13, 0.0, 1.03), 32),  # Clod sopla (se le ve la cara)
     (L2_ESC, L2_ROJO + 24, (-0.23, -0.32, 1.02), (-0.19, -0.28, 1.00), (-0.05, 0, 0.97), (-0.05, 0, 0.97), 52),  # turbina al rojo
     (L2_ROJO + 25, L3_COMP - 1, (0.0, -0.66, 1.03), (0.0, -0.60, 1.01), E, E, 45),                         # todo girando
     (L3_COMP, L3_MAS - 1, (0.21, -0.23, 1.00), (0.18, -0.20, 0.99), (0.046, 0, 0.976), (0.046, 0, 0.976), 60),  # macro del compresor
     (L3_MAS, EXP0 - 1, (-0.12, -0.50, 0.93), (0.06, -0.45, 0.95), (0, 0, 0.985), (0, 0, 0.985), 34),      # rampa: más aire, más potencia
-    (EXP0, EXP3, (0.0, -1.10, 1.22), (0.0, -1.00, 1.21), (0, 0, 1.20), (0, 0, 1.19), 45),                  # despiece vertical
+    (EXP0, EXP3, (0.0, -0.78, 1.21), (0.0, -0.72, 1.20), (0, 0, 1.20), (0, 0, 1.19), 45),                  # despiece vertical
     (EXP3 + 1, L5 - 1, (0.10, -0.70, 1.04), (0.06, -0.64, 1.02), E, E, 45),                                # vuelve a montarse
-    (L5, FIN, (-0.05, -2.05, 1.40), (-0.10, -1.85, 1.38), (-0.30, 0, 1.22), (-0.30, 0, 1.22), 42)]         # cierre con Maite y Clod
+    (L5, FIN, (0.0, -2.45, 1.30), (-0.04, -2.30, 1.28), (-0.19, 0, 1.10), (-0.19, 0, 1.10), 38)]           # cierre con Maite y Clod
 CORTES = []
 def ck(f, loc, mira, lente):
     cam.location = loc; cam.rotation_euler = (Vector(mira) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
