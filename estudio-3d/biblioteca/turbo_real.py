@@ -141,7 +141,7 @@ def _mat_calor(nombre, color, rugo=0.58):
     rp.color_ramp.elements[1].position = 1.0; rp.color_ramp.elements[1].color = (1.0, 0.30, 0.03, 1)        # naranja
     nt.links.new(val.outputs[0], rp.inputs["Fac"])
     st = nt.nodes.new("ShaderNodeMath"); st.operation = 'POWER'; st.inputs[1].default_value = 1.6; nt.links.new(val.outputs[0], st.inputs[0])
-    st2 = nt.nodes.new("ShaderNodeMath"); st2.operation = 'MULTIPLY'; st2.inputs[1].default_value = 2.0; nt.links.new(st.outputs[0], st2.inputs[0])
+    st2 = nt.nodes.new("ShaderNodeMath"); st2.operation = 'MULTIPLY'; st2.inputs[1].default_value = 3.6; nt.links.new(st.outputs[0], st2.inputs[0])
     nt.links.new(rp.outputs["Color"], b.inputs["Emission Color"]); nt.links.new(st2.outputs[0], b.inputs["Emission Strength"])
     return m
 
@@ -151,7 +151,7 @@ def materiales():
     M["alu_fundido"] = _mat("TUR_AluminioFundido", (0.56, 0.57, 0.59), metal=1.0, rugo=0.48, ruido=0.55, escala=1500)
     M["alu_rueda"] = _mat("TUR_RuedaCompresor", (0.90, 0.91, 0.92), metal=1.0, rugo=0.13, ruido=0.05, escala=3200, aniso=0.45, rug_var=0.04)
     M["hierro"] = _mat("TUR_CarcasaCentral", (0.26, 0.26, 0.27), metal=1.0, rugo=0.58, ruido=0.6, escala=1200)
-    M["turbina_fund"] = _mat_calor("TUR_CarcasaTurbina", (0.10, 0.095, 0.09))
+    M["turbina_fund"] = _mat_calor("TUR_CarcasaTurbina", (0.06, 0.057, 0.055))
     M["inconel"] = _mat("TUR_RuedaTurbina", (0.42, 0.41, 0.40), metal=1.0, rugo=0.32, ruido=0.25, escala=2600)
     M["acero"] = _mat("TUR_AceroEje", (0.80, 0.80, 0.82), metal=1.0, rugo=0.12, aniso=0.6, ruido=0.03, escala=4000, rug_var=0.03)
     M["bronce"] = _mat("TUR_Bronce", (0.80, 0.52, 0.28), metal=1.0, rugo=0.28, ruido=0.08, escala=3000)
