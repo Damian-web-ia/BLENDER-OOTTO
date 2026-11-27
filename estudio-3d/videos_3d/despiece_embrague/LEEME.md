@@ -13,3 +13,8 @@ Plan A del canal: despiece en 3D de una pieza del coche. Carpeta del día: `reel
 | **Novedades** | Estudio oscuro de verdad (taller, coche y Clod ocultos con claves mientras la pieza está en el estudio y en el inserto); explosión axial en lugar de corte; giro con claves lineales (el disco frena solo, el volante sigue); Alex v3 con cara seria. |
 | **Montaje** | `montaje_embrague.json` con `plantillas/montaje_despiece.py` (ahora con palabras clave en naranja #FF8400). |
 | **Sonido** | `mezcla_embrague.py` (en el espacio de Ootto): voz, música electronic-minimal a 0,18 con ducking, 43 efectos sintetizados (golpecitos, pitido, rayos X, golpe, clacs, zumbido del giro, clic, aire, roce, siseo, boing), -14,1 LUFS, pico -0,8 dBFS. |
+
+## Versión 4K60 Cycles (pedida por Damián el 27-11 a las 21:15)
+- `scripts/cola_4k_embrague.py` (en el PC): mismo .blend, Cycles OptiX, 2160x3840, 60 fps, 64 muestras + OIDN, reintenta si se cae y al final codifica `despiece_embrague_4k60.mp4`. Empezó a las 21:19.
+- Ritmo medido: unos 60 s por fotograma compartiendo la gráfica con el render del motor de 4 tiempos. Son 1.954 fotogramas: unas 30-33 horas (domingo por la mañana-tarde). No llega a las 19:00 del sábado.
+- Mientras tanto sigue programada la versión EEVEE para el sábado 28-11 a las 19:00. Cuando termine el 4K: montaje con `plantillas/montaje_despiece.py` (ya dibuja a 2160x3840 y compone a 60 fps) + la misma mezcla de sonido, y publicar o sustituir según decida Damián.
