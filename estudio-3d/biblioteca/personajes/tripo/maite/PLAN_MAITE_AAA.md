@@ -26,3 +26,10 @@ El vídeo de 30 h queda en espera hasta que Maite esté terminada.
 
 ## Estado
 - 27-11 23:35 · Fase 0 hecha (inventario, fotos de referencia, prueba de trenza v1). Empieza la fase 1.
+- 28-11 00:00 · **Fase 1 hecha**: malla soldada y con agujeros tapados, 9 materiales por tejido (piel con subsurface, pelo mate, camiseta, vaquero con sarga, puños, guantes, botas, funda, ojos/dientes), subdivisión aplicada (40.272 vértices) y otra al render. Fotos comparadas con el original: misma identidad, más suave.
+- 28-11 01:00 · **Fase 2 en marcha** (`cara_maite.py`):
+  - Ojos 3D: globo con iris avellana procedural (fibras, anillo límbico, pupila ajustable), córnea de cristal sin sombra, borde del párpado en dos pasos, huesos `Ojo_L/R` con seguimiento a `Mirada`.
+  - Pintura vieja del ojo y del delineado repintada con el color de piel de alrededor; delineado 3D liso con rabito; 270 pestañas 3D por cara (arriba en dos filas y abajo).
+  - Boca: abertura recortada por las curvas de los labios, cara interna del labio, dientes (24 piezas redondeadas en arco), encías, lengua y saco oscuro; nada de dentro asoma por la piel.
+  - 52 shape keys con nombres ARKit (ojos 14, mandíbula 4, boca 23, cejas 5, mejillas 3, nariz 2, lengua 1) en la misma malla.
+  - Pruebas: `prueba_cara.py` (estados de ojos y boca en primer plano).
