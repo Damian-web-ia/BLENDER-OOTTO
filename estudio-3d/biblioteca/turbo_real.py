@@ -136,11 +136,11 @@ def _mat_calor(nombre, color, rugo=0.62):
     m = _mat(nombre, color, metal=0.9, rugo=rugo, ruido=0.55, escala=1100)
     nt = m.node_tree; b = nt.nodes["Principled BSDF"]
     val = nt.nodes.new("ShaderNodeValue"); val.name = "Calor"; val.outputs[0].default_value = 0.0
-    tmp = nt.nodes.new("ShaderNodeMapRange"); tmp.inputs["To Min"].default_value = 700.0; tmp.inputs["To Max"].default_value = 1250.0
+    tmp = nt.nodes.new("ShaderNodeMapRange"); tmp.inputs["To Min"].default_value = 700.0; tmp.inputs["To Max"].default_value = 1080.0
     nt.links.new(val.outputs[0], tmp.inputs["Value"])
     bb = nt.nodes.new("ShaderNodeBlackbody"); nt.links.new(tmp.outputs["Result"], bb.inputs["Temperature"])
     st = nt.nodes.new("ShaderNodeMath"); st.operation = 'POWER'; st.inputs[1].default_value = 2.2; nt.links.new(val.outputs[0], st.inputs[0])
-    st2 = nt.nodes.new("ShaderNodeMath"); st2.operation = 'MULTIPLY'; st2.inputs[1].default_value = 7.0; nt.links.new(st.outputs[0], st2.inputs[0])
+    st2 = nt.nodes.new("ShaderNodeMath"); st2.operation = 'MULTIPLY'; st2.inputs[1].default_value = 3.2; nt.links.new(st.outputs[0], st2.inputs[0])
     nt.links.new(bb.outputs["Color"], b.inputs["Emission Color"]); nt.links.new(st2.outputs[0], b.inputs["Emission Strength"])
     return m
 
@@ -397,8 +397,9 @@ def construir_turbo(col):
     # ---- corte seccional de las carcasas (el aceite se corta igual y queda un pelo delante de la cara de corte)
     bpy.context.view_layer.update()
     oil_d, oil_f = partir(oil, M["aceite"], col); oil_d.location.y -= 0.0003; bpy.data.objects.remove(oil_f, do_unlink=True); O["aceite"] = oil_d
+    turb_ = {et.name, vt.name, fs.name, fi.name}
     for o_ in piezas_corte:
-        det, dl = partir(o_, M["corte"], col)
+        det, dl = partir(o_, M["turbina_fund"] if o_.name in turb_ else M["corte"], col)     # el lado caliente se corta en su propia fundición (también brilla)
         dl.parent = raiz; O["detras"].append(det); O["delante"].append(dl)
     es_det, es_del = partir(es, M["corte"], col); es_del.parent = raiz; O["detras"].append(es_det); O["delante"].append(es_del)
 
