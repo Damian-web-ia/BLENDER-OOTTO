@@ -49,6 +49,7 @@ def materiales():
     M["chispa"] = _mat("AM_Flujo", (1.0, 0.85, 0.4), 0.0, 0.4, emis=(1.0, 0.82, 0.35), fuerza=9.0)
     M["sucio"] = _mat("AM_PinturaSucia", (0.045, 0.034, 0.024), 0.15, 0.75)
     M["fuga"] = _mat("AM_Fuga", (0.03, 0.018, 0.005), 0.0, 0.05, coat=1.0)
+    M["corte"] = _mat("AM_Corte", (0.95, 0.3, 0.04), 0.0, 0.45, emis=(1.0, 0.35, 0.05), fuerza=0.6)
     M["aceite"] = aceite()
     return M
 
@@ -64,13 +65,13 @@ def aceite():
     mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = 'RGBA'
     mix.inputs[6].default_value = (1.0, 0.62, 0.12, 1); mix.inputs[7].default_value = (1.0, 0.22, 0.03, 1)
     nt.links.new(at.outputs["Fac"], mix.inputs[0])
-    fz = nt.nodes.new("ShaderNodeMath"); fz.operation = 'MULTIPLY_ADD'; fz.inputs[1].default_value = 5.0; fz.inputs[2].default_value = 1.1
+    fz = nt.nodes.new("ShaderNodeMath"); fz.operation = 'MULTIPLY_ADD'; fz.inputs[1].default_value = 5.0; fz.inputs[2].default_value = 1.6
     nt.links.new(at.outputs["Fac"], fz.inputs[0])
     em = nt.nodes.new("ShaderNodeEmission"); nt.links.new(mix.outputs[2], em.inputs["Color"]); nt.links.new(fz.outputs[0], em.inputs["Strength"])
     lw = nt.nodes.new("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.45
     tr = nt.nodes.new("ShaderNodeBsdfTransparent")
     sh = nt.nodes.new("ShaderNodeMixShader")
-    fac = nt.nodes.new("ShaderNodeMath"); fac.operation = 'MULTIPLY_ADD'; fac.inputs[1].default_value = 0.55; fac.inputs[2].default_value = 0.30
+    fac = nt.nodes.new("ShaderNodeMath"); fac.operation = 'MULTIPLY_ADD'; fac.inputs[1].default_value = 0.40; fac.inputs[2].default_value = 0.56
     nt.links.new(lw.outputs["Facing"], fac.inputs[0]); nt.links.new(fac.outputs[0], sh.inputs[0])
     nt.links.new(tr.outputs[0], sh.inputs[1]); nt.links.new(em.outputs[0], sh.inputs[2]); nt.links.new(sh.outputs[0], out.inputs["Surface"])
     for a, v in (("surface_render_method", 'BLENDED'), ("use_transparent_shadow", True), ("show_transparent_back", False)):
@@ -171,16 +172,17 @@ def construir_amortiguador(col, pref="AM", interior=True, gastado=False):
     # cuerpo (todo lo que va fijo al soporte)
     cg = bpy.data.objects.new(pref + "_Cuerpo", None); col.objects.link(cg); cg.parent = raiz; O["cuerpo"] = cg
     pint = M["sucio"] if gastado else M["pintura"]
-    cil(pref + "_Tubo", R_CUERPO, 0.012, Z_CUERPO, pint, col, cg, tapas=False, grosor=0.0022)
+    e_ = R_CUERPO - 0.0022
+    torno(pref + "_Tubo", [(e_, 0.012), (R_CUERPO, 0.012), (R_CUERPO, Z_CUERPO), (e_, Z_CUERPO), (e_, 0.012)], pint, col, cg)
     torno(pref + "_TapaAbajo", [(0.0, 0.0), (R_CUERPO - 0.004, 0.0), (R_CUERPO, 0.004), (R_CUERPO, 0.012), (0.0, 0.012)], pint, col, cg)
     torno(pref + "_TapaArriba", [(R_VAS + 0.0012, Z_CUERPO - 0.004), (R_CUERPO, Z_CUERPO - 0.004), (R_CUERPO, Z_CUERPO + 0.002),
-                                 (R_CUERPO - 0.003, Z_CUERPO + 0.006), (R_VAS + 0.0012, Z_CUERPO + 0.006)], M["acero"], col, cg)
+                                 (R_CUERPO - 0.003, Z_CUERPO + 0.006), (R_VAS + 0.0012, Z_CUERPO + 0.006), (R_VAS + 0.0012, Z_CUERPO - 0.004)], M["acero"], col, cg)
     # plato inferior del muelle con su collarín
     torno(pref + "_Plato", [(R_CUERPO, Z_PLATO - 0.022), (R_CUERPO + 0.004, Z_PLATO - 0.022), (R_CUERPO + 0.004, Z_PLATO - 0.006),
                             (R_MUELLE + 0.014, Z_PLATO - 0.004), (R_MUELLE + 0.018, Z_PLATO + 0.004), (R_MUELLE + 0.012, Z_PLATO + 0.002),
-                            (R_CUERPO + 0.002, Z_PLATO + 0.002)], pint, col, cg)
+                            (R_CUERPO + 0.002, Z_PLATO + 0.002), (R_CUERPO, Z_PLATO - 0.022)], pint, col, cg)
     # soporte inferior: abrazadera y orejas con dos tornillos (va a la mangueta)
-    cil(pref + "_Abrazadera", R_CUERPO + 0.0035, 0.004, 0.088, pint, col, cg, tapas=False, grosor=0.003)
+    torno(pref + "_Abrazadera", [(R_CUERPO, 0.004), (R_CUERPO + 0.0035, 0.004), (R_CUERPO + 0.0035, 0.088), (R_CUERPO, 0.088), (R_CUERPO, 0.004)], pint, col, cg)
     for k, s in enumerate((-1, 1)):
         caja(f"{pref}_Oreja{k}", (R_CUERPO + 0.026, s * 0.021, 0.046), (0.052, 0.006, 0.084), pint, col, cg)
     for k, z in enumerate((0.022, 0.07)):
@@ -216,7 +218,7 @@ def construir_amortiguador(col, pref="AM", interior=True, gastado=False):
     if not interior:
         return O
     # ---- interior (solo en el del despiece)
-    cil(pref + "_TuboPresion", R_INT, 0.016, Z_CUERPO - 0.006, M["tubo"], col, cg, tapas=False, grosor=0.0011)
+    torno(pref + "_TuboPresion", [(R_INT - 0.0011, 0.016), (R_INT, 0.016), (R_INT, Z_CUERPO - 0.006), (R_INT - 0.0011, Z_CUERPO - 0.006), (R_INT - 0.0011, 0.016)], M["tubo"], col, cg)
     O["aceite_res"] = cil(pref + "_AceiteReserva", R_CUERPO - 0.0025, 0.014, 0.16, M["aceite"], col, cg, seg=40)
     O["aceite"] = cil(pref + "_Aceite", R_INT - 0.0012, Z_ACEITE[0], Z_ACEITE[1], M["aceite"], col, cg, seg=40)
     torno(pref + "_ValvulaPie", [(0.0, 0.016), (R_INT - 0.001, 0.016), (R_INT - 0.001, 0.026), (0.006, 0.03), (0.0, 0.03)], M["lamina"], col, cg)

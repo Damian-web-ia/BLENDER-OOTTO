@@ -5,7 +5,7 @@
 # el aceite pasando -> calor. Consejo (flota / cabecea / se balancea / pierde aceite) con amortiguador nuevo frente a gastado
 # y el dato del RACE en el montaje. Mejoras frente a los frenos: rebote amortiguado de Clod, gráfico del rebote, temblor de
 # cámara en la explosión, plano corto de Alex para el aviso final y cierre con "síguenos".
-import bpy, math, json, os
+import bpy, bmesh, math, json, os
 import numpy as np
 from mathutils import Vector, Matrix, Euler
 BASE = r"C:\Users\EKORUEDAS\Desktop\EKORUEDAS_ESTUDIO_3D"
@@ -23,7 +23,7 @@ def FW(i, j, fin=False): return F(T(i, j, fin))
 NR = {"__name__": "nr"}; exec(open(D_ + r"\neumatico_real.py", encoding="utf-8").read(), NR)
 AMm = {"__name__": "am"}; exec(open(D_ + r"\amortiguador_real.py", encoding="utf-8").read(), AMm)
 W0 = Vector(CAR.location) + Vector((X_DEL, -Y_RUEDA, Z_RUEDA))
-WS0 = Vector(CAR.location) + Vector((X_DEL, -0.50, Z_RUEDA - 0.12))
+WS0 = Vector(CAR.location) + Vector((X_DEL, -0.50, Z_RUEDA - 0.17))
 ROT0 = (R(-8), 0, 0)
 P = Vector((-1.30, -1.05, 0.70)); ROTP = (0, 0, R(-24))
 PC = P + Vector((0, 0, 0.27))
@@ -72,7 +72,36 @@ def xray_prop(m, prop):
         try: setattr(m, a, v)
         except Exception: pass
     m["xr_" + prop] = 1
-for k in ("pintura", "tubo"): xray_prop(O["M"][k], "xray_amo")
+# ---- CORTE: el cuerpo se parte por la mitad (la mitad de delante sale volando); aceite, tubo interior y válvula de pie ya van cortados
+MC = O["M"]["corte"]
+def _cortar(me_src, nombre, quitar_frente, tapar, tapa_corte):
+    bm = bmesh.new(); bm.from_mesh(me_src)
+    geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+    if quitar_frente: bmesh.ops.bisect_plane(bm, geom=geom, dist=1e-6, plane_co=(0, 0, 0), plane_no=(0, 1, 0), clear_inner=True)
+    else: bmesh.ops.bisect_plane(bm, geom=geom, dist=1e-6, plane_co=(0, 0, 0), plane_no=(0, 1, 0), clear_outer=True)
+    if tapar:
+        bordes = [e for e in bm.edges if e.is_boundary]
+        if bordes:
+            r_ = bmesh.ops.holes_fill(bm, edges=bordes, sides=0)
+            for f in r_["faces"]:
+                f.smooth = False
+                if tapa_corte: f.material_index = len(me_src.materials)
+    me = bpy.data.meshes.new(nombre); bm.to_mesh(me); bm.free()
+    for m in me_src.materials: me.materials.append(m)
+    if tapa_corte: me.materials.append(MC)
+    return me
+def _nuevo(nombre, me, padre):
+    o = bpy.data.objects.new(nombre, me); CD.objects.link(o); o.parent = padre
+    md = o.modifiers.new("aristas", 'EDGE_SPLIT'); md.split_angle = math.radians(34)
+    return o
+CU = O["cuerpo"]; FRENTE = bpy.data.objects.new("AM_Frente", None); CD.objects.link(FRENTE); FRENTE.parent = CU
+for n in ("AM_Tubo", "AM_TapaAbajo", "AM_TapaArriba", "AM_Plato", "AM_Abrazadera"):
+    o = bpy.data.objects[n]; me0 = o.data
+    _nuevo(n + "_Fondo", _cortar(me0, n + "_Fondo", True, True, True), CU)
+    _nuevo(n + "_Frente", _cortar(me0, n + "_Frente", False, True, True), FRENTE)
+    bpy.data.objects.remove(o)
+for n, tapa in (("AM_Aceite", False), ("AM_AceiteReserva", False), ("AM_TuboPresion", True), ("AM_ValvulaPie", True)):
+    o = bpy.data.objects[n]; o.data = _cortar(o.data, n + "_Corte", True, True, tapa)
 
 # ================================================================ ANIMACIÓN
 for o in list(CD.all_objects): o.animation_data_clear()
@@ -106,6 +135,7 @@ vis(LLA, 1, True); vis(LLA, EST + 17, False); vis(LLA, A2, True)
 kl(AMO, 1, WS0, ROT0); kl(AMO, EST + 2, WS0, ROT0)
 kl(AMO, EST + 12, WS0 + Vector((0.02, -0.52, 0.14)), (R(-4), 0, R(-10)))
 kl(AMO, B0 - 2, P, ROTP); kl(AMO, A2 - 1, P, ROTP)
+ks(AMO, 1, (0.68, 0.68, 0.68)); ks(AMO, EST + 2, (0.68, 0.68, 0.68)); ks(AMO, B0 - 2, (1, 1, 1))
 vis(AMO, 1, True); vis(AMO, A2, False)
 # --- recorrido del vástago (d > 0 = entra): copela, muelle y fuelle le siguen
 def rec(f, d):
@@ -117,7 +147,8 @@ rec(C0, 0.0)
 for o, z0 in ((MUE, AMm["Z_MUELLE0"]), (FUE, AMm["Z_FUELLE0"]), (COP, 0.0)):
     kl(o, C0 + 2, Vector((0, 0, z0))); kl(o, C0 + 24, Vector((0.0, 0.0, z0 + 0.42)))
 for o in (MUE, FUE, COP): vis(o, 1, True); vis(o, C0 + 25, False)
-kp("xray_amo", 1, 0.0); kp("xray_amo", C0 + 4, 0.0); kp("xray_amo", C0 + 16, 1.0); kp("xray_amo", A2 - 1, 1.0); kp("xray_amo", A2, 0.0)
+kl(FRENTE, 1, Z0, (0, 0, 0)); kl(FRENTE, C0 + 6, Z0, (0, 0, 0)); kl(FRENTE, C0 + 22, Vector((-0.24, -0.10, -0.12)), (0, R(-20), R(35)))
+vis(FRENTE, 1, True); vis(FRENTE, C0 + 23, False)
 # "cuando la rueda sube, el vástago mete el pistón en el aceite"
 kl(VAS, D0 + 8, (0, 0, 0.0)); kl(VAS, FW(1, 15), (0, 0, -0.012)); kl(VAS, FW(1, 23, True) + 4, (0, 0, -0.075))
 # válvulas: sigue bajando despacio y el aceite pasa por los agujeros del pistón
@@ -340,6 +371,7 @@ if ad and ad.action:
             if k.interpolation != 'CONSTANT': k.interpolation = 'BEZIER'
         fc.update()
 _m["brillo_led"](sc, umbral=6.0)
+vis(ALEX, 1, True); vis(ALEX, B0, False); vis(ALEX, A2, True)
 
 # ================================================================ CÁMARA
 cam = bpy.data.objects.get("CAM")
@@ -359,9 +391,11 @@ def cl(f, pos, mira, lens, fstop=None):
     a = MP @ Vector(pos); b = MP @ Vector(mira)
     ck(f, tuple(a), tuple(b), lens, dof=tuple(b) if fstop else None, fstop=fstop or 2.8)
 # plano A: Alex, el coche y Clod botando -> entramos en la rueda -> estalla (temblor) -> sale el amortiguador
-ck(1, (-0.85, -3.30, 1.45), (-0.95, -0.10, 0.98), 27)
-ck(76, (-0.88, -3.05, 1.42), (-1.00, -0.10, 0.92), 28)
-ck(92, (-1.05, -2.05, 0.95), (-1.22, 0.0, 0.45), 31)
+ck(1, (-1.15, -2.75, 1.30), (-1.15, -0.05, 1.00), 29)
+ck(62, (-1.18, -2.60, 1.28), (-1.20, 0.0, 0.98), 30)
+ck(74, (-1.42, -1.75, 1.15), (-1.55, 0.62, 0.95), 44)
+ck(86, (-1.44, -1.68, 1.12), (-1.55, 0.62, 0.93), 46)
+ck(98, (-1.05, -2.05, 0.95), (-1.22, 0.0, 0.45), 31)
 ck(114, (-1.10, -1.30, 0.62), tuple(W0 + Vector((0, 0, 0.02))), 34)
 for k, (dx, dz) in enumerate(((0.012, -0.008), (-0.010, 0.010), (0.007, -0.005), (-0.004, 0.003))):
     ck(EST + 1 + k * 2, (-1.10 + dx, -1.32, 0.63 + dz), tuple(W0 + Vector((0, -0.05, 0.05))), 33)
@@ -374,7 +408,7 @@ cl(C0, (0.20, -0.80, 0.27), (-0.095, -0.024, 0.20), 36); cl(D0 - 1, (0.18, -0.76
 # plano D: vástago, pistón y aceite
 cl(D0, (0.12, -0.50, 0.24), (0.0, 0.0, 0.17), 38); cl(E0 - 1, (0.10, -0.46, 0.20), (0.0, 0.0, 0.14), 40)
 # plano E: las válvulas del pistón, muy cerca
-cl(E0, (0.035, -0.15, 0.150), (0.0, 0.0, 0.113), 44, 4.0); cl(F0 - 1, (0.030, -0.14, 0.120), (0.0, 0.0, 0.086), 46, 4.0)
+cl(E0, (0.030, -0.12, 0.190), (0.0, 0.0, 0.113), 44); cl(F0 - 1, (0.028, -0.115, 0.165), (0.0, 0.0, 0.088), 46)
 # plano F: el aceite se calienta
 cl(F0, (0.16, -0.55, 0.22), (0.0, 0.0, 0.15), 38); cl(A2 - 1, (0.14, -0.50, 0.20), (0.0, 0.0, 0.15), 40)
 # consejo: Alex con Clod de fondo
@@ -383,7 +417,7 @@ ck(A2, (-0.30, -2.35, 1.45), (-0.95, -0.05, 1.15), 28); ck(INS - 1, (-0.31, -2.2
 ck(INS, tuple(Q + DQ * 0.74), tuple(Q), 40, dof=tuple(Q), fstop=5.6)
 ck(A3 - 1, tuple(Q + DQ * 0.68), tuple(Q), 41, dof=tuple(Q), fstop=5.6)
 # aviso final: plano corto de Alex
-ck(A3, (-0.42, -1.70, 1.52), (-0.66, -0.58, 1.42), 40); ck(CTA - 1, (-0.44, -1.58, 1.52), (-0.66, -0.58, 1.42), 42)
+ck(A3, (-0.40, -2.05, 1.55), (-0.66, -0.58, 1.50), 35); ck(CTA - 1, (-0.42, -1.92, 1.55), (-0.66, -0.58, 1.50), 37)
 # síguenos
 ck(CTA, (-0.85, -3.75, 1.30), (-0.88, -0.25, 0.92), 28); ck(FIN, (-0.86, -3.50, 1.28), (-0.88, -0.25, 0.94), 28)
 
@@ -415,7 +449,6 @@ sc.view_settings.exposure = -0.1
 
 # ================================================================ ANCLAS para los rótulos del montaje (pantalla 0-1, y hacia arriba)
 PIS = O["piston"]
-CU = O["cuerpo"]
 PUNTOS = {"muelle": (MUE, Vector((AMm["R_MUELLE"] * 0.7, -AMm["R_MUELLE"] * 0.7, L_MU * 0.55))),
           "amortiguador": (CU, Vector((0.0, -AMm["R_CUERPO"], 0.10))),
           "vastago": (VAS, Vector((0.0, -AMm["R_VAS"], 0.27))),
