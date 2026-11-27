@@ -359,7 +359,12 @@ def construir_motor(col, MP, BUJ=None):
         O["electrodo_punta"] = Vector((0, 0, zc + 0.012))
 
     # ---------------- gas de la cámara (cilindro entre la cabeza del pistón y el tejado)
-    gas = _malla("MOT_Gas", lambda bm: cil_z(bm, BORE / 2 - 0.0008, 0.0, 1.0, seg=96), col); gas.data.materials.append(M["mezcla"]); P(gas)
+    def medio_cil(bm):
+        cil_z(bm, BORE / 2 - 0.0008, 0.0, 1.0, seg=96)
+        r = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, 0), plane_no=(0, 1, 0), clear_inner=True)
+        bordes = [e for e in bm.edges if e.is_boundary]
+        if bordes: bmesh.ops.holes_fill(bm, edges=bordes, sides=0)
+    gas = _malla("MOT_Gas", medio_cil, col); gas.data.materials.append(M["mezcla"]); P(gas)     # gas cortado como el resto
     O["gas"] = gas
     try: gas.visible_shadow = False
     except Exception: pass
