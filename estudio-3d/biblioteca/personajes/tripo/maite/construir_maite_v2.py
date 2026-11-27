@@ -289,6 +289,8 @@ DIMS = tuple(ME.dimensions)
 CLS = clasificar(ME)
 materiales(ME, CLS, DIMS)
 subdividir(ME, 1)
+CM = {"__name__": "cara_maite"}; exec(open(os.path.join(PM, "cara_maite.py"), encoding="utf-8").read(), CM)
+OJOS_DATOS, ADELANTE = CM["construir_ojos"](ARM, ME)
 trenza = preparar_trenza(ARM, ME)
 ARM["trenza"] = ",".join(trenza)
 ARM["maite_version"] = "v2-fase1"
