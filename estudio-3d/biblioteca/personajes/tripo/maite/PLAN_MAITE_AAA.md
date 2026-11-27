@@ -33,3 +33,8 @@ El vídeo de 30 h queda en espera hasta que Maite esté terminada.
   - Boca: abertura recortada por las curvas de los labios, cara interna del labio, dientes (24 piezas redondeadas en arco), encías, lengua y saco oscuro; nada de dentro asoma por la piel.
   - 52 shape keys con nombres ARKit (ojos 14, mandíbula 4, boca 23, cejas 5, mejillas 3, nariz 2, lengua 1) en la misma malla.
   - Pruebas: `prueba_cara.py` (estados de ojos y boca en primer plano).
+- 28-11 (mañana) · **Fase 2, limpieza de la cara**:
+  - Halo alrededor de los ojos resuelto: no era la córnea (pruebas `diag_sin_cornea`, `diag_sin_globo`), eran (a) 65 caras que la clasificación por color había dejado con el material blanco de "ojos/dientes" y (b) el repintado por caras, que con caras de ~4 mm se ve a bloques. Ahora: esas caras pasan a piel y alrededor de ojos y boca la piel usa un **color limpio por vértice** (relleno armónico desde la piel sana) mezclado con una máscara suave; ahí se apagan también el mapa de normales y la rugosidad pintada (`piel_lisa`).
+  - Prueba en **arcilla** (`MAITE_DIAG=arcilla`): el modelo de Tripo trae el párpado superior esculpido con un **pliegue del revés** (45 caras mirando hacia dentro a 10-14 mm sobre el ojo). Se relaja como membrana contra el globo (`alisar_parpados`).
+  - Cejas: el detector sólo encontraba 11-13 vértices (miraba poco ancho y a poca altura); ahora las encuentra y las claves de ceja suben y bajan 5-6 mm. Sonrisa y mejillas con más recorrido.
+  - Boca: centrada entre comisuras (los dientes estaban corridos 2 mm), dientes sin huecos, cierre real de labios para M/B/P (en reposo la boca de Maite está abierta con dientes).
