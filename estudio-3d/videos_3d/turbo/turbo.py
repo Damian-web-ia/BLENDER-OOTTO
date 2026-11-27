@@ -118,7 +118,7 @@ for an, g in (("RUEDA_COMPRESOR", "rueda_comp"), ("RUEDA_TURBINA", "eje_turb"), 
 
 # ---------------- momentos (sincronizados con la voz de Maite)
 E_ABRE = FW(0, 15) - 4                                   # "abrirla"
-SOPLA0, SOPLA1 = FW(1, 8) - 6, FW(2, 4)                 # Clod sopla en la boca del compresor
+SOPLA0, SOPLA1 = FW(1, 12, True) + 2, FW(2, 4)         # Clod sopla en la boca del compresor (después de "eje")
 L2_ESC = FW(2, 6)                                        # "mueven": entran los gases de escape
 L2_ROJO = FW(2, 15, True)                                # "ardiendo": turbina al rojo
 L3_COMP, L3_AIRE, L3_MAS = FW(3, 4), FW(3, 6), FW(3, 14)
@@ -421,7 +421,7 @@ for f in range(1, FIN + 1):
         p = world_to_camera_view(sc, cam, MAITE.matrix_world @ cab.head)
         if p.z > 0: A["MAITE"] = [round(p.x, 4), round(p.y, 4)]
     anclas[str(f)] = A
-EV = {"E_ABRE": E_ABRE, "SOPLA0": SOPLA0, "SOPLA1": SOPLA1, "L2_ESC": L2_ESC, "L2_ROJO": L2_ROJO, "L3_COMP": L3_COMP, "L3_AIRE": L3_AIRE,
+EV = {"B0": E_ABRE + 23, "A2": L5, "INS": L5, "A3": L5, "E_ABRE": E_ABRE, "SOPLA0": SOPLA0, "SOPLA1": SOPLA1, "L2_ESC": L2_ESC, "L2_ROJO": L2_ROJO, "L3_COMP": L3_COMP, "L3_AIRE": L3_AIRE,
       "L3_MAS": L3_MAS, "L3_POT": L3_POT, "EXP0": EXP0, "L4_ACEITE": L4_ACEITE, "EXP2": EXP2, "EXP3": EXP3, "L5": L5, "L5_QUE": L5_QUE,
       "CTA": L5_FIN + 4, "FIN": FIN, "P1": P1}
 json.dump({"anclas": anclas, "cortes": CORTES, "fin": FIN, "eventos": EV}, open(os.path.join(os.path.dirname(SALIDA), "anclas_turbo.json"), "w"))

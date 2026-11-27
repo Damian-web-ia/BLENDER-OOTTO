@@ -417,6 +417,26 @@ def construir_clod(origen=(0, 0, 0)):
             P(capsula(f"CLOD_Dedo_{L}{k}", (s * 0.256, y0, 0.220), (s * (0.256 - 0.008), y0 - 0.003, 0.200), 0.0150, M["mano"], col, seg=24), f"mano.{L}")
         P(capsula(f"CLOD_Pulgar_{L}", (s * 0.238, -0.054, 0.258), (s * 0.229, -0.074, 0.282), 0.0175, M["mano"], col, seg=24), f"pulgar.{L}")
 
+    # ----------------------------------------------------- cortes horneados: los booleanos se aplican aquí para que el personaje
+    # no recalcule nada en cada fotograma (con booleanos vivos cada frame_set tardaba casi un segundo)
+    dg = bpy.context.evaluated_depsgraph_get(); dg.update()
+    cortadores = set()
+    for nombre, (o, hn) in list(piezas.items()):
+        bo = [m for m in o.modifiers if m.type == 'BOOLEAN']
+        if not bo: continue
+        cortadores |= {m.object for m in bo if m.object}
+        me = bpy.data.meshes.new_from_object(o.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+        o.modifiers.clear(); o.data = me
+        me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
+        try: me.set_sharp_from_angle(angle=math.radians(40))
+        except Exception: pass
+    for c in cortadores:
+        piezas.pop(c.name, None)
+        for h in list(c.children): bpy.data.objects.remove(h, do_unlink=True)
+        bpy.data.objects.remove(c, do_unlink=True)
+    for o in list(bpy.data.objects):
+        if o.name.endswith("_hex"): bpy.data.objects.remove(o, do_unlink=True)
+
     # ----------------------------------------------------- esqueleto (igual que v2)
     arm_d = bpy.data.armatures.new(NOMBRE + "_Arm"); arm = bpy.data.objects.new(NOMBRE, arm_d); col.objects.link(arm)
     arm_d.display_type = 'STICK'; arm.show_in_front = True
