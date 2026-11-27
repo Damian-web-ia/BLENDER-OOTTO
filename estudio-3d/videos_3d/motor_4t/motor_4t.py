@@ -69,12 +69,13 @@ def luz(nombre, loc, energia, tam, color, mira=(0, 0, 1.08), forma='RECTANGLE', 
     d.size = tam; d.size_y = tam_y if tam_y else tam
     o = bpy.data.objects.new(nombre, d); col.objects.link(o); o.location = loc
     o.rotation_euler = (Vector(mira) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler(); return o
-luz("Clave_calida", (-1.25, -1.55, 2.05), 330, 1.1, (1.0, 0.88, 0.76), tam_y=0.7)
-luz("Contra_azul_izq", (-1.35, 1.10, 1.65), 520, 0.25, (0.45, 0.68, 1.0), tam_y=1.6)
-luz("Contra_azul_der", (1.40, 1.05, 1.45), 520, 0.25, (0.45, 0.68, 1.0), tam_y=1.6)
-luz("Cenital", (0.0, 0.1, 2.7), 160, 1.4, (0.92, 0.95, 1.0))
-luz("Relleno_frio", (1.25, -1.75, 0.95), 70, 1.2, (0.75, 0.86, 1.0))
-luz("Maite_clave", (-1.2, -1.6, 2.0), 140, 0.9, (1.0, 0.9, 0.8), mira=(-0.62, 0.1, 1.45))
+# (27-11, 21:25) la primera prueba salió quemada y el fondo gris: luces a ~1/3 para un estudio oscuro de verdad
+luz("Clave_calida", (-1.25, -1.55, 2.05), 105, 1.1, (1.0, 0.88, 0.76), tam_y=0.7)
+luz("Contra_azul_izq", (-1.35, 1.10, 1.65), 190, 0.25, (0.45, 0.68, 1.0), tam_y=1.6)
+luz("Contra_azul_der", (1.40, 1.05, 1.45), 190, 0.25, (0.45, 0.68, 1.0), tam_y=1.6)
+luz("Cenital", (0.0, 0.1, 2.7), 45, 1.4, (0.92, 0.95, 1.0))
+luz("Relleno_frio", (1.25, -1.75, 0.95), 22, 1.2, (0.75, 0.86, 1.0))
+luz("Maite_clave", (-1.2, -1.6, 2.0), 55, 0.9, (1.0, 0.9, 0.8), mira=(-0.62, 0.1, 1.45))
 
 # ================================================================ MOTOR
 O = G["construir_motor"](cm, MP, BUJ)
@@ -150,13 +151,13 @@ def gas(f):
     if f < F_ABRE + 20 or EXP0 - 4 <= f <= EXP3 + 2: return 0.0, AZUL, 0.0
     debil = 0.45 if f > L3_VUELTAS else 1.0
     if L2_CHISPA - 4 <= f < L2_EXPLOTA:
-        u = suave((f - L2_CHISPA) / max(1, L2_EXPLOTA - L2_CHISPA)); return 0.78, tuple(lerp(a, b, u * 0.6) for a, b in zip(AZUL2, NARANJA)), lerp(7, 16, u)
+        u = suave((f - L2_CHISPA) / max(1, L2_EXPLOTA - L2_CHISPA)); return 0.7, tuple(lerp(a, b, u * 0.6) for a, b in zip(AZUL2, NARANJA)), lerp(2.0, 4.0, u)
     if L2_EXPLOTA <= f <= L2_ABAJO + 4:
-        u = (f - L2_EXPLOTA) / max(1, L2_ABAJO + 4 - L2_EXPLOTA); return lerp(0.95, 0.6, u), NARANJA, lerp(48, 4, u ** 0.6)
-    if ph < 180: return lerp(0.15, 0.5, ph / 180) * debil, AZUL, 3.5 * debil
-    if ph < 360: return lerp(0.5, 0.75, (ph - 180) / 180) * debil, AZUL2, lerp(3.5, 7.0, (ph - 180) / 180) * debil
-    if ph < 540: return lerp(0.85, 0.5, (ph - 360) / 180) * debil, NARANJA, lerp(20, 3, (ph - 360) / 180) * debil
-    return lerp(0.5, 0.1, (ph - 540) / 180) * debil, HUMO, 1.5 * debil
+        u = (f - L2_EXPLOTA) / max(1, L2_ABAJO + 4 - L2_EXPLOTA); return lerp(0.92, 0.6, u), NARANJA, lerp(13, 1.5, u ** 0.6)
+    if ph < 180: return lerp(0.12, 0.42, ph / 180) * debil, AZUL, 1.3 * debil
+    if ph < 360: return lerp(0.42, 0.65, (ph - 180) / 180) * debil, AZUL2, lerp(1.3, 2.4, (ph - 180) / 180) * debil
+    if ph < 540: return lerp(0.85, 0.5, (ph - 360) / 180) * debil, NARANJA, lerp(7, 1, (ph - 360) / 180) * debil
+    return lerp(0.45, 0.1, (ph - 540) / 180) * debil, HUMO, 0.6 * debil
 for f in range(1, FIN + 1):
     m_, c_, s_ = gas(f)
     MIX.inputs[0].default_value = m_; MIX.inputs[0].keyframe_insert("default_value", frame=f)
@@ -169,10 +170,10 @@ def vis(o, f, v):
 dl = bpy.data.lights.new("MOT_LuzCamara", 'POINT'); dl.shadow_soft_size = 0.01; dl.color = (1.0, 0.55, 0.18)
 lc = bpy.data.objects.new("MOT_LuzCamara", dl); cm.objects.link(lc); lc.parent = EXP["cul"]; lc.location = (0, -0.01, ZC + 0.004)
 def kluz(f, e): dl.energy = e; dl.keyframe_insert("energy", frame=f)
-kluz(1, 0); kluz(L2_EXPLOTA - 8, 0.4); kluz(L2_EXPLOTA, 26); kluz(L2_EXPLOTA + 8, 9); kluz(L2_ABAJO + 4, 0.3); kluz(L2_ABAJO + 10, 0)
+kluz(1, 0); kluz(L2_EXPLOTA - 8, 0.15); kluz(L2_EXPLOTA, 6); kluz(L2_EXPLOTA + 8, 2.5); kluz(L2_ABAJO + 4, 0.1); kluz(L2_ABAJO + 10, 0)
 f_ = RAMPA0
 while f_ < L4_TOCA + 12:                                   # destellos durante la rampa (cada explosión)
-    if THETA[f_] % 720 < 30 or (f_ > 1 and (THETA[f_] // 720) != (THETA[f_ - 1] // 720)): kluz(f_, 4.0); kluz(f_ + 1, 0.2)
+    if THETA[f_] % 720 < 30 or (f_ > 1 and (THETA[f_] // 720) != (THETA[f_ - 1] // 720)): kluz(f_, 1.5); kluz(f_ + 1, 0.1)
     f_ += 1
 kluz(L4_TOCA + 14, 0)
 punta = O["electrodo_punta"] + Vector((0, 0, -0.0012))
@@ -184,7 +185,7 @@ vis(ch, 1, False)
 for a, b in ((L2_CHISPA, L2_CHISPA + 3), (L2_CHISPA + 6, L2_CHISPA + 8), (L2_EXPLOTA - 6, L2_EXPLOTA - 2)): vis(ch, a, True); vis(ch, b, False)
 ds = bpy.data.lights.new("MOT_LuzChispa", 'POINT'); ds.color = (0.6, 0.8, 1.0); ds.shadow_soft_size = 0.002
 ls = bpy.data.objects.new("MOT_LuzChispa", ds); cm.objects.link(ls); ls.parent = EXP["cul"]; ls.location = punta
-for f, e in ((1, 0), (L2_CHISPA - 1, 0), (L2_CHISPA, 3.5), (L2_CHISPA + 3, 0), (L2_CHISPA + 6, 2.5), (L2_CHISPA + 8, 0), (L2_EXPLOTA - 6, 3), (L2_EXPLOTA - 2, 0)):
+for f, e in ((1, 0), (L2_CHISPA - 1, 0), (L2_CHISPA, 1.2), (L2_CHISPA + 3, 0), (L2_CHISPA + 6, 0.9), (L2_CHISPA + 8, 0), (L2_EXPLOTA - 6, 1.0), (L2_EXPLOTA - 2, 0)):
     ds.energy = e; ds.keyframe_insert("energy", frame=f)
 mf = bpy.data.materials.new("MOT_Fuego"); mf.use_nodes = True; nt = mf.node_tree; nt.nodes.clear()
 out = nt.nodes.new("ShaderNodeOutputMaterial"); mx = nt.nodes.new("ShaderNodeMixShader"); tr = nt.nodes.new("ShaderNodeBsdfTransparent")
@@ -192,7 +193,7 @@ em = nt.nodes.new("ShaderNodeEmission"); nz = nt.nodes.new("ShaderNodeTexNoise")
 nz.inputs["Scale"].default_value = 180.0; nz.inputs["Detail"].default_value = 6.0
 nt.links.new(tc.outputs["Object"], nz.inputs["Vector"]); nt.links.new(nz.outputs["Fac"], rp.inputs["Fac"])
 rp.color_ramp.elements[0].color = (1.0, 0.25, 0.03, 1); rp.color_ramp.elements[1].color = (1.0, 0.85, 0.45, 1)
-nt.links.new(rp.outputs["Color"], em.inputs["Color"]); em.inputs["Strength"].default_value = 30.0
+nt.links.new(rp.outputs["Color"], em.inputs["Color"]); em.inputs["Strength"].default_value = 8.0
 nt.links.new(nz.outputs["Fac"], mx.inputs[0]); nt.links.new(tr.outputs[0], mx.inputs[1]); nt.links.new(em.outputs[0], mx.inputs[2])
 nt.links.new(mx.outputs[0], out.inputs["Surface"])
 bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=4, radius=1.0)
@@ -202,7 +203,7 @@ dsp = fu.modifiers.new("Llama", 'DISPLACE'); tx = bpy.data.textures.new("Llama",
 vis(fu, 1, False); vis(fu, L2_EXPLOTA - 14, True); vis(fu, L2_EXPLOTA + 16, False)
 for f, s_ in ((L2_EXPLOTA - 14, 0.001), (L2_EXPLOTA - 2, 0.016), (L2_EXPLOTA + 2, 0.034), (L2_EXPLOTA + 10, 0.040), (L2_EXPLOTA + 16, 0.030)):
     fu.scale = (s_, s_ * 0.9, s_ * 0.55); fu.keyframe_insert("scale", frame=f)
-for f, s_ in ((L2_EXPLOTA - 14, 20.0), (L2_EXPLOTA, 45.0), (L2_EXPLOTA + 10, 18.0), (L2_EXPLOTA + 16, 0.0)):
+for f, s_ in ((L2_EXPLOTA - 14, 4.0), (L2_EXPLOTA, 10.0), (L2_EXPLOTA + 10, 4.0), (L2_EXPLOTA + 16, 0.0)):
     em.inputs["Strength"].default_value = s_; em.inputs["Strength"].keyframe_insert("default_value", frame=f)
 
 # ---------------- mezcla que entra (admisión) y gases que salen (escape)
@@ -333,7 +334,8 @@ for c_ in dst.collections:
     if c_ is not None: sc.collection.children.link(c_)
 CA = {"__name__": "clod"}; exec(open(os.path.join(PC, "clod_anim.py"), encoding="utf-8").read(), CA)
 CL = CA["ClodAnim"]()
-CLOD_POS = Vector((0.19, -0.135, 0.860)); CLOD_GIRO = -40
+CLOD_POS = Vector((0.27, 0.08, 0.860)); CLOD_GIRO = -35
+CLOD_CERCA = Vector((0.15, -0.075, 0.860))
 CL.reposo(1); CL.mover(1, tuple(CLOD_POS), CLOD_GIRO); CL.cara(1, "feliz"); CL.mirar(1, 0.0, 0.0)
 def local_clod(p_mundo):
     return (CL.arm.matrix_world.inverted() @ Vector(p_mundo)) / CL.K
@@ -342,6 +344,10 @@ CL.cara(F_ABRE - 2, "contento"); CL.cara(F_ABRE + 4, "sorpresa"); CL.cuerpo(F_AB
 CL.cara(L2_EXPLOTA - 2, "contento"); CL.cara(L2_EXPLOTA + 2, "susto"); CL.aplastar(L2_EXPLOTA + 2, 0.92); CL.aplastar(L2_EXPLOTA + 10, 1.0); CL.cara(L2_EXPLOTA + 40, "contento")
 # el gag: Clod mira la polea que gira cada vez más rápido y va a tocarla
 POLEA = RAIZ.matrix_world @ Vector((0.034, -0.100, 0.020))
+CL.mover(RAMPA0 + 6, tuple(CLOD_POS), CLOD_GIRO); CL.mover(RAMPA0 + 34, tuple(CLOD_CERCA), CLOD_GIRO - 15)
+f_ = CL.rebote(RAMPA0 + 8, veces=3)
+CL.mover(L5_TIRONES - 10, tuple(CLOD_CERCA), CLOD_GIRO - 15); CL.mover(L5_TIRONES + 20, tuple(CLOD_POS), CLOD_GIRO)
+sc.frame_set(L4_CLOD - 40); bpy.context.view_layer.update()
 CL.cara(RAMPA0, "contento"); CL.cara(RAMPA0 + 30, "sorpresa"); CL.mirar(RAMPA0 + 30, -0.35, -0.2)
 CL.cabeza(RAMPA0 + 30, asiente=8, gira=12)
 CL.brazo_caido("R", L4_CLOD - 40)
@@ -365,13 +371,13 @@ PLANOS = [  # (desde, hasta, cam_ini, cam_fin, mira_ini, mira_fin, lente)
     (122, L1_BAJA - 1, (0.0, -0.92, 1.12), (0.0, -0.80, 1.12), (0, 0, 1.09), (0, 0, 1.09), 50),
     (L1_BAJA, L1_SUBE - 1, (-0.12, -0.46, 1.22), (-0.09, -0.40, 1.20), (-0.012, 0, 1.165), (-0.01, 0, 1.15), 50),
     (L1_SUBE, L1_COMP, (0.06, -0.48, 1.17), (0.04, -0.42, 1.19), (0, 0, 1.16), (0, 0, 1.175), 50),
-    (L1_COMP + 1, L2_EXPLOTA - 1, (0.03, -0.19, 1.205), (0.015, -0.15, 1.20), (0, 0, 1.192), (0, 0, 1.192), 60),
+    (L1_COMP + 1, L2_EXPLOTA - 1, (0.012, -0.16, 1.172), (0.006, -0.13, 1.176), (0, 0, 1.194), (0, 0, 1.194), 70),
     (L2_EXPLOTA, L2_SUBIR - 1, (0.0, -0.66, 1.10), (0.0, -0.60, 1.10), (0, 0, 1.12), (0, 0, 1.12), 45),
-    (L2_SUBIR, EXP0 - 1, (0.26, -0.50, 1.24), (0.22, -0.46, 1.22), (0.03, 0, 1.17), (0.03, 0, 1.17), 50),
+    (L2_SUBIR, EXP0 - 1, (0.16, -0.52, 1.24), (0.13, -0.47, 1.22), (0.035, 0, 1.17), (0.035, 0, 1.17), 50),
     (EXP0, L3_CUATRO - 1, (-0.62, -1.05, 1.36), (-0.35, -1.15, 1.28), (0, -0.06, 1.08), (0, -0.06, 1.08), 40),
     (L3_CUATRO, RAMPA0 - 1, (0.0, -0.88, 1.10), (0.0, -0.80, 1.10), (0, 0, 1.07), (0, 0, 1.07), 50),
     (RAMPA0, L4_CLOD - 1, (-0.52, -0.78, 1.00), (-0.42, -0.70, 0.99), (0.06, -0.08, 1.00), (0.06, -0.08, 1.00), 35),
-    (L4_CLOD, L4_TOCA + 18, (0.02, -0.60, 1.04), (0.04, -0.55, 1.03), (0.16, -0.12, 0.98), (0.16, -0.12, 0.98), 50),
+    (L4_CLOD, L4_TOCA + 18, (0.06, -0.58, 1.07), (0.07, -0.53, 1.06), (0.11, -0.07, 1.00), (0.11, -0.07, 1.00), 45),
     (L4_TOCA + 19, FIN, (-0.05, -2.05, 1.40), (-0.10, -1.85, 1.38), (-0.30, 0, 1.22), (-0.30, 0, 1.22), 42)]
 CORTES = []
 def ck(f, loc, mira, lente):
