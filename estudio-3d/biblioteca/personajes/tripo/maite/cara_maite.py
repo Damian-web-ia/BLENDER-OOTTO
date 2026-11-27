@@ -531,32 +531,34 @@ def _reindexar(me, puntos):
 
 
 def _caja_redonda(bm, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
-    """Caja de esquinas redondeadas (para dientes): cubo subdividido y 'inflado' hacia una superesfera."""
+    """Caja de esquinas redondeadas (para dientes): cubo subdividido y 'inflado' hacia una superelipse.
+    Devuelve (desde, hasta): el tramo de índices de sus vértices (se añaden al final de la malla)."""
+    bm.verts.ensure_lookup_table(); n0 = len(bm.verts)
     r = bmesh.ops.create_cube(bm, size=2.0)
-    vs = r["verts"]
-    res = bmesh.ops.subdivide_edges(bm, edges=list({e for v in vs for e in v.link_edges}), cuts=segs, use_grid_fill=True)
-    vs = list({v for v in bm.verts if v not in _caja_redonda.previos})
+    aristas = list({e for v in r["verts"] for e in v.link_edges})
+    bmesh.ops.subdivide_edges(bm, edges=aristas, cuts=segs, use_grid_fill=True)
+    bm.verts.ensure_lookup_table(); n1 = len(bm.verts)
+    vs = [bm.verts[i] for i in range(n0, n1)]
     for v in vs:
         p = v.co.copy()
-        n = Vector((abs(p.x) ** 3 + 1e-9, abs(p.y) ** 3 + 1e-9, abs(p.z) ** 3 + 1e-9))
-        k = (n.x + n.y + n.z) ** (1 / 3)
+        k = (abs(p.x) ** 3 + abs(p.y) ** 3 + abs(p.z) ** 3) ** (1 / 3)
         p = p / max(k, 1e-6)
         v.co = centro + X * (p.x * sx) + Y * (p.y * sy) + Z * (p.z * sz)
     for f in {f for v in vs for f in v.link_faces}:
         f.material_index = mat_i; f.smooth = True
-    _caja_redonda.previos |= set(vs)
-    return vs
-_caja_redonda.previos = set()
+    return n0, n1
 
 
 def _elipsoide(bm, centro, X, Y, Z, rx, ry, rz, mat_i, u=24, v=14):
-    r = bmesh.ops.create_uvsphere(bm, u_segments=u, v_segments=v, radius=1.0)
-    vs = r["verts"]
+    bm.verts.ensure_lookup_table(); n0 = len(bm.verts)
+    bmesh.ops.create_uvsphere(bm, u_segments=u, v_segments=v, radius=1.0)
+    bm.verts.ensure_lookup_table(); n1 = len(bm.verts)
+    vs = [bm.verts[i] for i in range(n0, n1)]
     for q in vs:
         p = q.co.copy(); q.co = centro + X * (p.x * rx) + Y * (p.y * ry) + Z * (p.z * rz)
     for f in {f for q in vs for f in q.link_faces}:
         f.material_index = mat_i; f.smooth = True
-    return vs
+    return n0, n1
 
 
 def construir_boca(arm, me, adelante, lat, datos_ojos):
@@ -606,8 +608,9 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
         v.co = v.co - F * 0.0055 + up * (0.0014 if dz > 0 else -0.0014)
     for f in [x for x in e2["geom"] if isinstance(x, bmesh.types.BMFace)]: f.material_index = mats["MAITE_boca_int"]; f.smooth = True
     # ---- piezas de dentro (en el marco de la boca: X lateral, F hacia delante, up)
-    _caja_redonda.previos = set(bm.verts)
-    partes = {"dientes_sup": [], "dientes_inf": [], "encia_sup": [], "encia_inf": [], "lengua": [], "saco": []}
+    bm.verts.index_update(); bm.verts.ensure_lookup_table()
+    idx_bucle = [v.index for v in bucle]; idx_v1 = [v.index for v in v1]; idx_v2 = [v.index for v in v2]
+    partes = {"dientes_sup": [], "dientes_inf": [], "encia_sup": [], "encia_inf": [], "lengua": [], "saco": []}   # tramos de índices
     anchos = [0.0043, 0.0037, 0.0035, 0.0032, 0.0031, 0.0030]
     altos_s = [0.0050, 0.0044, 0.0047, 0.0041, 0.0038, 0.0035]
     z_borde_sup = O.z - 0.0007                     # filo de los dientes de arriba
@@ -624,22 +627,19 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
                     c_ = pos + up * (z_borde_sup - O.z + h_ / 2)
                 else:
                     c_ = pos + up * (z_borde_sup - O.z - 0.0004 - h_ / 2)
-                antes = set(bm.verts)
-                _caja_redonda(bm, c_, tang, nrm_, up, w_ * 0.47, 0.0012, h_ / 2, mats["MAITE_dientes"])
-                partes["dientes_sup" if signo > 0 else "dientes_inf"] += [v for v in bm.verts if v not in antes]
+                partes["dientes_sup" if signo > 0 else "dientes_inf"].append(
+                    _caja_redonda(bm, c_, tang, nrm_, up, w_ * 0.47, 0.0012, h_ / 2, mats["MAITE_dientes"]))
             s_acum += w_
     # encías: anillos aplastados que siguen el arco de los dientes
     for signo, clave_, r_a, prof in ((1, "encia_sup", 0.0190, 0.0026), (-1, "encia_inf", 0.0170, 0.0040)):
         cprof = prof + r_a - 0.0006
         c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0004 if signo < 0 else 0))
-        partes[clave_] += _elipsoide(bm, c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12)
-    partes["lengua"] += _elipsoide(bm, O - F * 0.0185 + up * (z_borde_sup - O.z - 0.0050), X, F, up, 0.0105, 0.0120, 0.0034, mats["MAITE_lengua"], 28, 14)
-    partes["saco"] += _elipsoide(bm, O - F * 0.0215 + up * (-0.0012), X, F, up, 0.031, 0.0170, 0.0125, mats["MAITE_boca_int"], 36, 20)
+        partes[clave_].append(_elipsoide(bm, c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12))
+    partes["lengua"].append(_elipsoide(bm, O - F * 0.0185 + up * (z_borde_sup - O.z - 0.0050), X, F, up, 0.0105, 0.0120, 0.0034, mats["MAITE_lengua"], 28, 14))
+    partes["saco"].append(_elipsoide(bm, O - F * 0.0215 + up * (-0.0012), X, F, up, 0.031, 0.0170, 0.0125, mats["MAITE_boca_int"], 36, 20))
     bm.verts.index_update()
-    malos = {k: sum(1 for v in vs if not v.is_valid) for k, vs in partes.items()}
-    if any(malos.values()): print("BOCA vértices perdidos", malos, flush=True)
-    info = {k: [v.index for v in vs if v.is_valid] for k, vs in partes.items()}
-    info["bucle"] = [v.index for v in bucle if v.is_valid]; info["labio_int"] = [v.index for v in v1 if v.is_valid]; info["boca_int"] = [v.index for v in v2 if v.is_valid]
+    info = {k: [i for (a_, b_) in tramos for i in range(a_, b_)] for k, tramos in partes.items()}
+    info["bucle"] = idx_bucle; info["labio_int"] = idx_v1; info["boca_int"] = idx_v2
     info.update(O=tuple(O), F=tuple(F), X=tuple(X))
     bm.normal_update(); bm.to_mesh(m); bm.free(); m.update()
     # pesos del esqueleto de las piezas nuevas: todo a la cabeza
