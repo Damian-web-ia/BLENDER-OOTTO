@@ -27,7 +27,7 @@ def _salida(nt):
 
 
 def _bsdf(nt):
-    b = nt.nodes.new("ShaderNodePrincipledBSDF"); b.location = (500, 0); return b
+    b = nt.nodes.new("ShaderNodeBsdfPrincipled"); b.location = (500, 0); return b
 
 
 def _objeto(nt):
