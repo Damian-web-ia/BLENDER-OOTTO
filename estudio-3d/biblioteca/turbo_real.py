@@ -26,7 +26,7 @@ def _malla(nombre, fn, col, liso=True, angulo=40):
     o = bpy.data.objects.new(nombre, me); col.objects.link(o)
     if liso:
         me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
-        try: o.modifiers.new("Normales", "SMOOTH_BY_ANGLE").angle = math.radians(angulo) if False else None
+        try: me.set_sharp_from_angle(angle=math.radians(angulo))
         except Exception: pass
     return o
 
@@ -101,7 +101,7 @@ def partir(o, mat_corte, col):
     delante = o.copy(); delante.data = o.data.copy(); col.objects.link(delante); delante.name = o.name + "_Delante"
     for ob, op in ((o, 'DIFFERENCE'), (delante, 'INTERSECT')):
         c = _malla("TUR_Cortador", lambda bm: caja(bm, -big, big, -big, 0.0, -big, big), col, liso=False)
-        c.data.materials.append(mat_corte); c.matrix_world = ob.matrix_world.copy() if False else Matrix.Identity(4)
+        c.data.materials.append(mat_corte); c.matrix_world = Matrix.Identity(4)
         b = ob.modifiers.new("Corte", 'BOOLEAN'); b.operation = op; b.object = c; b.solver = 'EXACT'
         try: b.material_mode = 'TRANSFER'
         except Exception: pass
@@ -271,7 +271,7 @@ def construir_turbo(col):
     tc, ta = rueda_turbina("TUR_RuedaTurbina", M, col); P(tc, rotor); P(ta, rotor)
     tu = _malla("TUR_TuercaRueda", lambda bm: torno_x(bm, [(0.0592, 0.0), (0.0592, 0.0046), (0.0628, 0.0046), (0.0628, 0.0)], seg=6), col, liso=False)
     tu.data.materials.append(M["tornillo"]); P(tu, rotor); _bisel(tu, 0.0003, 2)
-    co = _malla("TUR_CollarAxial", lambda bm: torno_x(bm, [(0.0150, 0.0040), (0.0150, 0.0080), (0.0185, 0.0080), (0.0185, 0.0040)], seg=64, cerrar=True), col)
+    co = _malla("TUR_CollarAxial", lambda bm: torno_x(bm, [(0.0192, 0.0040), (0.0192, 0.0085), (0.0222, 0.0085), (0.0222, 0.0040)], seg=64, cerrar=True), col)
     co.data.materials.append(M["acero"]); P(co, rotor); _bisel(co, 0.0002, 2)
     O["rueda_comp"] = (cc, ca); O["rueda_turb"] = (tc, ta); O["eje"] = eje
 
@@ -279,15 +279,15 @@ def construir_turbo(col):
     for k, xc in enumerate((-0.0215, 0.0045)):
         b_ = _malla(f"TUR_Casquillo{k}", lambda bm, xc=xc: torno_x(bm, [(xc - 0.005, 0.00405), (xc - 0.005, 0.0056), (xc + 0.005, 0.0056), (xc + 0.005, 0.00405)], seg=64, cerrar=True), col)
         b_.data.materials.append(M["bronce"]); P(b_); _bisel(b_, 0.0002, 2); O["enteras"].append(b_)
-    ax = _malla("TUR_CojineteAxial", lambda bm: torno_x(bm, [(0.0187, 0.0045), (0.0187, 0.0125), (0.0215, 0.0125), (0.0215, 0.0045)], seg=64, cerrar=True), col)
+    ax = _malla("TUR_CojineteAxial", lambda bm: torno_x(bm, [(0.0164, 0.0045), (0.0164, 0.0125), (0.0190, 0.0125), (0.0190, 0.0045)], seg=64, cerrar=True), col)
     ax.data.materials.append(M["bronce"]); P(ax); _bisel(ax, 0.0002, 2); O["enteras"].append(ax)
     es = _malla("TUR_EscudoTermico", lambda bm: torno_x(bm, [(-0.0425, 0.0062), (-0.0432, 0.0200), (-0.0440, 0.0330)], seg=96), col)
     es.data.materials.append(M["chapa"]); _grosor(es, 0.0007); P(es)
 
     # ---- carcasa central (fundición): cuerpo de revolución con bridas, alojamiento de casquillos, entrada y retorno de aceite
     def chra(bm):
-        torno_x(bm, [(-0.0420, 0.0058), (-0.0420, 0.0360), (-0.0360, 0.0360), (-0.0335, 0.0250), (0.0150, 0.0250),
-                     (0.0185, 0.0330), (0.0185, 0.0360), (0.0270, 0.0360), (0.0270, 0.0135), (0.0225, 0.0135), (0.0225, 0.0058)], seg=128, cerrar=True)
+        torno_x(bm, [(-0.0420, 0.0058), (-0.0420, 0.0310), (-0.0360, 0.0310), (-0.0335, 0.0250), (0.0110, 0.0250),
+                     (0.0140, 0.0310), (0.0225, 0.0310), (0.0225, 0.0135), (0.0160, 0.0135), (0.0160, 0.0058)], seg=128, cerrar=True)
     ch = _malla("TUR_CarcasaCentral", chra, col); ch.data.materials.append(M["hierro"]); P(ch); _bisel(ch, 0.0008, 3)
     def boss(bm):
         cilindro(bm, (-0.0080, 0, 0.0300), (0, 0, 1), 0.0085, 0.020, seg=64)
@@ -310,22 +310,20 @@ def construir_turbo(col):
             xs = 0.0315 + 0.0042 + (0.0560 - 0.0315 - 0.0042) * (1 - math.sin(math.pi * s / 2)) + 0.0006
             rs = COMP_IND + (COMP_EXD - COMP_IND) * (1 - math.cos(math.pi * s / 2)) + 0.0006
             prof.append((xs, rs))
-        prof += [(0.0362, 0.0330), (0.0362, 0.0560)]
+        prof += [(0.0362, 0.0330)]
         torno_x(bm, prof, seg=128)
     ec = _malla("TUR_CarcasaCompresor", envol_c, col); ec.data.materials.append(M["alu_fundido"]); _grosor(ec, 0.0035, 0.0); P(ec)
-    vc = _malla("TUR_CaracolaCompresor", lambda bm: caracola(bm, 0.0335, 0.0330, 0.0045, 0.0165, math.radians(95), 0.93, 0.050, 1), col)
+    vc = _malla("TUR_CaracolaCompresor", lambda bm: caracola(bm, 0.0345, 0.0330, 0.0045, 0.0165, math.radians(95), 0.93, 0.050, 1), col)
     vc.data.materials.append(M["alu_fundido"]); _grosor(vc, 0.0030, 0.0); P(vc)
-    bc = _malla("TUR_ContraplacaCompresor", lambda bm: torno_x(bm, [(0.0270, 0.0080), (0.0270, 0.0560), (0.0310, 0.0560), (0.0310, 0.0080)], seg=128, cerrar=True), col)
+    bc = _malla("TUR_ContraplacaCompresor", lambda bm: torno_x(bm, [(0.0225, 0.0050), (0.0225, 0.0340), (0.0312, 0.0340), (0.0312, 0.0262), (0.0272, 0.0262), (0.0272, 0.0050)], seg=128, cerrar=True), col)
     bc.data.materials.append(M["alu_fundido"]); P(bc); _bisel(bc, 0.0006, 2)
     piezas_corte += [ec, vc, bc]
-    vb = _malla("TUR_AbrazaderaV", lambda bm: torno_x(bm, [(0.0240, 0.0370), (0.0240, 0.0410), (0.0320, 0.0410), (0.0320, 0.0370)], seg=128, cerrar=True), col)
-    vb.data.materials.append(M["tornillo"]); P(vb); _bisel(vb, 0.0005, 2); piezas_corte.append(vb)
     lab = _malla("TUR_LabioEntrada", lambda bm: torno_x(bm, [(0.0860, 0.0245), (0.0860, 0.0262), (0.0890, 0.0262), (0.0890, 0.0245)], seg=128, cerrar=True), col)
     lab.data.materials.append(M["alu_fundido"]); P(lab); _bisel(lab, 0.0006, 3); piezas_corte.append(lab)
 
     # ---- carcasa de la turbina (fundición resistente al calor): envolvente, salida axial, caracola, brida de entrada y de salida
     def envol_t(bm):
-        prof = [(-0.0440, 0.0560), (-0.0440, 0.0300), (-0.0515, 0.0236)]
+        prof = [(-0.0440, 0.0310), (-0.0515, 0.0236)]
         for i in range(1, 21):
             s = i / 20
             xs = -0.0460 - 0.0062 + (-0.0650 - 0.0004 - (-0.0460 - 0.0062)) * (1 - math.cos(math.pi * s / 2)) - 0.0004
@@ -334,13 +332,13 @@ def construir_turbo(col):
         prof += [(-0.0800, 0.0225), (-0.0960, 0.0250)]
         torno_x(bm, prof, seg=128)
     et = _malla("TUR_CarcasaTurbina", envol_t, col); et.data.materials.append(M["turbina_fund"]); _grosor(et, 0.0045, 0.0); P(et)
-    vt = _malla("TUR_CaracolaTurbina", lambda bm: caracola(bm, -0.0500, 0.0300, 0.0050, 0.0175, math.radians(-85), 0.93, 0.040, -1), col)
+    vt = _malla("TUR_CaracolaTurbina", lambda bm: caracola(bm, -0.0540, 0.0310, 0.0050, 0.0165, math.radians(-85), 0.93, 0.040, -1), col)
     vt.data.materials.append(M["turbina_fund"]); _grosor(vt, 0.0042, 0.0); P(vt)
     fs = _malla("TUR_BridaSalida", lambda bm: torno_x(bm, [(-0.1040, 0.0250), (-0.1040, 0.0430), (-0.0960, 0.0430), (-0.0960, 0.0250)], seg=128, cerrar=True), col)
     fs.data.materials.append(M["turbina_fund"]); P(fs); _bisel(fs, 0.0008, 3)
     piezas_corte += [et, vt, fs]
     # brida de entrada de escape al final de la salida recta de la caracola
-    ce, rde, _ = (lambda e: e[-1])(caracola(bmesh.new(), -0.0500, 0.0300, 0.0050, 0.0175, math.radians(-85), 0.93, 0.040, -1))
+    ce, rde, _ = (lambda e: e[-1])(caracola(bmesh.new(), -0.0540, 0.0310, 0.0050, 0.0165, math.radians(-85), 0.93, 0.040, -1))
     phi_e = math.radians(-85) - TAU * 0.93; tg = Vector((0, -math.sin(phi_e), math.cos(phi_e))) * -1
     def brida_in(bm):
         g = bmesh.ops.create_cube(bm, size=1.0)
@@ -348,6 +346,16 @@ def construir_turbo(col):
         bmesh.ops.scale(bm, vec=(0.060, 0.052, 0.008), verts=g["verts"])
         bmesh.ops.transform(bm, matrix=Matrix.Translation(ce) @ q, verts=g["verts"])
     fi = _malla("TUR_BridaEntrada", brida_in, col, liso=False); fi.data.materials.append(M["turbina_fund"]); P(fi); _bisel(fi, 0.0012, 3)
+    _aplicar(fi)
+    hueco = _malla("TUR_HuecoBrida", lambda bm: cilindro(bm, ce, tg, 0.0160, 0.030, seg=64), col)
+    b_ = fi.modifiers.new("Hueco", 'BOOLEAN'); b_.operation = 'DIFFERENCE'; b_.object = hueco; b_.solver = 'EXACT'
+    _aplicar(fi); bpy.data.objects.remove(hueco, do_unlink=True)
+    for k in range(4):                                  # espárragos de la brida de entrada
+        qq = tg.to_track_quat('Z', 'X').to_matrix()
+        off = qq @ Vector(((-1 if k % 2 else 1) * 0.022, (-1 if k // 2 else 1) * 0.018, 0.0))
+        e2 = _malla(f"TUR_EsparragoEntrada{k}", lambda bm, off=off: (cilindro(bm, ce + off + tg * 0.007, tg, 0.0022, 0.012, seg=24),
+                                                                       cilindro(bm, ce + off + tg * 0.0055, tg, 0.0042, 0.0035, seg=6)), col, liso=False)
+        e2.data.materials.append(M["tornillo"]); P(e2); _bisel(e2, 0.0003, 2); O["enteras"].append(e2)
     piezas_corte.append(fi)
     # espárragos y tuercas de la brida de salida (5)
     for k in range(5):
@@ -355,36 +363,29 @@ def construir_turbo(col):
         e_ = _malla(f"TUR_Esparrago{k}", lambda bm, y=y, z=z: (cilindro(bm, (-0.1075, y, z), (1, 0, 0), 0.0022, 0.013, seg=24),
                                                              cilindro(bm, (-0.1060, y, z), (1, 0, 0), 0.0042, 0.0040, seg=6)), col, liso=False)
         e_.data.materials.append(M["tornillo"]); P(e_); _bisel(e_, 0.0003, 2); O["enteras"].append(e_)
-    # tornillos y pletinas de la unión turbina - carcasa central (4)
-    for k in range(4):
-        a = TAU * k / 4 + math.radians(45); y, z = 0.039 * math.cos(a), 0.039 * math.sin(a)
-        p_ = _malla(f"TUR_Pletina{k}", lambda bm, y=y, z=z: (caja(bm, -0.0450, -0.0405, y - 0.006, y + 0.006, z - 0.006, z + 0.006),
-                                                           cilindro(bm, (-0.0395, y, z), (1, 0, 0), 0.0034, 0.0030, seg=6)), col, liso=False)
-        p_.data.materials.append(M["tornillo"]); P(p_); _bisel(p_, 0.0004, 2); O["enteras"].append(p_)
-
     # ---- válvula de descarga (wastegate): tapa, palanca, varilla y actuador neumático sobre el compresor
     wg_piv = Vector((-0.0760, 0.0000, 0.0330))
     def palanca(bm):
+        cilindro(bm, (-0.0760, 0.0, 0.0285), (0, 0, 1), 0.0048, 0.0110, seg=32)          # resalte del eje de la válvula
         cilindro(bm, wg_piv, (0, 1, 0), 0.0035, 0.016, seg=32)
         caja(bm, -0.0790, -0.0730, 0.0070, 0.0100, 0.0330, 0.0600)
     pl = _malla("TUR_PalancaWastegate", palanca, col, liso=False); pl.data.materials.append(M["tornillo"]); P(pl); _bisel(pl, 0.0005, 2)
     tapa = _malla("TUR_TapaWastegate", lambda bm: cilindro(bm, (-0.0880, 0.0, 0.0120), (1, 0, 0), 0.0090, 0.0025, seg=48), col)
     tapa.data.materials.append(M["inconel"]); P(tapa); _bisel(tapa, 0.0003, 2)
-    act_c = Vector((0.0300, 0.0085, 0.0900))
+    act_c = Vector((0.0300, 0.0085, 0.1000))
     def actuador(bm):
         cilindro(bm, act_c, (1, 0, 0), 0.0280, 0.030, seg=96)
-        cilindro(bm, act_c + Vector((0.0, 0, 0)), (1, 0, 0), 0.0300, 0.0040, seg=96)          # pestaña engatillada del diafragma
+        cilindro(bm, act_c, (1, 0, 0), 0.0300, 0.0040, seg=96)                                # pestaña engatillada del diafragma
         cilindro(bm, act_c + Vector((0.0190, 0, 0)), (1, 0, 0), 0.0040, 0.0120, seg=32)       # toma de presión
     ac = _malla("TUR_Actuador", actuador, col); ac.data.materials.append(M["actuador"]); P(ac); _bisel(ac, 0.0008, 3)
-    def soporte(bm):
-        caja(bm, 0.0180, 0.0420, 0.0055, 0.0115, 0.0560, 0.0880)
-    so = _malla("TUR_SoporteActuador", soporte, col, liso=False); so.data.materials.append(M["tornillo"]); P(so); _bisel(so, 0.0005, 2)
-    def varilla(bm):
-        cilindro(bm, (act_c.x - 0.0150 + (-0.0760 - (act_c.x - 0.0150)) / 2, 0.0085, 0.0750), (1, 0, -0.18), 0.0020, abs(-0.0760 - (act_c.x - 0.0150)) * 1.016, seg=24)
-    va = _malla("TUR_Varilla", varilla, col); va.data.materials.append(M["acero"]); P(va)
+    so = _malla("TUR_SoporteActuador", lambda bm: caja(bm, 0.0180, 0.0420, 0.0055, 0.0115, 0.0600, 0.0760), col, liso=False)
+    so.data.materials.append(M["tornillo"]); P(so); _bisel(so, 0.0005, 2)
+    A_, B_ = Vector((act_c.x - 0.0150, 0.0085, act_c.z)), Vector((-0.0760, 0.0085, 0.0580))
+    va = _malla("TUR_Varilla", lambda bm: cilindro(bm, (A_ + B_) / 2, B_ - A_, 0.0020, (B_ - A_).length, seg=24), col)
+    va.data.materials.append(M["acero"]); P(va)
     O["wastegate"] = (pl, tapa, ac, va, so)
     for o_ in (pl, tapa, ac, va, so): O["enteras"].append(o_)
-    mg = _malla("TUR_ManguitoPresion", lambda bm: cilindro(bm, (0.0600, 0.0085, 0.0900), (1, 0, 0), 0.0040, 0.0400, seg=32), col)
+    mg = _malla("TUR_ManguitoPresion", lambda bm: cilindro(bm, (0.0660, 0.0085, 0.1000), (1, 0, 0), 0.0042, 0.0300, seg=32), col)
     mg.data.materials.append(M["goma"]); P(mg); O["enteras"].append(mg)
 
     # ---- aceite en los conductos (se ve en el corte)
@@ -393,8 +394,9 @@ def construir_turbo(col):
         cilindro(bm, (-0.0080, 0, -0.0225), (0, 0, 1), 0.0060, 0.0300, seg=32)
     oil = _malla("TUR_AceiteConductos", aceite, col); oil.data.materials.append(M["aceite"]); P(oil); O["aceite"] = oil
 
-    # ---- corte seccional de las carcasas
+    # ---- corte seccional de las carcasas (el aceite se corta igual y queda un pelo delante de la cara de corte)
     bpy.context.view_layer.update()
+    oil_d, oil_f = partir(oil, M["aceite"], col); oil_d.location.y -= 0.0003; bpy.data.objects.remove(oil_f, do_unlink=True); O["aceite"] = oil_d
     for o_ in piezas_corte:
         det, dl = partir(o_, M["corte"], col)
         dl.parent = raiz; O["detras"].append(det); O["delante"].append(dl)
@@ -405,7 +407,7 @@ def construir_turbo(col):
     for nm, loc in (("RUEDA_COMPRESOR", (0.046, -0.010, 0.012)), ("RUEDA_TURBINA", (-0.056, -0.010, 0.012)), ("EJE", (-0.010, -0.004, 0.0)),
                     ("COJINETES", (0.0045, -0.006, 0.0)), ("ACEITE", (-0.008, 0.0, 0.045)), ("CARCASA_CENTRAL", (-0.010, -0.025, -0.012)),
                     ("CARCASA_COMPRESOR", (0.036, -0.050, 0.030)), ("CARCASA_TURBINA", (-0.050, -0.050, 0.030)), ("WASTEGATE", (-0.076, 0.0, 0.050)),
-                    ("ACTUADOR", (0.030, -0.020, 0.090)), ("ENTRADA_AIRE", (0.090, 0.0, 0.0)), ("SALIDA_AIRE", (0.033, -0.10, 0.03)),
+                    ("ACTUADOR", (0.030, -0.020, 0.100)), ("ENTRADA_AIRE", (0.090, 0.0, 0.0)), ("SALIDA_AIRE", (0.033, -0.10, 0.03)),
                     ("ENTRADA_ESCAPE", (-0.050, 0.09, -0.02)), ("SALIDA_ESCAPE", (-0.104, 0.0, 0.0))):
         e = bpy.data.objects.new("ANC_" + nm, None); col.objects.link(e); e.parent = raiz; e.location = loc; e.empty_display_size = 0.006
         O["anclas"][nm] = e
