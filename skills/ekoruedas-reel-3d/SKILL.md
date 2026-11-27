@@ -64,6 +64,13 @@ Esos datos solo pueden aparecer en el pie de texto y se deben copiar del bloque 
 - No inventar datos técnicos, cifras, precios, intervalos ni especificaciones.
 - Si un detalle no está confirmado por una fuente aceptada o por el responsable, no se afirma como hecho.
 
+### Calidad de imagen (Damián, 27-11-2026)
+"El aceite parecía solamente un color, tiene que ser como algo líquido ... ve mejorando cómo se ve el metal, las piezas del coche ... las texturas ... si hace falta meter más píxeles, metemos más píxeles".
+- Materiales: `estudio-3d/biblioteca/materiales_pro.py` (exec en un dict). Líquidos con `aceite()` / `liquido_frenos()` (transparentes, refractan, ondas que se mueven solas, burbujas con `burbujas()`); `cromo()` para vástagos; `acero()` para piezas torneadas (anillos de torno); `fundicion()` para discos, pinzas y manguetas; `pintura(color)` con barniz y piel de naranja; `pintura_sucia()` para piezas viejas; `goma()`; `corte()` para las caras del despiece (metal recién cortado, no naranja plano). `mejorar(material, tipo)` cambia un material ya asignado.
+- Render: `render_pro(scene)` → 1080x1920 al 100 %, 64 muestras, raytracing (reflejos y refracción reales), AgX. Unos 5-6 s por fotograma en su PC (30 s de vídeo ≈ 90 min). Si no da tiempo, 100 % y 48 muestras; nunca bajar del 100 %.
+- Nada de drivers en materiales ni objetos: en el render de fondo no se ejecutan. Lo animado, con fotogramas clave (extrapolación lineal si tiene que seguir).
+- Antes del render completo, comparar 2-3 fotogramas antes/después y mirarlos.
+
 ### Biblioteca disponible
 
 Antes de modelar algo nuevo, revisar si ya existe:

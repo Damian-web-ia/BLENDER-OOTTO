@@ -81,3 +81,12 @@
 - vidIQ (plan gratis) también sube como máximo 3 vídeos al día a YouTube; el contador vuelve a cero a medianoche de California (9:00 en España).
 - Plan: si la subida de Ootto del 27-11 a las 10:28 (frenos) no llega, YouTube pasa a vidIQ (en el mismo borrador que TikTok).
 - 27-11-2026, 10:29: Ootto SÍ subió a YouTube el reel antiguo de los frenos que tenía en cola (6ObkiRn7HP0, Short, público). Su subida a YouTube funciona; solo hay que contar con su tope de 3 al día por marca y la cola. vidIQ sigue de respaldo (3 al día).
+
+## 2026-11-27 · Despiece del amortiguador y materiales pro
+- Damián: el aceite "parecía solamente un color". Un líquido se reconoce por transparencia con refracción, brillo especular nítido, una superficie que se mueve y burbujas. Hecho en `biblioteca/materiales_pro.py` (`aceite`: transmisión 0,82, IOR 1,47, subsuperficie 0,3, ondas de ruido 4D animadas con claves, brillo dorado suave en frío y naranja con 'calor').
+- Con transmisión 1,0 el aceite salía muy oscuro (deja ver el interior negro del tubo): mejor 0,8 con algo de subsuperficie y un brillo dorado de 0,12.
+- El brillo de 'calor' a 14 quemaba la imagen con raytracing (ilumina todo lo de alrededor): 8 es suficiente.
+- Rayos X con varias capas = cristal esmerilado. Para enseñar el interior, corte por la mitad (bisect + holes_fill) con caras de corte de metal satinado.
+- Render pro (100 %, 64 muestras, raytracing): unos 5-6 s por fotograma frente a 2,5 s al 67 %. Se nota en el metal y en el aceite.
+- En Blender 5.3 el nodo es `ShaderNodeBsdfPrincipled` (no `ShaderNodePrincipledBSDF`).
+

@@ -60,6 +60,10 @@ Diseño:
 8. Clod: pantalla con expresiones (feliz, susto, preocupado, solemne) cambiadas por clave. ✔ 26-11
 9. Clod: brazos con codo y manos de 3 dedos; rebote elástico al andar. (codo y rebote ✔ 26-11; faltan dedos)
 10. Iluminación de estudio fija y cálida con contraluz de color (look Arcane: borde cálido y sombras frías).
+11. Materiales pro en todas las piezas nuevas (aceite líquido, cromo, acero mecanizado, fundición, pintura con barniz, goma). ✔ 27-11 (biblioteca/materiales_pro.py)
+12. Líquidos: menisco en la superficie libre, gotas que caen y salpicaduras cuando la pieza se abre.
+13. Desgaste: bordes con la pintura gastada, polvo en las zonas bajas, óxido en tornillos de piezas viejas.
+14. Neumático y freno (biblioteca) con los materiales pro: goma con micro grano, disco de fundición con marcas de pastilla.
 11. Goma de neumático con relieve real y carrocería con reflejos de estudio.
 12. Fondo del taller con profundidad (fondo desenfocado en primeros planos).
 
