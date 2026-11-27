@@ -20,9 +20,14 @@ class _Fuente:
     """Fuente al tamaño real; getlength devuelve medidas lógicas (1080)."""
     def __init__(self, f): self.f = f
     def getlength(self, t): return self.f.getlength(t) / S
+import os as _os_f
+_FD = _os_f.environ.get("FUENTES")       # 27-11: carpeta con Montserrat-SemiBold/ExtraBold/Black.ttf (p. ej. en el espacio de Ootto)
 def fnt(sz, peso="ExtraBold"):
     k = (sz, peso)
     if k not in _cache:
+        if _FD:
+            _cache[k] = _Fuente(ImageFont.truetype(_os_f.path.join(_FD, "Montserrat-" + peso + ".ttf"), max(8, int(round(sz * S)))))
+            return _cache[k]
         f = ImageFont.truetype(FONT, max(8, int(round(sz * S))))
         try: f.set_variation_by_name(peso)
         except Exception: pass

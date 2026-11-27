@@ -97,11 +97,11 @@ LH = luz("D_LuzQuemado", 'POINT', Q + RQ * 0.105 + Vector((0, -0.05, 0.05)), Q +
 kluz(LH, [(1, 0), (F_PAT - 2, 0), (F_PAT + 6, 18), (A3 - 1, 18), (A3, 0)])
 
 # ---------------------------------------------------------------- planos de la pieza (coordenadas del embrague, Z hacia arriba)
-cl(B0, (0.40, -1.05, 0.60), (0.0, 0.0, 0.06), 40); cl(F_DIS - 1, (0.36, -1.02, 0.58), (0.0, 0.0, 0.07), 40)
-cl(F_DIS + 10, (0.42, -1.10, 0.72), (0.0, 0.0, 0.16), 40); cl(F_GIRO - 1, (0.22, -1.15, 0.68), (0.0, 0.0, 0.15), 40)
-cl(F_GIRO, (0.62, -0.85, 0.17), (0.0, 0.0, 0.04), 40); cl(C0 - 1, (0.58, -0.88, 0.20), (0.0, 0.0, 0.04), 41)
-cl(C0, (0.30, -0.80, 0.30), (0.0, 0.0, 0.05), 40); cl(F_SEP - 1, (0.26, -0.74, 0.26), (0.0, -0.02, 0.05), 40)
-cl(F_SEP, (0.10, -0.46, 0.11), (0.0, -0.09, 0.042), 42); cl(A2 - 1, (0.12, -0.50, 0.12), (0.0, -0.08, 0.042), 42)
+cl(B0, (0.30, -0.80, 0.46), (0.0, 0.0, 0.07), 40); cl(F_DIS - 1, (0.27, -0.78, 0.44), (0.0, 0.0, 0.08), 40)
+cl(F_DIS + 10, (0.34, -0.88, 0.56), (0.0, 0.0, 0.15), 40); cl(F_GIRO - 1, (0.18, -0.92, 0.54), (0.0, 0.0, 0.15), 40)
+cl(F_GIRO, (0.42, -0.58, 0.14), (0.0, 0.0, 0.04), 40); cl(C0 - 1, (0.39, -0.60, 0.16), (0.0, 0.0, 0.04), 41)
+cl(C0, (0.30, -0.80, 0.30), (0.0, 0.0, 0.05), 40); cl(F_SEP - 1, (0.26, -0.72, 0.25), (0.0, -0.02, 0.05), 40)
+cl(F_SEP, (0.22, -0.62, 0.17), (0.0, -0.03, 0.045), 40); cl(A2 - 1, (0.24, -0.66, 0.18), (0.0, -0.03, 0.045), 40)
 PUNTOS = {"volante": (GV, (0.0, -0.136, 0.012)),
           "corona": (GV, (0.0, -0.146, 0.012)),
           "disco": (GD, (0.0, -0.108, EM["Z_DIS0"] + 0.006)),
@@ -154,20 +154,25 @@ exec(_B[1])
 
 # ---------------------------------------------------------------- después de la plantilla
 # Alex v3: serio (la plantilla le pone sonrisa al principio, pícaro en la pregunta y sonrisa al mirar a Clod)
-for f_, ex, it in ((1, "seria", 1.0), (G["pregunta"], "duda", 0.6), (G["clod"], "enfado", 0.45), (FW(0, 13), "seria", 1.0), (B0 + 30, "seria", 1.0),
-                   (A3, "seria", 1.0), (FW(4, 0), "seria", 1.0), (FW(4, 9), "picaro", 0.35)):
-    cara(f_, ex, it)
+SERIO = {"BocaTriste_R": 0.95, "BocaTriste_L": 0.95}         # hablando, la boca abierta enseña la sonrisa de la malla: más compensación
+for f_, ex, it in ((1, "seria", 1.0), (G["pregunta"], "duda", 0.7), (G["clod"], "enfado", 0.5), (FW(0, 13), "seria", 1.0), (B0 + 30, "seria", 1.0),
+                   (A3, "seria", 1.0), (FW(3, 8), "duda", 0.8), (FW(4, 0), "seria", 1.0)):
+    cara(f_, ex, it, **(SERIO if ex in ("seria", "duda") else {}))
+cara(FW(4, 9), "picaro", 0.35)
 
-# "huele a quemado": la mano a la nariz (la plantilla la ponía en el ojo y parecía que se tapaba la cara)
-mano_en("R", G["ojo"], (-0.05, -0.22, 1.54)); orientar_mano("R", G["ojo"], dedos_hacia=(0.3, 0, 1), pulgar_hacia=(1, 0, 0))
+# "huele a quemado": un dedo arriba a la altura del pecho (la plantilla llevaba la mano a la cara y la tapaba)
+mano_en("R", G["ojo"], (-0.20, -0.36, 1.28)); codo_hacia("R", G["ojo"], (-0.55, 0.05, 1.0)); mano_pose("R", G["ojo"], "señalar")
+orientar_mano("R", G["ojo"], dedos_hacia=(0, 0, 1), pulgar_hacia=(1, 0, 0))
+mano_en("R", G["ojo"] + 12, (-0.20, -0.37, 1.31)); orientar_mano("R", G["ojo"] + 12, dedos_hacia=(0, 0, 1), pulgar_hacia=(1, 0, 0))
 # estudio oscuro de verdad: el taller y el coche se ocultan mientras la pieza está en el estudio y en el inserto
-_ocultos = [o for c in ("TALLER_v2", "COCHE") if bpy.data.collections.get(c) for o in bpy.data.collections[c].all_objects]
+_ocultos = [o for c in ("TALLER_v2", "COCHE", "CLOD_v2_personaje") if bpy.data.collections.get(c) for o in bpy.data.collections[c].all_objects]
 for o in _ocultos:
     o.hide_render = o.hide_viewport = False
     for f_, h in ((1, False), (B0, True), (A3, False)):
         o.hide_render = o.hide_viewport = h; o.keyframe_insert("hide_render", frame=f_); o.keyframe_insert("hide_viewport", frame=f_)
     for fc in _curvas(o):
-        for k in fc.keyframe_points: k.interpolation = 'CONSTANT'
+        if fc.data_path.startswith("hide_"):
+            for k in fc.keyframe_points: k.interpolation = 'CONSTANT'
 # luces de la pieza y del inserto más suaves (la pieza es grande y el metal se quemaba)
 def _escala_luz(n, k_):
     o = bpy.data.objects.get(n)
@@ -175,7 +180,15 @@ def _escala_luz(n, k_):
     for fc in _curvas(o.data):
         if fc.data_path == "energy":
             for kp_ in fc.keyframe_points: kp_.co[1] *= k_; kp_.handle_left[1] *= k_; kp_.handle_right[1] *= k_
-for n, k_ in (("D_LuzClave", 0.55), ("D_LuzContra", 0.8), ("D_LuzArriba", 0.5), ("D_LuzInserto", 0.35), ("D_LuzInsertoContra", 0.6), ("D_LuzQuemado", 0.3)):
+# las luces del taller siguen bajas en el inserto (la plantilla las subía en A2 = INS y quemaban los discos)
+for o in [x for x in bpy.data.objects if x.type == 'LIGHT' and not x.name.startswith("D_Luz")]:
+    for fc in _curvas(o.data):
+        if fc.data_path != "energy": continue
+        kk = sorted(fc.keyframe_points, key=lambda k: k.co[0]); bajo = min(k.co[1] for k in kk); alto = max(k.co[1] for k in kk)
+        for k in kk:
+            if abs(k.co[0] - A2) < 0.5: k.co[1] = bajo; k.handle_left[1] = k.handle_right[1] = bajo
+        o.data.energy = bajo; o.data.keyframe_insert("energy", frame=A3 - 1); o.data.energy = alto; o.data.keyframe_insert("energy", frame=A3)
+for n, k_ in (("D_LuzClave", 0.55), ("D_LuzContra", 0.8), ("D_LuzArriba", 0.5), ("D_LuzInserto", 0.15), ("D_LuzInsertoContra", 0.35), ("D_LuzQuemado", 0.25)):
     _escala_luz(n, k_)
 # corte a Clod en "¿Verdad, Clod?": la plantilla tenía a Alex de A3 a CTA-1
 def _lerp(a, b, u): return tuple(a[i] + (b[i] - a[i]) * u for i in range(3))
