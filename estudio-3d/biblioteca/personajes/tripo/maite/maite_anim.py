@@ -231,3 +231,149 @@ class MaiteAnim:
         for _ in range(previo): paso(f0, False)
         for f in range(f0, f1 + 1): paso(f, True)
         print("TRENZA_HORNEADA", f0, f1, "esferas", [(e[0], round(e[2], 3)) for e in esf], flush=True)
+
+
+# ====================================================================== CARA: expresiones, parpadeos, mirada y labios
+# Pesos con los nombres de las shape keys de ARKit (las 52 están en MAITE_cuerpo). "Left" = izquierda de ELLA.
+def _sim(d):
+    """Copia los valores X Left/Right a los dos lados si solo se da uno con '*'."""
+    out = {}
+    for k, v in d.items():
+        if k.endswith("*"):
+            out[k[:-1] + "Left"] = v; out[k[:-1] + "Right"] = v
+        else:
+            out[k] = v
+    return out
+
+EXPRESIONES = {
+    "neutra":            {},
+    "alegria":           _sim({"mouthSmile*": 0.8, "cheekSquint*": 0.5, "eyeSquint*": 0.2, "browInnerUp": 0.2, "jawOpen": 0.10}),
+    "sonrisa_natural":   _sim({"mouthSmile*": 0.5, "cheekSquint*": 0.25, "eyeSquint*": 0.15}),
+    "sonrisa_asimetrica": {"mouthSmileLeft": 0.85, "mouthSmileRight": 0.20, "mouthDimpleLeft": 0.3, "cheekSquintLeft": 0.4, "eyeSquintLeft": 0.2},
+    "risa":              _sim({"mouthSmile*": 1.0, "cheekSquint*": 0.8, "eyeSquint*": 0.6, "eyeBlink*": 0.25, "jawOpen": 0.55, "browInnerUp": 0.25}),
+    "entusiasmo":        _sim({"mouthSmile*": 1.0, "cheekSquint*": 0.6, "eyeWide*": 0.4, "browOuterUp*": 0.5, "browInnerUp": 0.4, "jawOpen": 0.35}),
+    "satisfaccion":      _sim({"mouthSmile*": 0.5, "eyeBlink*": 0.35, "mouthPress*": 0.3, "browInnerUp": 0.1}),
+    "tristeza":          _sim({"mouthFrown*": 0.7, "eyeLookDown*": 0.3, "eyeBlink*": 0.15, "mouthShrugLower": 0.3, "browInnerUp": 0.8}),
+    "sorpresa":          _sim({"eyeWide*": 1.0, "browOuterUp*": 0.8, "browInnerUp": 0.9, "jawOpen": 0.40, "mouthFunnel": 0.2}),
+    "miedo":             _sim({"eyeWide*": 1.0, "mouthStretch*": 0.6, "mouthFrown*": 0.2, "browInnerUp": 1.0, "jawOpen": 0.25}),
+    "enfado":            _sim({"browDown*": 1.0, "eyeSquint*": 0.4, "noseSneer*": 0.5, "mouthPress*": 0.5, "mouthFrown*": 0.4, "jawForward": 0.2}),
+    "frustracion":       _sim({"browDown*": 0.7, "mouthPress*": 0.7, "noseSneer*": 0.3, "eyeSquint*": 0.3, "mouthFrown*": 0.4}),
+    "preocupacion":      _sim({"browInnerUp": 0.9, "mouthStretch*": 0.3, "mouthPress*": 0.3, "eyeWide*": 0.2, "mouthFrown*": 0.3}),
+    "nerviosismo":       _sim({"mouthSmile*": 0.3, "mouthStretch*": 0.4, "eyeWide*": 0.3, "browInnerUp": 0.6}),
+    "confusion":         {"browDownLeft": 0.6, "browOuterUpRight": 0.7, "mouthLeft": 0.4, "mouthPressRight": 0.3, "eyeSquintLeft": 0.3},
+    "incredulidad":      {"browOuterUpLeft": 0.8, "browDownRight": 0.4, "mouthPressLeft": 0.3, "mouthPressRight": 0.3, "mouthLeft": 0.3, "eyeSquintRight": 0.3},
+    "curiosidad":        _sim({"browOuterUp*": 0.5, "eyeWide*": 0.3, "mouthSmile*": 0.2, "browInnerUp": 0.3}),
+    "concentracion":     _sim({"browDown*": 0.5, "eyeSquint*": 0.5, "mouthPress*": 0.5, "mouthRollLower": 0.2}),
+    "pensamiento":       {"eyeLookUpLeft": 0.6, "eyeLookUpRight": 0.6, "browDownLeft": 0.4, "browOuterUpRight": 0.3, "mouthPucker": 0.3, "mouthLeft": 0.3},
+    "verguenza":         _sim({"mouthSmile*": 0.3, "eyeLookDown*": 0.6, "mouthPress*": 0.3, "browInnerUp": 0.4}),
+    "cansancio":         _sim({"eyeBlink*": 0.45, "mouthFrown*": 0.2, "browInnerUp": 0.2, "jawOpen": 0.05}),
+    "aburrimiento":      _sim({"eyeBlink*": 0.40, "mouthPress*": 0.2, "browDown*": 0.1, "mouthLeft": 0.2}),
+    "sarcasmo":          {"mouthSmileLeft": 0.7, "mouthLeft": 0.3, "browOuterUpLeft": 0.6, "eyeSquintRight": 0.3, "cheekSquintLeft": 0.3},
+    "ironia":            {"mouthSmileRight": 0.5, "browDownLeft": 0.3, "browOuterUpRight": 0.4, "eyeSquintLeft": 0.2},
+    "comica":            _sim({"eyeWide*": 1.0, "browOuterUp*": 1.0, "mouthStretch*": 0.6, "browInnerUp": 0.8, "jawOpen": 0.7}),
+    "guino":             {"eyeBlinkLeft": 1.0, "cheekSquintLeft": 0.5, "mouthSmileLeft": 0.7, "mouthSmileRight": 0.3, "browDownLeft": 0.2},
+}
+
+# visemas del español (solo boca y mandíbula)
+VISEMAS = {
+    "a": {"jawOpen": 0.55, "mouthStretchLeft": 0.10, "mouthStretchRight": 0.10},
+    "e": {"jawOpen": 0.32, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15},
+    "i": {"jawOpen": 0.16, "mouthStretchLeft": 0.50, "mouthStretchRight": 0.50, "mouthSmileLeft": 0.25, "mouthSmileRight": 0.25},
+    "o": {"jawOpen": 0.40, "mouthFunnel": 0.75},
+    "u": {"jawOpen": 0.14, "mouthPucker": 0.85},
+    "mbp": {"jawOpen": 0.0, "mouthPressLeft": 0.55, "mouthPressRight": 0.55, "mouthRollLower": 0.15},
+    "fv": {"jawOpen": 0.08, "mouthRollLower": 0.6, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
+    "dental": {"jawOpen": 0.18, "mouthStretchLeft": 0.15, "mouthStretchRight": 0.15},
+    "ch": {"jawOpen": 0.18, "mouthFunnel": 0.35},
+    "kg": {"jawOpen": 0.24},
+    "reposo": {},
+}
+_LETRA = {}
+for ch_ in "aá": _LETRA[ch_] = "a"
+for ch_ in "eé": _LETRA[ch_] = "e"
+for ch_ in "iíy": _LETRA[ch_] = "i"
+for ch_ in "oó": _LETRA[ch_] = "o"
+for ch_ in "uúü": _LETRA[ch_] = "u"
+for ch_ in "mbpv": _LETRA[ch_] = "mbp"
+_LETRA["f"] = "fv"
+for ch_ in "tdnlsrzcñx": _LETRA[ch_] = "dental"
+for ch_ in "kgjqh": _LETRA[ch_] = "kg"
+_TODAS = sorted({k for d in list(EXPRESIONES.values()) + list(VISEMAS.values()) for k in d} | {"eyeBlinkLeft", "eyeBlinkRight"})
+
+
+def _cara_metodos(cls):
+    def _kb(self):
+        me = bpy.data.objects.get("MAITE_cuerpo")
+        return me.data.shape_keys.key_blocks if me and me.data.shape_keys else None
+    def _key(self, nombre, f, v):
+        kb = self._kb()
+        if kb and nombre in kb:
+            kb[nombre].value = max(0.0, min(1.0, v)); kb[nombre].keyframe_insert("value", frame=f)
+    def expresion(self, f, nombre, intensidad=1.0, base=None):
+        """Pone la expresión en el fotograma f (todas las claves de expresión: las que no usa, a 0)."""
+        d = EXPRESIONES.get(nombre, {}); self._expr_actual = (nombre, intensidad)
+        for k in _TODAS:
+            if k in ("jawOpen",) or k.startswith("mouthStretch") or k.startswith("mouthFunnel") or k.startswith("mouthPucker"):
+                pass
+            self._key(k, f, d.get(k, 0.0) * intensidad)
+    def parpadeo(self, f, doble=False, parcial=1.0):
+        """Parpadeo natural de unos 0,2 s (cierra en 2-3 fotogramas, abre en 4-5)."""
+        kb = self._kb()
+        if not kb: return
+        for lado in ("Left", "Right"):
+            k = kb[f"eyeBlink{lado}"]
+            self.sc.frame_set(f - 1); base = k.value
+            for df, v in ((-1, base), (1, base + (1 - base) * 0.55 * parcial), (2, base + (1 - base) * parcial), (3, base + (1 - base) * parcial * 0.9), (7, base)):
+                k.value = v; k.keyframe_insert("value", frame=f + df)
+        if doble: self.parpadeo(f + 9, False, parcial * 0.85)
+    def parpadeos_auto(self, f0, f1, semilla=11, evitar=()):
+        import random
+        rnd = random.Random(semilla); fps = self.sc.render.fps; f = f0 + rnd.randint(int(0.8 * fps), int(2.5 * fps))
+        while f < f1 - 8:
+            if not any(a <= f <= b for a, b in evitar):
+                self.parpadeo(f, doble=rnd.random() < 0.12, parcial=1.0 if rnd.random() > 0.15 else 0.6)
+            f += rnd.randint(int(2.0 * fps), int(5.0 * fps))
+    def mirar(self, f, x=0.0, z=0.0, tiempo=None):
+        """Mueve el hueso 'Mirada' (x + = su izquierda, z + = arriba, en metros del modelo) y pone clave."""
+        b = self.pb.get("Mirada")
+        if not b: return
+        b.location = Vector((x, z, 0.0)); b.keyframe_insert("location", frame=f)
+    def mirada_viva(self, f0, f1, semilla=5, amplitud=0.012):
+        """Microsacadas: la mirada salta un poco cada 0,5-1,5 s (así no parece fija)."""
+        import random
+        rnd = random.Random(semilla); fps = self.sc.render.fps; f = f0
+        bx, bz = 0.0, 0.0
+        while f < f1:
+            x = bx + rnd.uniform(-amplitud, amplitud); z = bz + rnd.uniform(-amplitud * 0.6, amplitud * 0.6)
+            self.mirar(f, x, z); self.mirar(f + 2, x, z)
+            f += rnd.randint(int(0.5 * fps), int(1.5 * fps))
+    def hablar(self, palabras, f_inicio=1, intensidad=1.0, fps=None):
+        """Labios a partir de las palabras con tiempos (las de Ootto: [{'text','start','end'} en segundos]).
+        Cada letra se reparte en el tiempo de su palabra (las vocales pesan más) y pone su visema."""
+        fps = fps or self.sc.render.fps
+        usados = sorted({k for d in VISEMAS.values() for k in d})
+        def poner(f, vis, k_=1.0):
+            d = VISEMAS[vis]
+            for k in usados: self._key(k, f, d.get(k, 0.0) * intensidad * k_)
+        ult = None
+        for w in palabras:
+            txt = "".join(c for c in w["text"].lower() if c.isalpha() or c in "áéíóúüñ")
+            if not txt: continue
+            t0, t1 = w["start"], w["end"]
+            pesos = [1.6 if _LETRA.get(c, "") in "aeiou" else 1.0 for c in txt]
+            tot = sum(pesos); t = t0
+            for c, p_ in zip(txt, pesos):
+                dur = (t1 - t0) * p_ / tot; vis = _LETRA.get(c)
+                if vis and vis != "kg" or vis == "kg":
+                    f = f_inicio + int(round((t + dur * 0.5) * fps))
+                    if f != ult: poner(f, vis, 1.0 if vis in "aeiou" else 0.75); ult = f
+                t += dur
+            # al final de la palabra, la boca se relaja un poco
+            f_fin = f_inicio + int(round(t1 * fps)) + 2
+            if f_fin != ult: poner(f_fin, "reposo"); ult = f_fin
+    for n_, fn_ in list(locals().items()):
+        if callable(fn_) and not n_.startswith("__") and n_ not in ("cls",):
+            setattr(cls, n_, fn_)
+    return cls
+
+_cara_metodos(MaiteAnim)
