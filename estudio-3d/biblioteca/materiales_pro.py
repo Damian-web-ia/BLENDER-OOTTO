@@ -75,7 +75,7 @@ def _calor(nt, bsdf, color_frio=None, fuerza=6.0, prop="calor"):
 
 
 # ---------------------------------------------------------------------------------------------- LÍQUIDOS
-def aceite(nombre="MP_Aceite", color=(0.78, 0.42, 0.05), calor=True, ondas=True):
+def aceite(nombre="MP_Aceite", color=(0.98, 0.7, 0.22), calor=True, ondas=True):
     """Aceite de amortiguador / motor: transparente ámbar que refracta lo de detrás, brillo especular nítido,
     superficie con ondas lentas que se mueven solas y, con calor, se vuelve naranja incandescente."""
     m = _nuevo(nombre); nt = m.node_tree; out = _salida(nt); b = _bsdf(nt)
@@ -90,7 +90,7 @@ def aceite(nombre="MP_Aceite", color=(0.78, 0.42, 0.05), calor=True, ondas=True)
         nt.links.new(nz.outputs["Fac"], ad.inputs[0]); nt.links.new(nz2.outputs["Fac"], ad.inputs[1])
         nt.links.new(_bump(nt, ad.outputs[0], 0.18, 0.002), b.inputs["Normal"])
     if calor:
-        at = _calor(nt, b, fuerza=7.0)
+        at = _calor(nt, b, fuerza=14.0)
         # con calor el tinte pasa de ámbar a naranja rojizo
         mx = nt.nodes.new("ShaderNodeMix"); mx.data_type = 'RGBA'
         nt.links.new(at.outputs["Fac"], mx.inputs[0]); mx.inputs[6].default_value = (*color, 1); mx.inputs[7].default_value = (1.0, 0.25, 0.04, 1)
@@ -122,7 +122,7 @@ def burbujas(col, padre, r_max, z0, z1, n, f0, f1, nombre="MP_Burbuja", semilla=
     import random
     rnd = random.Random(semilla); mat = burbuja(); obs = []
     for i in range(n):
-        r = rnd.uniform(0.0007, 0.0022)
+        r = rnd.uniform(0.0014, 0.0034)
         bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=r)
         me = bpy.data.meshes.new(f"{nombre}_{i}"); bm.to_mesh(me); bm.free()
         for p in me.polygons: p.use_smooth = True
