@@ -79,8 +79,8 @@ def ferodo(nombre, gastado=0.0):
     nt.links.new(tc.outputs["Object"], nz2.inputs["Vector"])
     cr = nt.nodes.new("ShaderNodeValToRGB"); nt.links.new(nz2.outputs["Fac"], cr.inputs[0])
     k = 1.0 - 0.55 * gastado
-    cr.color_ramp.elements[0].position = 0.35; cr.color_ramp.elements[0].color = (0.16 * k, 0.125 * k, 0.095 * k, 1)
-    cr.color_ramp.elements[1].position = 0.7; cr.color_ramp.elements[1].color = (0.30 * k, 0.25 * k, 0.20 * k, 1)
+    cr.color_ramp.elements[0].position = 0.35; cr.color_ramp.elements[0].color = (0.085 * k, 0.065 * k, 0.05 * k, 1)
+    cr.color_ramp.elements[1].position = 0.7; cr.color_ramp.elements[1].color = (0.17 * k, 0.135 * k, 0.10 * k, 1)
     nt.links.new(cr.outputs[0], b.inputs["Base Color"])
     b.inputs["Metallic"].default_value = 0.05 + 0.15 * gastado
     rg = nt.nodes.new("ShaderNodeMapRange"); rg.clamp = True
@@ -94,7 +94,7 @@ def ferodo(nombre, gastado=0.0):
 def materiales(MP, pref):
     return {"volante": MP["acero"](pref + "_MatVolante", (0.56, 0.57, 0.59), (0.14, 0.3)),
             "corona": MP["acero"](pref + "_MatCorona", (0.22, 0.22, 0.23), (0.3, 0.45), anillos=False),
-            "cara": MP["acero"](pref + "_MatCaraPulida", (0.78, 0.78, 0.80), (0.06, 0.14)),
+            "cara": MP["acero"](pref + "_MatCaraPulida", (0.58, 0.58, 0.60), (0.14, 0.24)),
             "chapa": MP["acero"](pref + "_MatChapa", (0.48, 0.49, 0.5), (0.22, 0.38), anillos=False),
             "muelle": MP["pintura"](pref + "_MatMuelle", (0.12, 0.13, 0.15), rugo=0.3, barniz=0.5, metal=0.6),
             "plato": MP["fundicion"](pref + "_MatPlato", (0.30, 0.30, 0.31)),

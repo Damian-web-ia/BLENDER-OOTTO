@@ -100,8 +100,8 @@ kluz(LH, [(1, 0), (F_PAT - 2, 0), (F_PAT + 6, 18), (A3 - 1, 18), (A3, 0)])
 cl(B0, (0.40, -1.05, 0.60), (0.0, 0.0, 0.06), 40); cl(F_DIS - 1, (0.36, -1.02, 0.58), (0.0, 0.0, 0.07), 40)
 cl(F_DIS + 10, (0.42, -1.10, 0.72), (0.0, 0.0, 0.16), 40); cl(F_GIRO - 1, (0.22, -1.15, 0.68), (0.0, 0.0, 0.15), 40)
 cl(F_GIRO, (0.62, -0.85, 0.17), (0.0, 0.0, 0.04), 40); cl(C0 - 1, (0.58, -0.88, 0.20), (0.0, 0.0, 0.04), 41)
-cl(C0, (0.05, -0.50, 0.13), (0.0, -0.03, 0.055), 45); cl(F_SEP - 1, (0.05, -0.44, 0.12), (0.0, -0.05, 0.05), 46)
-cl(F_SEP, (0.04, -0.40, 0.09), (0.0, -0.08, 0.045), 46); cl(A2 - 1, (0.05, -0.43, 0.10), (0.0, -0.07, 0.045), 46)
+cl(C0, (0.30, -0.80, 0.30), (0.0, 0.0, 0.05), 40); cl(F_SEP - 1, (0.26, -0.74, 0.26), (0.0, -0.02, 0.05), 40)
+cl(F_SEP, (0.10, -0.46, 0.11), (0.0, -0.09, 0.042), 42); cl(A2 - 1, (0.12, -0.50, 0.12), (0.0, -0.08, 0.042), 42)
 PUNTOS = {"volante": (GV, (0.0, -0.136, 0.012)),
           "corona": (GV, (0.0, -0.146, 0.012)),
           "disco": (GD, (0.0, -0.108, EM["Z_DIS0"] + 0.006)),
@@ -153,10 +153,30 @@ def gag_consejo(CL):
 exec(_B[1])
 
 # ---------------------------------------------------------------- después de la plantilla
-# Alex v3: serio (la plantilla le pone sonrisa al principio y al mirar a Clod)
-for f_, ex, it in ((1, "seria", 1.0), (G["clod"], "enfado", 0.45), (FW(0, 13), "seria", 1.0), (B0 + 30, "seria", 1.0),
+# Alex v3: serio (la plantilla le pone sonrisa al principio, pícaro en la pregunta y sonrisa al mirar a Clod)
+for f_, ex, it in ((1, "seria", 1.0), (G["pregunta"], "duda", 0.6), (G["clod"], "enfado", 0.45), (FW(0, 13), "seria", 1.0), (B0 + 30, "seria", 1.0),
                    (A3, "seria", 1.0), (FW(4, 0), "seria", 1.0), (FW(4, 9), "picaro", 0.35)):
     cara(f_, ex, it)
+
+# "huele a quemado": la mano a la nariz (la plantilla la ponía en el ojo y parecía que se tapaba la cara)
+mano_en("R", G["ojo"], (-0.05, -0.22, 1.54)); orientar_mano("R", G["ojo"], dedos_hacia=(0.3, 0, 1), pulgar_hacia=(1, 0, 0))
+# estudio oscuro de verdad: el taller y el coche se ocultan mientras la pieza está en el estudio y en el inserto
+_ocultos = [o for c in ("TALLER_v2", "COCHE") if bpy.data.collections.get(c) for o in bpy.data.collections[c].all_objects]
+for o in _ocultos:
+    o.hide_render = o.hide_viewport = False
+    for f_, h in ((1, False), (B0, True), (A3, False)):
+        o.hide_render = o.hide_viewport = h; o.keyframe_insert("hide_render", frame=f_); o.keyframe_insert("hide_viewport", frame=f_)
+    for fc in _curvas(o):
+        for k in fc.keyframe_points: k.interpolation = 'CONSTANT'
+# luces de la pieza y del inserto más suaves (la pieza es grande y el metal se quemaba)
+def _escala_luz(n, k_):
+    o = bpy.data.objects.get(n)
+    if not o: return
+    for fc in _curvas(o.data):
+        if fc.data_path == "energy":
+            for kp_ in fc.keyframe_points: kp_.co[1] *= k_; kp_.handle_left[1] *= k_; kp_.handle_right[1] *= k_
+for n, k_ in (("D_LuzClave", 0.55), ("D_LuzContra", 0.8), ("D_LuzArriba", 0.5), ("D_LuzInserto", 0.35), ("D_LuzInsertoContra", 0.6), ("D_LuzQuemado", 0.3)):
+    _escala_luz(n, k_)
 # corte a Clod en "¿Verdad, Clod?": la plantilla tenía a Alex de A3 a CTA-1
 def _lerp(a, b, u): return tuple(a[i] + (b[i] - a[i]) * u for i in range(3))
 u = (F_VER - 1 - A3) / max(1, (CTA - 1 - A3))
