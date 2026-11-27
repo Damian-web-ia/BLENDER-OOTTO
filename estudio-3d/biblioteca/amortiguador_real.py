@@ -38,16 +38,16 @@ def _mat(nombre, col, metal=0.0, rough=0.5, emis=None, fuerza=0.0, coat=0.0):
 
 def materiales():
     M = {}
-    M["pintura"] = _mat("AM_Pintura", (0.035, 0.036, 0.04), 0.55, 0.36, coat=0.3)
+    M["pintura"] = _mat("AM_Pintura", (0.018, 0.019, 0.022), 0.25, 0.42, coat=0.4)
     M["cromo"] = _mat("AM_Cromo", (0.88, 0.89, 0.91), 1.0, 0.05)
     M["acero"] = _mat("AM_Acero", (0.56, 0.57, 0.6), 1.0, 0.28)
     M["tubo"] = _mat("AM_TuboInt", (0.62, 0.63, 0.66), 1.0, 0.22)
-    M["muelle"] = _mat("AM_Muelle", (0.82, 0.2, 0.04), 0.25, 0.3, coat=0.5)
-    M["goma"] = _mat("AM_Goma", (0.022, 0.022, 0.024), 0.0, 0.62)
+    M["muelle"] = _mat("AM_Muelle", (0.9, 0.15, 0.02), 0.1, 0.32, coat=0.6)
+    M["goma"] = _mat("AM_Goma", (0.011, 0.011, 0.012), 0.0, 0.7)
     M["hueco"] = _mat("AM_Hueco", (0.008, 0.008, 0.01), 0.0, 0.9)
     M["lamina"] = _mat("AM_Lamina", (0.42, 0.45, 0.52), 1.0, 0.18)
     M["chispa"] = _mat("AM_Flujo", (1.0, 0.85, 0.4), 0.0, 0.4, emis=(1.0, 0.82, 0.35), fuerza=9.0)
-    M["sucio"] = _mat("AM_PinturaSucia", (0.06, 0.05, 0.04), 0.35, 0.62)
+    M["sucio"] = _mat("AM_PinturaSucia", (0.045, 0.034, 0.024), 0.15, 0.75)
     M["fuga"] = _mat("AM_Fuga", (0.03, 0.018, 0.005), 0.0, 0.05, coat=1.0)
     M["aceite"] = aceite()
     return M
@@ -141,7 +141,7 @@ def muelle(nombre, mat, col, padre):
     return o
 
 
-def mancha_fuga(nombre, mat, col, padre, a0=-0.55, a1=0.55, z0=0.07, z1=0.29):
+def mancha_fuga(nombre, mat, col, padre, a0=-2.2, a1=-0.95, z0=0.07, z1=0.29):
     """Película de aceite sobre el cuerpo, con chorretones hacia abajo."""
     bm = bmesh.new(); r = R_CUERPO + 0.0007; na, nz = 18, 22
     filas = []
