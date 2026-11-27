@@ -188,7 +188,7 @@ for o in [x for x in bpy.data.objects if x.type == 'LIGHT' and not x.name.starts
         for k in kk:
             if abs(k.co[0] - A2) < 0.5: k.co[1] = bajo; k.handle_left[1] = k.handle_right[1] = bajo
         o.data.energy = bajo; o.data.keyframe_insert("energy", frame=A3 - 1); o.data.energy = alto; o.data.keyframe_insert("energy", frame=A3)
-for n, k_ in (("D_LuzClave", 0.55), ("D_LuzContra", 0.8), ("D_LuzArriba", 0.5), ("D_LuzInserto", 0.15), ("D_LuzInsertoContra", 0.35), ("D_LuzQuemado", 0.25)):
+for n, k_ in (("D_LuzClave", 0.55), ("D_LuzContra", 0.8), ("D_LuzArriba", 0.5), ("D_LuzInserto", 0.4), ("D_LuzInsertoContra", 0.6), ("D_LuzQuemado", 0.12)):
     _escala_luz(n, k_)
 # corte a Clod en "¿Verdad, Clod?": la plantilla tenía a Alex de A3 a CTA-1
 def _lerp(a, b, u): return tuple(a[i] + (b[i] - a[i]) * u for i in range(3))
