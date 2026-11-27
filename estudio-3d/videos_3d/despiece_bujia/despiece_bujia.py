@@ -46,7 +46,8 @@ ks(RAIZ, 1, 1.2); ks(RAIZ, B0 - 1, 1.2); ks(RAIZ, B0, ESC_P)
 EXTRA_CONST = []
 # corte por la mitad al empezar a bajar la corriente
 FRENTE = bpy.data.objects.new("BUJ_Frente", None); CP.objects.link(FRENTE); FRENTE.parent = RAIZ
-partir([O[k] for k in ("aislante", "electrodo", "cobre", "sello", "terminal", "casco", "hex", "rosca", "arandela")], FRENTE)
+_PB = [O[k] for k in ("aislante", "electrodo", "cobre", "sello", "terminal", "casco", "hex", "rosca", "arandela")]
+partir(_PB, FRENTE, sin_tapa=tuple(o.name for o in _PB))     # cada cara de corte con su material (cerámica blanca, acero, cobre)
 kl(FRENTE, 1, (0, 0, 0), (0, 0, 0)); kl(FRENTE, C0 + 1, (0, 0, 0), (0, 0, 0))
 kl(FRENTE, C0 + 16, (0.012, -0.045, 0.010), (R(-25), R(15), R(30)))
 vis(FRENTE, 1, True); vis(FRENTE, C0 + 17, False)
@@ -78,11 +79,11 @@ if ELF is not None:
     for f_, v in ((1, 0.0), (FW(2, 3), 0.0), (FW(2, 6, True) + 8, 1.0)): kb2.value = v; kb2.keyframe_insert("value", frame=f_)
 
 # ---------------------------------------------------------------- planos de la pieza (coordenadas de la bujía, x3 en el estudio)
-cl(B0, (0.100, -0.165, 0.085), (0.0, 0.0, 0.044), 40); cl(C0 - 1, (0.090, -0.155, 0.080), (0.0, 0.0, 0.044), 41)
-cl(C0, (0.060, -0.180, 0.055), (0.0, 0.0, 0.042), 40); cl(D0 - 1, (0.052, -0.165, 0.048), (0.0, 0.0, 0.036), 41)
-cl(D0, (0.0110, -0.0280, 0.0035), (0.0, 0.0, -0.0005), 45); cl(E0 - 1, (0.0098, -0.0255, 0.0030), (0.0, 0.0, -0.0005), 46)
-cl(E0, (0.035, -0.085, 0.006), (0.0, 0.0, -0.004), 40); cl(F0 - 1, (0.032, -0.078, 0.005), (0.0, 0.0, -0.004), 41)
-cl(F0, (0.0115, -0.0285, 0.0040), (0.0, 0.0, -0.0004), 45); cl(A2 - 1, (0.0102, -0.0260, 0.0036), (0.0, 0.0, -0.0004), 46)
+cl(B0, (0.130, -0.215, 0.110), (0.0, 0.0, 0.045), 40); cl(C0 - 1, (0.118, -0.200, 0.102), (0.0, 0.0, 0.045), 41)
+cl(C0, (0.075, -0.220, 0.065), (0.0, 0.0, 0.042), 40); cl(D0 - 1, (0.066, -0.205, 0.058), (0.0, 0.0, 0.036), 41)
+cl(D0, (0.0160, -0.0400, 0.0040), (0.0, 0.0, -0.0012), 45); cl(E0 - 1, (0.0145, -0.0370, 0.0035), (0.0, 0.0, -0.0012), 46)
+cl(E0, (0.040, -0.100, 0.004), (0.0, 0.0, -0.005), 40); cl(F0 - 1, (0.036, -0.092, 0.003), (0.0, 0.0, -0.005), 41)
+cl(F0, (0.0160, -0.0400, 0.0040), (0.0, 0.0, -0.0010), 45); cl(A2 - 1, (0.0145, -0.0370, 0.0035), (0.0, 0.0, -0.0010), 46)
 CAMS_INTRO = [
     (XR0 + 6, (-1.38, -1.55, 1.14), (-1.48, 0.62, 0.84), 40),
     (EST - 1, (-1.39, -1.45, 1.12), (-1.48, 0.62, 0.84), 41)] + \
