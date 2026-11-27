@@ -51,7 +51,7 @@ def torno(bm, perfil, seg=72):
         A, B = anillos[k], anillos[(k + 1) % seg]
         for i in range(n - 1):
             vs = [A[i], B[i], B[i + 1], A[i + 1]]
-            if len({v.index for v in vs}) == 4: bm.faces.new(vs)
+            bm.faces.new(vs)
         bm.faces.new([A[n - 1], B[n - 1], B[0], A[0]])
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
@@ -179,7 +179,9 @@ def materiales(MP):
     M["muelle"] = _mat("MOT_Muelle", (0.08, 0.30, 0.55), metal=0.6, rugo=0.32, coat=0.4)   # muelles pintados de azul
     M["leva"] = MP["cromo"]("MOT_Levas", color=(0.84, 0.84, 0.86))
     M["junta"] = _mat("MOT_Junta", (0.20, 0.21, 0.22), metal=1.0, rugo=0.5)
-    M["corte"] = MP["corte"]("MOT_Corte")
+    # cara de corte: aluminio mecanizado satinado (sin tinte cobrizo), con un filo frío muy suave
+    m = _mat("MOT_Corte", (0.83, 0.84, 0.86), metal=1.0, rugo=0.30, aniso=0.5, ruido=0.08, escala_ruido=4000)
+    M["corte"] = m
     M["refrig"] = MP["aceite"]("MOT_Refrigerante", color=(0.15, 0.75, 0.60), calor=False)
     M["aceite"] = MP["aceite"]("MOT_Aceite", color=(0.95, 0.62, 0.18), calor=False)
     M["polea"] = _mat("MOT_Polea", (0.10, 0.10, 0.11), metal=1.0, rugo=0.35, ruido=0.2, escala_ruido=1600)
@@ -303,7 +305,11 @@ def construir_motor(col, MP, BUJ=None):
     cortes.append(_malla("c", lambda bm: cil_z(bm, 0.0072, zc + 0.008, 0.31), col))
     cortes.append(_malla("c", lambda bm: cil_z(bm, 0.0125, zc + 0.026, 0.31), col))           # pozo de la bujía
     restar(cul, cortes)
-    piezas_corte = [blo, car, cam, ref, ace, jun, cul]
+    # porta-levas abierto por arriba (se ve el árbol de levas dentro)
+    zl = zc + 0.052
+    por = _malla("MOT_PortaLevas", lambda bm: caja(bm, -0.088, 0.088, -0.066, 0.066, zl, zc + 0.140), col); por.data.materials.append(M["alu"])
+    restar(por, [_malla("c", lambda bm: caja(bm, -0.076, 0.076, -0.058, 0.058, zl - 0.01, zc + 0.150), col)])
+    piezas_corte = [blo, car, cam, ref, ace, jun, cul, por]
     O["detras"], O["delante"] = [], []
     for p in piezas_corte:
         d, f = partir(p, M["corte"], col); P(d); P(f); O["detras"].append(d); O["delante"].append(f)
