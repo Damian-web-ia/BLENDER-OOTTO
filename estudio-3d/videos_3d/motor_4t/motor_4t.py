@@ -329,7 +329,7 @@ if MAITE.animation_data and MAITE.animation_data.action:
 
 # ---- Clod (no habla: gestos y cara)
 PC = os.path.join(LIB, "personajes")
-dst = anexar(os.path.join(PC, "clod", "clod_v2.blend"), colecciones=["CLOD_v2_personaje", "CLOD_v2_controles"])
+dst = anexar(os.path.join(PC, "clod", "clod_v3.blend"), colecciones=["CLOD_v3_personaje", "CLOD_v3_controles"])   # Clod v3 desde el 27-11-2026
 for c_ in dst.collections:
     if c_ is not None: sc.collection.children.link(c_)
 CA = {"__name__": "clod"}; exec(open(os.path.join(PC, "clod_anim.py"), encoding="utf-8").read(), CA)
