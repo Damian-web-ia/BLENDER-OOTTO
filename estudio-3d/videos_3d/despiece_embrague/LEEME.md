@@ -17,4 +17,5 @@ Plan A del canal: despiece en 3D de una pieza del coche. Carpeta del día: `reel
 ## Versión 4K60 Cycles (pedida por Damián el 27-11 a las 21:15)
 - `scripts/cola_4k_embrague.py` (en el PC): mismo .blend, Cycles OptiX, 2160x3840, 60 fps, 64 muestras + OIDN, reintenta si se cae y al final codifica `despiece_embrague_4k60.mp4`. Empezó a las 21:19.
 - Ritmo medido: unos 60 s por fotograma compartiendo la gráfica con el render del motor de 4 tiempos. Son 1.954 fotogramas: unas 30-33 horas (domingo por la mañana-tarde). No llega a las 19:00 del sábado.
-- Mientras tanto sigue programada la versión EEVEE para el sábado 28-11 a las 19:00. Cuando termine el 4K: montaje con `plantillas/montaje_despiece.py` (ya dibuja a 2160x3840 y compone a 60 fps) + la misma mezcla de sonido, y publicar o sustituir según decida Damián.
+- Damián (27-11, 21:25): "Esperar al 4K". Se quitó la programación de la versión EEVEE del sábado 28-11 19:00: Ootto ya no tiene nada en cola (Instagram y YouTube) y el post de TikTok de vidIQ (`f64df7fa-…`) quedó como borrador sin publicar. La versión EEVEE se queda guardada (reel `job_1e137ee506a4` en Ootto).
+- Cuando termine el 4K: montaje con `plantillas/montaje_despiece.py` (dibuja a 2160x3840 y compone a 60 fps) + la misma mezcla de sonido, entrega en Ootto y programación en Instagram, YouTube y TikTok.

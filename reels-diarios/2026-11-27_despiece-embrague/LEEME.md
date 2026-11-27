@@ -4,7 +4,7 @@
 |---|---|
 | **Vídeo** | Reel vertical 1080x1920, 30 fps, unos 32 s. Despiece 3D del embrague (volante motor, disco, maza con diafragma y collarín) con Alex (voz Diego) y Clod (sin voz). |
 | **Fecha de producción** | Viernes 27-11-2026 (tarea diaria de las 19:30). |
-| **Se publica** | Sábado 28-11-2026 a las 19:00 (Madrid), público. Instagram + YouTube Shorts por Ootto (reel 63845, job `job_1e137ee506a4`, portada `media_41fda10781`, título "¿Tu embrague patina? Despiece del embrague en 3D"). TikTok por vidIQ (post `f64df7fa-f1a4-4ea8-be6d-476bc04020fd`, programado). |
+| **Se publica** | CAMBIO 27-11 21:25: Damián pidió rehacerlo en 4K60 Cycles y esperar a esa versión; se quitó la programación del sábado. Lo que estaba programado: sábado 28-11-2026 a las 19:00 (Madrid), público. Instagram + YouTube Shorts por Ootto (reel 63845, job `job_1e137ee506a4`, portada `media_41fda10781`, título "¿Tu embrague patina? Despiece del embrague en 3D"). TikTok por vidIQ (post `f64df7fa-f1a4-4ea8-be6d-476bc04020fd`, programado). |
 | **Reel en Ootto** | https://mcp.ootto.ai/w/reel/acc_50544226d762-1e137ee506a4 |
 | **Render** | Blender 5.3 EEVEE al 67 %, 48 muestras, 977 fotogramas: 20,5 min (unos 1,3 s por fotograma, con la cola 4K de Cycles a la vez) + 15,6 min para rehacer 432 fotogramas (arreglo de la esfera negra). Carpeta del PC: `Escritorio\\CLAUDE VIDEOS\\2026-11-27_DESPIECE-EMBRAGUE`. |
 | **Mejora de hoy (Alex v3)** | Cara seria: la malla sonreía siempre; nueva expresión `seria` y neutra/duda/enfado/concentrado sin sonrisa. Antes/después: [`estudio-3d/referencias/evolucion/2026-11-27_alex-cara-seria.png`](../../estudio-3d/referencias/evolucion/2026-11-27_alex-cara-seria.png). |
