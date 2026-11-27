@@ -14,12 +14,12 @@ from mathutils import Vector, Matrix, Quaternion
 # 'L' = izquierda de ELLA (x > 0.02), como en ARKit ("eyeBlinkLeft" = su ojo izquierdo).
 # sup = línea donde termina el delineado pintado (esquina exterior, centro, esquina interior): por debajo, globo.
 OJOS = {
-    "R": dict(caja=(-0.034, 0.011, 0.860, 0.897), sup=((-0.0255, 0.8775), (-0.0100, 0.8822), (0.0055, 0.8765)),
+    "R": dict(caja=(-0.034, 0.011, 0.860, 0.897), sup=((-0.0255, 0.8775), (-0.0100, 0.8805), (0.0055, 0.8762)),
               inf=((-0.0255, 0.8775), (-0.0095, 0.8664), (0.0055, 0.8765))),
-    "L": dict(caja=(0.026, 0.071, 0.862, 0.900), sup=((0.0640, 0.8835), (0.0490, 0.8862), (0.0365, 0.8790)),
+    "L": dict(caja=(0.026, 0.071, 0.862, 0.900), sup=((0.0640, 0.8832), (0.0490, 0.8846), (0.0365, 0.8788)),
               inf=((0.0640, 0.8835), (0.0480, 0.8703), (0.0365, 0.8790))),
 }
-IRIS_RADIO = 0.0076          # radio del iris visto de frente (el de la pintura de Tripo es grande, de película)
+IRIS_RADIO = 0.0084          # radio del iris visto de frente (el de la pintura de Tripo es grande, de película)
 IRIS_COLOR = (0.20, 0.135, 0.06)   # avellana oscuro (la pintura de Tripo es marrón verdoso oscuro)
 
 
@@ -93,9 +93,9 @@ def material_ojo(nombre, iris_rgb, theta_iris, theta_pupila):
     # colores del iris: base muestreada, fibras claras, anillo oscuro exterior
     rmp = N.new("ShaderNodeValToRGB"); rmp.location = (-350, 200)
     base = Vector(iris_rgb)
-    rmp.color_ramp.elements[0].color = (*(base * 0.45), 1); rmp.color_ramp.elements[1].color = (*(base * 2.2), 1)
+    rmp.color_ramp.elements[0].color = (*(base * 0.30), 1); rmp.color_ramp.elements[1].color = (*(base * 1.25), 1)
     rmp.color_ramp.elements[1].position = 0.8
-    e = rmp.color_ramp.elements.new(0.55); e.color = (*(Vector((0.10, 0.12, 0.05)) * 1.4), 1)    # motas verdosas
+    e = rmp.color_ramp.elements.new(0.55); e.color = (*(Vector((0.10, 0.12, 0.05)) * 0.9), 1)    # motas verdosas
     # u = ángulo / ángulo del iris (0 centro, 1 borde del iris)
     u = N.new("ShaderNodeMath"); u.operation = 'DIVIDE'; u.inputs[1].default_value = theta_iris; L.new(ang.outputs[0], u.inputs[0]); u.location = (-600, -200)
     up = N.new("ShaderNodeValue"); up.name = "Pupila"; up.label = "Pupila (0.25-0.6)"; up.outputs[0].default_value = theta_pupila / theta_iris; up.location = (-600, -400)
@@ -219,7 +219,14 @@ def construir_ojos(arm, me, col_ojo=None):
         for v in bucle:
             dv = v.co - Pc; dl = -dv.dot(nrm); a2 = (dv + nrm * dl).length_squared
             if dl > 1e-5: R = min(R, (a2 + dl * dl) / (2 * dl) - 0.0005)
+        # ni la piel de alrededor: el globo no puede asomar por fuera del agujero
+        sbv = set(bucle)
+        for v in bm.verts:
+            if v in sbv or (v.co - Pc).length > 0.024 or v.co.y > Pc.y + 0.02: continue
+            dv = v.co - Pc; dl = -dv.dot(nrm); a2 = (dv + nrm * dl).length_squared
+            if dl > 2e-4 and a2 > 1e-8: R = min(R, (a2 + dl * dl) / (2 * dl) - 0.0003)
         R = max(R, 0.009)
+        Pc = Pc - nrm * 0.0003                               # un pelo por detrás de donde estaba la pintura
         C = Pc - nrm * R
         # párpado con grosor: 1) un milímetro de piel hacia dentro  2) pliegue oscuro hasta tocar el globo
         sb = set(bucle)
@@ -282,3 +289,145 @@ def construir_ojos(arm, me, col_ojo=None):
         print("OJO_3D", lado, "iris", tuple(round(x, 3) for x in iris_rgb), flush=True)
     arm["ojos"] = str({k: (tuple(round(x, 5) for x in d["C"]), round(d["R"], 5)) for k, d in datos.items()})
     return datos, adelante
+
+
+# ================================================================ PÁRPADOS (shape keys ARKit) Y PESTAÑAS 3D
+def _ss(a, b, x):
+    t = np.clip((x - a) / (b - a), 0.0, 1.0); return t * t * (3 - 2 * t)
+
+
+def _rot_puntos(P, C, eje, ang):
+    """Gira los puntos P (N,3) alrededor del eje que pasa por C; ang puede ser un array (N,)."""
+    k = np.asarray(eje, float); k = k / np.linalg.norm(k)
+    v = P - np.asarray(C); a = np.asarray(ang, float)[:, None] if np.ndim(ang) else ang
+    c, s_ = np.cos(a), np.sin(a)
+    return np.asarray(C) + v * c + np.cross(k, v) * s_ + k * (v @ k)[:, None] * (1 - c)
+
+
+def parpados_y_pestanas(arm, me, datos, adelante, semilla=7):
+    m = me.data; rng = np.random.default_rng(semilla)
+    lat = (datos["L"]["C"] - datos["R"]["C"]); lat.z = 0; lat.normalize(); up = Vector((0, 0, 1))
+    co0 = np.empty(len(m.vertices) * 3, np.float64); m.vertices.foreach_get('co', co0); co0 = co0.reshape(-1, 3)
+    info = {}
+    for lado, d in datos.items():
+        C = np.array(d["C"]); bucle = d["bucle"]; P = co0[bucle]
+        # esquinas: extremos del bucle a lo largo del eje lateral
+        t = (P - C) @ np.array(lat); i0, i1 = int(np.argmin(t)), int(np.argmax(t))
+        A, B = P[i0], P[i1]
+        def encima(Q):
+            # altura sobre la recta de las esquinas (en el plano de la cara)
+            u = (Q - A); ab = (B - A); ab /= np.linalg.norm(ab)
+            perp = u - np.outer(u @ ab, ab)
+            return perp @ np.array(up)
+        h = encima(P)
+        sup = [bucle[k] for k in range(len(bucle)) if h[k] > 0.0003]
+        inf = [bucle[k] for k in range(len(bucle)) if h[k] < -0.0003]
+        Ps, Pi = co0[sup], co0[inf]
+        # ángulo de apertura (en el plano perpendicular al eje lateral)
+        ptop = Ps[np.argmax(Ps[:, 2])]; pbot = Pi[np.argmin(Pi[:, 2])]
+        def ang2(Q):
+            v = Q - C; v = v - (v @ np.array(lat)) * np.array(lat); return math.atan2(v @ np.array(up), v @ np.array(adelante))
+        th = ang2(ptop) - ang2(pbot)
+        # pesos de la zona del párpado superior e inferior
+        caja = (np.abs(co0[:, 0] - C[0]) < 0.03) & (np.abs(co0[:, 2] - C[2]) < 0.025) & (co0[:, 1] < C[1] + 0.012)
+        idx = np.where(caja)[0]; Q = co0[idx]
+        dsup = np.min(np.linalg.norm(Q[:, None, :] - Ps[None, :, :], axis=2), axis=1)
+        dinf = np.min(np.linalg.norm(Q[:, None, :] - Pi[None, :, :], axis=2), axis=1)
+        hq = encima(Q)
+        semi = np.linalg.norm(B - A) / 2
+        dcor = np.minimum(np.linalg.norm(Q - A, axis=1), np.linalg.norm(Q - B, axis=1))
+        fcor = _ss(0.0, 0.45 * semi, dcor)
+        wsup = (1 - _ss(0.0006, 0.0068, dsup)) * _ss(-0.0004, 0.0012, hq) * fcor
+        winf = (1 - _ss(0.0004, 0.0042, dinf)) * _ss(-0.0004, 0.0012, -hq) * fcor
+        # el borde interior (extruido) va con su vértice del borde
+        for k in d["borde_int"]:
+            j = np.where(idx == k)[0]
+            if len(j):
+                q = co0[k]; js = np.argmin(np.linalg.norm(Ps - q, axis=1)); ji = np.argmin(np.linalg.norm(Pi - q, axis=1))
+                if np.linalg.norm(Ps[js] - q) < np.linalg.norm(Pi[ji] - q):
+                    wsup[j] = max(wsup[j][0], 1.0 * fcor[j][0]); winf[j] = 0
+                else:
+                    winf[j] = max(winf[j][0], 1.0 * fcor[j][0]); wsup[j] = 0
+        info[lado] = dict(C=C, idx=idx, wsup=wsup, winf=winf, th=th, sup=sup, inf=inf, A=A, B=B)
+        print("PARPADOS", lado, "apertura", round(math.degrees(th), 1), "grados", len(sup), len(inf), flush=True)
+    # ------------------------------------------------------------ pestañas 3D (parte de la malla, siguen a la piel)
+    bm = bmesh.new(); bm.from_mesh(m)
+    mat_p = material_simple("MAITE_pestanas", (0.020, 0.013, 0.011), rug=0.5)
+    m.materials.append(mat_p); i_p = len(m.materials) - 1
+    bm.verts.ensure_lookup_table()
+    origen = []                                  # (índice del vértice nuevo, vértice del borde del que nace)
+    for lado, I in info.items():
+        C = Vector(I["C"]); A, B = Vector(I["A"]), Vector(I["B"])
+        for fila, (lista, n, Lmin, Lmax, haciaarriba) in enumerate(((I["sup"], 52, 0.0020, 0.0043, 1), (I["sup"], 30, 0.0016, 0.0030, 1), (I["inf"], 20, 0.0007, 0.0013, -1))):
+            pts = sorted(lista, key=lambda k: (Vector(co0[k]) - A).dot(B - A))
+            cur = [Vector(co0[k]) for k in pts]
+            if len(cur) < 3: continue
+            largo = [0.0]
+            for a_, b_ in zip(cur[:-1], cur[1:]): largo.append(largo[-1] + (b_ - a_).length)
+            for j in range(n):
+                s_ = (j + 0.5 + rng.uniform(-0.3, 0.3)) / n * largo[-1]
+                k = max(1, min(len(cur) - 1, int(np.searchsorted(largo, s_))))
+                f_ = (s_ - largo[k - 1]) / max(1e-9, largo[k] - largo[k - 1]); base = cur[k - 1].lerp(cur[k], f_)
+                pref = pts[k - 1] if f_ < 0.5 else pts[k]
+                exterior = (base - A).length / max(1e-6, (B - A).length)        # 0 esquina A, 1 esquina B
+                hacia_fuera = exterior if (B - A).dot(lat) * (1 if lado == "L" else -1) > 0 else 1 - exterior
+                L = (Lmin + (Lmax - Lmin) * (hacia_fuera ** 1.4)) * rng.uniform(0.85, 1.15)
+                radial = (base - C); radial = radial - lat * radial.dot(lat); radial.normalize()
+                d0 = (radial * 0.55 + adelante * 0.65).normalized()
+                curva = up * haciaarriba
+                lado_v = (d0.cross(curva)).normalized()
+                lado_v = lado_v * 1.0
+                ancho0 = 0.00024 if fila == 0 else 0.00018
+                base = base - radial * 0.00025 + adelante * 0.0001 * fila
+                prev = None
+                for sgm in range(5):
+                    tt = sgm / 4
+                    p = base + d0 * (L * tt) + curva * (L * 0.55 * tt * tt) + lado_v * (rng.uniform(-0.2, 0.2) * L * tt)
+                    w = ancho0 * (1 - tt * 0.88)
+                    va = bm.verts.new(p - lado_v * w / 2); vb = bm.verts.new(p + lado_v * w / 2)
+                    origen += [(va, pref), (vb, pref)]
+                    if prev:
+                        fc_ = bm.faces.new((prev[0], prev[1], vb, va)); fc_.material_index = i_p; fc_.smooth = True
+                    prev = (va, vb)
+    bm.verts.index_update()
+    pares = [(v.index, k) for v, k in origen]
+    bm.normal_update(); bm.to_mesh(m); bm.free(); m.update()
+    # pesos del esqueleto: los de su vértice del borde
+    grupos = {g.index: g for g in me.vertex_groups}
+    for nuevo, ref in pares:
+        for ge in m.vertices[ref].groups:
+            grupos[ge.group].add([nuevo], ge.weight, 'REPLACE')
+    print("PESTANAS", len(pares) // 10, "pelos", flush=True)
+    # ------------------------------------------------------------ shape keys
+    co = np.empty(len(m.vertices) * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
+    for lado, I in info.items():                 # añadir las pestañas a las zonas de peso
+        nuevos = [(a, b) for a, b in pares if b in set(I["sup"]) | set(I["inf"])]
+        if nuevos:
+            pos = {k: j for j, k in enumerate(I["idx"])}
+            extra_idx = np.array([a for a, b in nuevos])
+            ws = np.array([I["wsup"][pos[b]] if b in pos else (1.0 if b in set(I["sup"]) else 0.0) for a, b in nuevos])
+            wi = np.array([I["winf"][pos[b]] if b in pos else (1.0 if b in set(I["inf"]) else 0.0) for a, b in nuevos])
+            I["idx"] = np.r_[I["idx"], extra_idx]; I["wsup"] = np.r_[I["wsup"], ws]; I["winf"] = np.r_[I["winf"], wi]
+    if not m.shape_keys: me.shape_key_add(name="Basis", from_mix=False)
+    def clave(nombre, cambios):
+        X = co.copy()
+        for lado, ang_sup, ang_inf, giro in cambios:
+            I = info[lado]; idx = I["idx"]; C = I["C"]
+            Q = X[idx]
+            Q = _rot_puntos(Q, C, lat, ang_sup * I["wsup"]) if ang_sup else Q
+            Q = _rot_puntos(Q, C, lat, ang_inf * I["winf"]) if ang_inf else Q
+            if giro: Q = _rot_puntos(Q, C, (0, 0, 1), giro * np.maximum(I["wsup"], I["winf"]))
+            X[idx] = Q
+        k = me.shape_key_add(name=nombre, from_mix=False); k.data.foreach_set('co', X.ravel().astype(np.float32)); k.value = 0.0
+    for lado, sufijo in (("L", "Left"), ("R", "Right")):
+        th = info[lado]["th"]
+        fuera = 1 if lado == "L" else -1          # girar hacia fuera (de la nariz hacia la sien)
+        clave(f"eyeBlink{sufijo}", [(lado, 0.80 * th + 0.03, -0.20 * th - 0.01, 0)])
+        clave(f"eyeWide{sufijo}", [(lado, -0.20 * th, 0.06 * th, 0)])
+        clave(f"eyeSquint{sufijo}", [(lado, 0.12 * th, -0.38 * th, 0)])
+        clave(f"eyeLookUp{sufijo}", [(lado, -0.16 * th, -0.07 * th, 0)])
+        clave(f"eyeLookDown{sufijo}", [(lado, 0.32 * th, 0.08 * th, 0)])
+        clave(f"eyeLookOut{sufijo}", [(lado, 0, 0, 0.06 * fuera)])
+        clave(f"eyeLookIn{sufijo}", [(lado, 0, 0, -0.06 * fuera)])
+    print("SHAPE_KEYS_OJOS", [k.name for k in m.shape_keys.key_blocks], flush=True)
+    return info

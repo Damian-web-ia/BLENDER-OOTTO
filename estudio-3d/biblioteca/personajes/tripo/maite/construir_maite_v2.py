@@ -291,6 +291,7 @@ materiales(ME, CLS, DIMS)
 subdividir(ME, 1)
 CM = {"__name__": "cara_maite"}; exec(open(os.path.join(PM, "cara_maite.py"), encoding="utf-8").read(), CM)
 OJOS_DATOS, ADELANTE = CM["construir_ojos"](ARM, ME)
+PARPADOS = CM["parpados_y_pestanas"](ARM, ME, OJOS_DATOS, ADELANTE)
 trenza = preparar_trenza(ARM, ME)
 ARM["trenza"] = ",".join(trenza)
 ARM["maite_version"] = "v2-fase1"
