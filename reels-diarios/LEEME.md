@@ -16,4 +16,6 @@ Cada día a las 19:30 Claude hace un reel 3D con Blender que se publica al día 
 |---|---|---|---|
 | 25-11-2026 | [2026-11-25_ruedas-nuevas-delante-o-detras](2026-11-25_ruedas-nuevas-delante-o-detras/) | ¿Ruedas nuevas delante o detrás? | IG + YT 26-11 19:30 · TikTok 26-11 20:00 |
 | 26-11-2026 | [2026-11-26_equilibrado-volante-tiembla](2026-11-26_equilibrado-volante-tiembla/) | ¿Te tiembla el volante a partir de 80? (equilibrado) | IG + YT + TikTok 27-11 19:00 |
-| 27-11-2026 | [2026-11-27_despiece-embrague](2026-11-27_despiece-embrague/) | ¿Tu embrague patina? Despiece 3D del embrague | Pendiente: se publica cuando acabe el 4K (domingo 29-11 aprox.) |
+| 27-11-2026 | [2026-11-27_despiece-embrague](2026-11-27_despiece-embrague/) | ¿Tu embrague patina? Despiece 3D del embrague | **Cancelado por Damián (27-11):** no se publica (sale Alex, que está retirado) |
+| 27-11-2026 | [../estudio-3d/videos_3d/motor_4t](../estudio-3d/videos_3d/motor_4t/) | El motor por dentro (4 tiempos) · primer vídeo con Maite | Lo publica la sesión de Claude cuando acabe su 4K (previsto sáb. 28-11 19:00) |
+| 27-11-2026 | [../estudio-3d/videos_3d/turbo](../estudio-3d/videos_3d/turbo/) | El turbo por dentro · Maite + Clod v3 | En producción por la sesión de Claude; se publica después del motor. **No repetir el tema del turbo.** |
