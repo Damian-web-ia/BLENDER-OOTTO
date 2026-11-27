@@ -151,12 +151,12 @@ def gas(f):
     if f < F_ABRE + 20 or EXP0 - 4 <= f <= EXP3 + 2: return 0.0, AZUL, 0.0
     debil = 0.45 if f > L3_VUELTAS else 1.0
     if L2_CHISPA - 4 <= f < L2_EXPLOTA:
-        u = suave((f - L2_CHISPA) / max(1, L2_EXPLOTA - L2_CHISPA)); return 0.7, tuple(lerp(a, b, u * 0.6) for a, b in zip(AZUL2, NARANJA)), lerp(2.0, 4.0, u)
+        u = suave((f - L2_CHISPA) / max(1, L2_EXPLOTA - L2_CHISPA)); return 0.7, tuple(lerp(a, b, u * 0.6) for a, b in zip(AZUL2, NARANJA)), lerp(1.3, 2.2, u)
     if L2_EXPLOTA <= f <= L2_ABAJO + 4:
-        u = (f - L2_EXPLOTA) / max(1, L2_ABAJO + 4 - L2_EXPLOTA); return lerp(0.9, 0.6, u), NARANJA, lerp(6, 1.0, u ** 0.6)
+        u = (f - L2_EXPLOTA) / max(1, L2_ABAJO + 4 - L2_EXPLOTA); return lerp(0.9, 0.6, u), NARANJA, lerp(3.2, 0.7, u ** 0.6)
     if ph < 180: return lerp(0.12, 0.42, ph / 180) * debil, AZUL, 1.3 * debil
-    if ph < 360: return lerp(0.42, 0.65, (ph - 180) / 180) * debil, AZUL2, lerp(1.3, 2.4, (ph - 180) / 180) * debil
-    if ph < 540: return lerp(0.85, 0.5, (ph - 360) / 180) * debil, NARANJA, lerp(7, 1, (ph - 360) / 180) * debil
+    if ph < 360: return lerp(0.42, 0.65, (ph - 180) / 180) * debil, AZUL2, lerp(1.1, 1.4, (ph - 180) / 180) * debil
+    if ph < 540: return lerp(0.85, 0.5, (ph - 360) / 180) * debil, NARANJA, lerp(3.5, 0.7, (ph - 360) / 180) * debil
     return lerp(0.45, 0.1, (ph - 540) / 180) * debil, HUMO, 0.6 * debil
 for f in range(1, FIN + 1):
     m_, c_, s_ = gas(f)
@@ -203,7 +203,7 @@ dsp = fu.modifiers.new("Llama", 'DISPLACE'); tx = bpy.data.textures.new("Llama",
 vis(fu, 1, False); vis(fu, L2_EXPLOTA - 14, True); vis(fu, L2_EXPLOTA + 16, False)
 for f, s_ in ((L2_EXPLOTA - 14, 0.001), (L2_EXPLOTA - 2, 0.016), (L2_EXPLOTA + 2, 0.034), (L2_EXPLOTA + 10, 0.040), (L2_EXPLOTA + 16, 0.030)):
     fu.scale = (s_, s_ * 0.9, s_ * 0.55); fu.keyframe_insert("scale", frame=f)
-for f, s_ in ((L2_EXPLOTA - 14, 4.0), (L2_EXPLOTA, 10.0), (L2_EXPLOTA + 10, 4.0), (L2_EXPLOTA + 16, 0.0)):
+for f, s_ in ((L2_EXPLOTA - 14, 2.5), (L2_EXPLOTA, 5.5), (L2_EXPLOTA + 10, 2.5), (L2_EXPLOTA + 16, 0.0)):
     em.inputs["Strength"].default_value = s_; em.inputs["Strength"].keyframe_insert("default_value", frame=f)
 
 # ---------------- mezcla que entra (admisión) y gases que salen (escape)
@@ -371,7 +371,7 @@ PLANOS = [  # (desde, hasta, cam_ini, cam_fin, mira_ini, mira_fin, lente)
     (122, L1_BAJA - 1, (0.0, -0.92, 1.12), (0.0, -0.80, 1.12), (0, 0, 1.09), (0, 0, 1.09), 50),
     (L1_BAJA, L1_SUBE - 1, (-0.12, -0.46, 1.22), (-0.09, -0.40, 1.20), (-0.012, 0, 1.165), (-0.01, 0, 1.15), 50),
     (L1_SUBE, L1_COMP, (0.06, -0.48, 1.17), (0.04, -0.42, 1.19), (0, 0, 1.16), (0, 0, 1.175), 50),
-    (L1_COMP + 1, L2_EXPLOTA - 1, (0.016, -0.33, 1.205), (0.008, -0.28, 1.198), (0, 0, 1.190), (0, 0, 1.190), 70),     # cámara de combustión entera: válvulas, bujía y pistón arriba
+    (L1_COMP + 1, L2_EXPLOTA - 1, (0.016, -0.33, 1.205), (0.008, -0.28, 1.198), (0, 0, 1.192), (0, 0, 1.192), 58),     # cámara de combustión entera: válvulas, bujía y pistón arriba
     (L2_EXPLOTA, L2_SUBIR - 1, (0.0, -0.66, 1.10), (0.0, -0.60, 1.10), (0, 0, 1.12), (0, 0, 1.12), 45),
     (L2_SUBIR, EXP0 - 1, (0.16, -0.52, 1.24), (0.13, -0.47, 1.22), (0.035, 0, 1.17), (0.035, 0, 1.17), 50),
     (EXP0, L3_CUATRO - 1, (-0.45, -0.80, 1.30), (-0.25, -0.88, 1.26), (0, -0.08, 1.10), (0, -0.08, 1.10), 40),
