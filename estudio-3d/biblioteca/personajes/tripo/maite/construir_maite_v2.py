@@ -141,10 +141,10 @@ def clasificar(me):
 
 TEJIDOS = {   # rugosidad (mín, máx), subsurface, sheen, coat, relieve fino (fuerza, escala, tipo), retoque de color (tono, sat, valor)
     "piel":        dict(rug=(0.42, 0.58), sss=0.22, sheen=0.15, coat=0.04, rel=(0.08, 900, "poros"), hsv=(0.5, 1.03, 1.0)),
-    "pelo":        dict(rug=(0.30, 0.46), sss=0.0, sheen=0.25, coat=0.30, rel=(0.25, 260, "mechas"), hsv=(0.5, 1.05, 1.0)),
-    "camiseta":    dict(rug=(0.86, 0.95), sss=0.06, sheen=0.55, coat=0.0, rel=(0.12, 1400, "algodon"), hsv=(0.5, 1.0, 1.0)),
-    "mono":        dict(rug=(0.78, 0.90), sss=0.0, sheen=0.35, coat=0.0, rel=(0.22, 700, "sarga"), hsv=(0.5, 1.0, 1.0)),
-    "punos":       dict(rug=(0.80, 0.92), sss=0.0, sheen=0.35, coat=0.0, rel=(0.18, 700, "sarga"), hsv=(0.5, 1.0, 1.0)),
+    "pelo":        dict(rug=(0.48, 0.66), sss=0.0, sheen=0.10, coat=0.05, rel=(0.05, 260, "mechas"), hsv=(0.5, 1.03, 1.0)),
+    "camiseta":    dict(rug=(0.86, 0.95), sss=0.06, sheen=0.25, coat=0.0, rel=(0.12, 1400, "algodon"), hsv=(0.5, 1.0, 1.0)),
+    "mono":        dict(rug=(0.80, 0.92), sss=0.0, sheen=0.08, coat=0.0, rel=(0.10, 700, "sarga"), hsv=(0.5, 1.0, 1.0)),
+    "punos":       dict(rug=(0.80, 0.92), sss=0.0, sheen=0.08, coat=0.0, rel=(0.10, 700, "sarga"), hsv=(0.5, 1.0, 1.0)),
     "guantes":     dict(rug=(0.55, 0.70), sss=0.0, sheen=0.10, coat=0.08, rel=(0.20, 600, "cuero"), hsv=(0.5, 1.0, 1.0)),
     "botas":       dict(rug=(0.42, 0.62), sss=0.0, sheen=0.0, coat=0.22, rel=(0.25, 500, "cuero"), hsv=(0.5, 1.0, 1.0)),
     "funda":       dict(rug=(0.45, 0.62), sss=0.0, sheen=0.0, coat=0.18, rel=(0.22, 500, "cuero"), hsv=(0.5, 1.0, 1.0)),
@@ -167,7 +167,7 @@ def materiales(me, cls, dims):
         bs = N["Principled BSDF"]; bs.location = (300, 0)
         uv = N.new("ShaderNodeUVMap"); uv.uv_map = m.uv_layers.active.name; uv.location = (-1200, 0)
         def tex(im, y, col='sRGB'):
-            t = N.new("ShaderNodeTexImage"); t.image = im; t.location = (-900, y); t.interpolation = 'Cubic'
+            t = N.new("ShaderNodeTexImage"); t.image = im; t.location = (-900, y); t.interpolation = 'Linear'
             Lk.new(uv.outputs["UV"], t.inputs["Vector"]); return t
         tc = tex(i_col, 300)
         hs = N.new("ShaderNodeHueSaturation"); hs.location = (-500, 300)
@@ -181,7 +181,7 @@ def materiales(me, cls, dims):
             bs.inputs["Roughness"].default_value = sum(P["rug"]) / 2
         bs.inputs["Metallic"].default_value = 0.0
         tn = tex(i_nor, -300); nm = N.new("ShaderNodeNormalMap"); nm.location = (-500, -300); nm.uv_map = uv.uv_map
-        nm.inputs["Strength"].default_value = 0.8
+        nm.inputs["Strength"].default_value = 1.0
         Lk.new(tn.outputs["Color"], nm.inputs["Color"])
         # relieve fino procedural sobre coordenadas de reposo (no "nada" al animar)
         fu, esc, tipo = P["rel"]

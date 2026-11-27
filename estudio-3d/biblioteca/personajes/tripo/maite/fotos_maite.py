@@ -7,6 +7,7 @@ from mathutils import Vector, Matrix, Quaternion
 argv = sys.argv[sys.argv.index("--") + 1:]
 EST, OUT = argv[0], argv[1]; MUESTRAS = int(argv[2]) if len(argv) > 2 else 128
 BLEND = argv[3] if len(argv) > 3 else "maite_tripo.blend"
+SOLO = set(argv[4].split(",")) if len(argv) > 4 and argv[4] else None
 os.makedirs(OUT, exist_ok=True)
 PM = os.path.join(EST, "biblioteca", "personajes", "tripo", "maite")
 bpy.ops.wm.open_mainfile(filepath=os.path.join(PM, BLEND))
@@ -91,6 +92,7 @@ sc.render.resolution_x, sc.render.resolution_y = 1080, 1920
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
 sc.render.film_transparent = False
 def foto(nombre, loc, mira, lente, foco=None):
+    if SOLO and nombre[:2] not in SOLO: return
     cam.location = loc; cd.lens = lente
     cam.rotation_euler = (Vector(mira) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
     cd.dof.focus_distance = ((Vector(foco or mira) - Vector(loc)).length)
