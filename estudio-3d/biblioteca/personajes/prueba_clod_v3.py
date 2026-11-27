@@ -81,7 +81,7 @@ def foto(nombre, pos, mira, lente, f=1, fstop=2.8, foco=None):
     cam_d.lens = lente; cam_d.dof.focus_distance = (Vector(foco or mira) - Vector(pos)).length; cam_d.dof.aperture_fstop = fstop
     r.filepath = os.path.join(OUT, nombre); bpy.ops.render.render(write_still=True); print("FOTO", nombre)
 foto("comparacion.png", (0.0, -1.05, 0.22), (0.0, 0, 0.165), 58, fstop=8)
-foto("cara.png", (0.165, -0.33, 0.27), (0.13, 0, 0.256), 90, fstop=4, foco=(0.13, -0.06, 0.256))
+foto("cara.png", (0.20, -0.40, 0.29), (0.13, 0, 0.250), 60, fstop=4, foco=(0.13, -0.06, 0.256))
 foto("espalda.png", (0.55, 0.62, 0.30), (0.13, 0, 0.17), 60, fstop=5.6)
 foto("saludo.png", (-0.22, -0.78, 0.20), (0.13, 0, 0.17), 60, f=(2 + F_SAL) // 2 + 4, fstop=4)
 print("PRUEBA_OK")

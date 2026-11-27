@@ -55,7 +55,7 @@ def material(nombre, color, rough=0.4, metal=0.0, coat=0.0, coat_rough=0.05, emi
     return m
 
 
-def material_led(nombre, color=(0.80, 0.94, 1.0), fuerza=9.0, paso=0.0011):
+def material_led(nombre, color=(0.80, 0.94, 1.0), fuerza=7.0, paso=0.0011):
     """LED de puntos: emisión con una rejilla de puntos (se ve de cerca) que de lejos se lee como trazo continuo."""
     m = bpy.data.materials.get(nombre) or bpy.data.materials.new(nombre)
     m.use_nodes = True; nt = m.node_tree; nt.nodes.clear()
@@ -72,7 +72,7 @@ def material_led(nombre, color=(0.80, 0.94, 1.0), fuerza=9.0, paso=0.0011):
     a, c = onda("X"), onda("Z")
     mx = nt.nodes.new("ShaderNodeMath"); mx.operation = 'MULTIPLY'; nt.links.new(a.outputs[0], mx.inputs[0]); nt.links.new(c.outputs[0], mx.inputs[1])
     pw = nt.nodes.new("ShaderNodeMath"); pw.operation = 'POWER'; pw.inputs[1].default_value = 0.6; nt.links.new(mx.outputs[0], pw.inputs[0])
-    mr = nt.nodes.new("ShaderNodeMapRange"); mr.inputs["To Min"].default_value = fuerza * 0.35; mr.inputs["To Max"].default_value = fuerza * 1.25
+    mr = nt.nodes.new("ShaderNodeMapRange"); mr.inputs["To Min"].default_value = fuerza * 0.10; mr.inputs["To Max"].default_value = fuerza * 1.6
     nt.links.new(pw.outputs[0], mr.inputs["Value"]); nt.links.new(mr.outputs["Result"], em.inputs["Strength"])
     nt.links.new(em.outputs[0], out.inputs["Surface"])
     return m
@@ -81,7 +81,7 @@ def material_led(nombre, color=(0.80, 0.94, 1.0), fuerza=9.0, paso=0.0011):
 def materiales():
     return {
         # plástico ABS pintado en naranja con barniz: rugosidad y relieve finísimos
-        "naranja": material("ClodV3_Naranja", (0.93, 0.20, 0.010), rough=0.30, coat=0.65, coat_rough=0.07, micro=(1400.0, (0.24, 0.36), 0.05)),
+        "naranja": material("ClodV3_Naranja", (0.90, 0.15, 0.006), rough=0.30, coat=0.65, coat_rough=0.07, micro=(1400.0, (0.24, 0.36), 0.05)),
         # aluminio anodizado grafito, cepillado
         "grafito": material("ClodV3_Grafito", (0.030, 0.032, 0.036), rough=0.34, metal=0.85, aniso=0.45, micro=(2200.0, (0.28, 0.40), 0.02)),
         "nucleo": material("ClodV3_Nucleo", (0.012, 0.012, 0.014), rough=0.6, metal=0.3),
@@ -189,6 +189,19 @@ def toro(nombre, centro, R_, r, eje, mat, col, arco=360, giro=0, n=72, m=18):
         bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     o = _obj(nombre, bm, mat, col); o.location = V(*centro)
     o.rotation_euler = {"X": (0, R(90), 0), "Y": (R(90), 0, 0), "Z": (0, 0, 0)}[eje]
+    return o
+
+
+def cilindro_eje(nombre, a, b, t, r, ancho, mat, col, seg=64):
+    """Aro/manguito de radio r y anchura 'ancho' alineado con el segmento a-b, en la fracción t del recorrido."""
+    A, B_ = V(*a), V(*b); d = B_ - A; c = A + d * t
+    bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r * K, radius2=r * K, depth=ancho * K)
+    o = _obj(nombre, bm, mat, col)
+    o.matrix_world = Matrix.Translation(c) @ d.to_track_quat('Z', 'Y').to_matrix().to_4x4()
+    m = o.modifiers.new("Bisel", "BEVEL"); m.width = 0.004 * K; m.segments = 4; m.limit_method = 'ANGLE'
+    o.data.polygons.foreach_set("use_smooth", [True] * len(o.data.polygons))
+    try: o.modifiers.new("Normales", "WEIGHTED_NORMAL")
+    except Exception: pass
     return o
 
 
@@ -300,14 +313,13 @@ def construir_clod(origen=(0, 0, 0)):
         P(esfera(f"CLOD_Rodilla_{L}", (s * 0.115, -0.012, 0.19), (0.05, 0.05, 0.05), M["grafito"], col), f"pierna.{L}")
         P(cilindro(f"CLOD_EjeRodilla_{L}", (s * 0.115, -0.012, 0.19), 0.022, 0.112, "X", M["acero"], col, bisel=0.004), f"pierna.{L}")
         P(capsula(f"CLOD_Muslo_{L}", (s * 0.115, -0.012, 0.205), (s * 0.11, 0.0, 0.295), 0.046, M["naranja"], col), f"muslo.{L}")
-        P(toro(f"CLOD_JuntaMuslo_{L}", (s * 0.1125, -0.006, 0.25), 0.0462, 0.0032, "Z", M["nucleo"], col), f"muslo.{L}")
         P(esfera(f"CLOD_Cadera_{L}", (s * 0.11, 0.0, 0.30), (0.046, 0.046, 0.046), M["grafito"], col), "cadera")
 
     # ---------------- cadera y cuerpo: carcasa partida en dos (junta lateral) con núcleo oscuro
     P(esfera("CLOD_Faja", (0, 0, 0.278), (0.152, 0.122, 0.048), M["grafito"], col, 64, 20, super_=2.4), "cadera")
     P(toro("CLOD_AroFaja", (0, 0, 0.300), 0.128, 0.0055, "Z", M["acero"], col), "cadera")
     cuerpo = P(esfera("CLOD_Cuerpo", (0, 0, 0.42), (0.205, 0.165, 0.175), M["naranja"], col, 96, 48, super_=2.35), "cuerpo")
-    P(partir(cuerpo, col, 0.012, 0.009, "Junta"), "cuerpo")
+    P(partir(cuerpo, col, -0.075, 0.009, "Junta"), "cuerpo")      # junta de la tapa frontal (se ve en los 3/4)
     P(esfera("CLOD_NucleoCuerpo", (0, 0, 0.42), (0.192, 0.152, 0.162), M["nucleo"], col, 64, 32, super_=2.35), "cuerpo")
     # símbolo del pecho: 6 barras redondeadas que se cruzan, pegadas a la carcasa
     for i in range(6):
@@ -334,7 +346,7 @@ def construir_clod(origen=(0, 0, 0)):
 
     # ---------------- cabeza: carcasa partida (frontal + trasera) con núcleo, marco y pantalla de cristal
     cab = P(caja_redonda("CLOD_Cabeza", (0, 0, 0.80), (0.47, 0.34, 0.35), 0.078, M["naranja"], col, seg=8), "cabeza")
-    P(partir(cab, col, 0.035, 0.009, "Junta"), "cabeza")
+    P(partir(cab, col, 0.118, 0.009, "Junta"), "cabeza")         # junta de la tapa trasera, detrás de los cascos
     P(caja_redonda("CLOD_NucleoCabeza", (0, 0, 0.80), (0.452, 0.322, 0.332), 0.07, M["nucleo"], col, seg=4), "cabeza")
     P(placa_redonda("CLOD_Marco", (0, -0.168, 0.80), 0.375, 0.27, 0.06, 0.02, M["grafito"], col), "cabeza")
     P(placa_redonda("CLOD_Pantalla", (0, -0.176, 0.80), 0.345, 0.24, 0.048, 0.012, M["pantalla"], col, bisel=0.003), "cabeza")
@@ -370,17 +382,16 @@ def construir_clod(origen=(0, 0, 0)):
         P(esfera(f"CLOD_Hombro_{L}", (s * 0.205, 0.0, 0.50), (0.05, 0.05, 0.05), M["grafito"], col), f"brazo.{L}")
         P(cilindro(f"CLOD_TapaHombro_{L}", (s * 0.252, 0.0, 0.50), 0.026, 0.010, "X", M["acero"], col, bisel=0.003), f"brazo.{L}")
         P(capsula(f"CLOD_Brazo_{L}", (s * 0.21, 0.0, 0.485), (s * 0.231, 0.011, 0.392), 0.038, M["naranja"], col), f"brazo.{L}")
-        P(toro(f"CLOD_JuntaBrazo_{L}", (s * 0.221, 0.006, 0.44), 0.0383, 0.003, "Z", M["nucleo"], col), f"brazo.{L}")
         P(esfera(f"CLOD_Codo_{L}", (s * 0.233, 0.012, 0.38), (0.038, 0.038, 0.038), M["grafito"], col), f"antebrazo.{L}")
         P(cilindro(f"CLOD_EjeCodo_{L}", (s * 0.233, 0.012, 0.38), 0.016, 0.086, "X", M["acero"], col, bisel=0.003), f"antebrazo.{L}")
         P(capsula(f"CLOD_Antebrazo_{L}", (s * 0.234, 0.011, 0.368), (s * 0.249, -0.013, 0.292), 0.036, M["naranja"], col), f"antebrazo.{L}")
-        P(toro(f"CLOD_Muneca_{L}", (s * 0.251, -0.015, 0.282), 0.034, 0.0085, "Z", M["grafito"], col), f"antebrazo.{L}")
+        P(cilindro_eje(f"CLOD_Muneca_{L}", (s * 0.234, 0.011, 0.368), (s * 0.249, -0.013, 0.292), 0.93, 0.0405, 0.020, M["grafito"], col), f"antebrazo.{L}")
         # mano: palma blanca + tres dedos algo curvados + pulgar (hueso propio)
-        P(caja_redonda(f"CLOD_Mano_{L}", (s * 0.255, -0.020, 0.245), (0.050, 0.072, 0.060), 0.022, M["mano"], col, seg=5), f"mano.{L}")
-        for k, dy in enumerate((-0.024, 0.0, 0.024)):
-            y0 = -0.020 + dy
-            P(capsula(f"CLOD_Dedo_{L}{k}", (s * 0.255, y0, 0.222), (s * (0.255 - 0.010), y0 - 0.004, 0.192), 0.0118, M["mano"], col, seg=24), f"mano.{L}")
-        P(capsula(f"CLOD_Pulgar_{L}", (s * 0.238, -0.052, 0.260), (s * 0.229, -0.074, 0.284), 0.0155, M["mano"], col, seg=24), f"pulgar.{L}")
+        P(caja_redonda(f"CLOD_Mano_{L}", (s * 0.255, -0.020, 0.243), (0.058, 0.080, 0.066), 0.026, M["mano"], col, seg=5), f"mano.{L}")
+        for k, dy in enumerate((-0.023, 0.0, 0.023)):
+            y0 = -0.018 + dy
+            P(capsula(f"CLOD_Dedo_{L}{k}", (s * 0.256, y0, 0.220), (s * (0.256 - 0.008), y0 - 0.003, 0.200), 0.0150, M["mano"], col, seg=24), f"mano.{L}")
+        P(capsula(f"CLOD_Pulgar_{L}", (s * 0.238, -0.054, 0.258), (s * 0.229, -0.074, 0.282), 0.0175, M["mano"], col, seg=24), f"pulgar.{L}")
 
     # ----------------------------------------------------- esqueleto (igual que v2)
     arm_d = bpy.data.armatures.new(NOMBRE + "_Arm"); arm = bpy.data.objects.new(NOMBRE, arm_d); col.objects.link(arm)
