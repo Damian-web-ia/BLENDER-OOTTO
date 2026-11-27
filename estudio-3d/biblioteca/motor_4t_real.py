@@ -169,7 +169,7 @@ def _mat(nombre, color, metal=0.0, rugo=0.4, coat=0.0, ruido=0.0, escala_ruido=9
 
 def materiales(MP):
     M = {}
-    M["alu"] = _mat("MOT_AluminioFundido", (0.74, 0.75, 0.77), metal=1.0, rugo=0.42, ruido=0.35, escala_ruido=1400)
+    M["alu"] = _mat("MOT_AluminioFundido", (0.42, 0.43, 0.45), metal=1.0, rugo=0.52, ruido=0.45, escala_ruido=1400)
     M["alu_pulido"] = _mat("MOT_AluminioPiston", (0.86, 0.86, 0.87), metal=1.0, rugo=0.22, ruido=0.12, escala_ruido=2400, aniso=0.3)
     M["hierro"] = MP["fundicion"]("MOT_Camisa", color=(0.30, 0.30, 0.31))
     M["acero"] = MP["acero"]("MOT_AceroForjado", color=(0.56, 0.57, 0.59), rugo=(0.18, 0.30), anillos=False)
@@ -180,7 +180,7 @@ def materiales(MP):
     M["leva"] = MP["cromo"]("MOT_Levas", color=(0.84, 0.84, 0.86))
     M["junta"] = _mat("MOT_Junta", (0.20, 0.21, 0.22), metal=1.0, rugo=0.5)
     # cara de corte: aluminio mecanizado satinado (sin tinte cobrizo), con un filo frío muy suave
-    m = _mat("MOT_Corte", (0.83, 0.84, 0.86), metal=1.0, rugo=0.30, aniso=0.5, ruido=0.08, escala_ruido=4000)
+    m = _mat("MOT_Corte", (0.70, 0.71, 0.73), metal=1.0, rugo=0.40, aniso=0.5, ruido=0.08, escala_ruido=4000)
     M["corte"] = m
     M["refrig"] = MP["aceite"]("MOT_Refrigerante", color=(0.15, 0.75, 0.60), calor=False)
     M["aceite"] = MP["aceite"]("MOT_Aceite", color=(0.95, 0.62, 0.18), calor=False)
