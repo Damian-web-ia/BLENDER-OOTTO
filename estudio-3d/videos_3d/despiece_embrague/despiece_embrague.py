@@ -167,7 +167,8 @@ mano_en("R", G["ojo"] + 12, (-0.20, -0.37, 1.31)); orientar_mano("R", G["ojo"] +
 # estudio oscuro de verdad: el taller y el coche se ocultan mientras la pieza está en el estudio y en el inserto
 _ocultos = [o for c in ("TALLER_v2", "COCHE", "CLOD_v2_personaje") if bpy.data.collections.get(c) for o in bpy.data.collections[c].all_objects]
 for o in _ocultos:
-    o.hide_render = o.hide_viewport = False
+    if o.hide_render or any(fc.data_path.startswith("hide_") for fc in _curvas(o)):
+        continue                                   # ya oculto o con su propia animación de visibilidad: no se toca
     for f_, h in ((1, False), (B0, True), (A3, False)):
         o.hide_render = o.hide_viewport = h; o.keyframe_insert("hide_render", frame=f_); o.keyframe_insert("hide_viewport", frame=f_)
     for fc in _curvas(o):

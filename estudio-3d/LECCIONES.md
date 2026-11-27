@@ -97,3 +97,9 @@
 - 60 fps sin rehacer la animación: `frame_map_old=100`, `frame_map_new=200` y el doble de fotogramas. Los cortes con interpolación constante siguen cayendo en su sitio (el medio fotograma anterior al corte es del plano viejo).
 - Profundidad de campo automática: 9 rayos en el centro del cuadro, percentil 30 de las distancias (gana lo cercano) → `focus_distance` con clave en cada fotograma. Con foco a menos de 12 cm (macro) no se puede enfocar con un 40-45 mm: f/400.
 - El primer fotograma de Cycles tarda más (carga de núcleos OptiX); el cálculo del foco tarda de 13 s (batería) a 6 min (bujía).
+
+## 2026-11-27 (19:30) · Despiece del embrague y Alex v3 (cara seria)
+- **Alex sonreía siempre:** la malla de Tripo ya tiene las comisuras arriba y los ojos entornados en reposo. Se compensa con BocaTriste (0,6-0,95) y OjoAbierto (0,3-0,45): nueva expresión `seria` y neutra/duda/enfado/concentrado corregidas (antes/después en `referencias/evolucion/2026-11-27_alex-cara-seria.png`). Hablando, con la mandíbula abierta, todavía parece que sonríe: **mañana en diseño**, una forma de boca "seria al hablar" (labio superior que tape los dientes de arriba) en `alex_cara2.py`.
+- **Explosión axial** (capas que suben por su eje) se lee mejor que el corte para piezas apiladas (embrague, frenos de tambor...). Giro con claves LINEALES (`EM["girar"]`): el disco frena solo mientras el volante sigue: se entiende "desconectado" sin texto.
+- **Inserto con taller oculto:** los discos se quemaban (luces del taller a tope desde A2). Con las luces del taller bajas hasta A3 y la del inserto al 40 % se ven bien sobre negro.
+- **La mano a la cara** (gesto "ojo" de la plantilla) tapaba la cara de Alex en el plano corto: mejor un dedo arriba a la altura del pecho.

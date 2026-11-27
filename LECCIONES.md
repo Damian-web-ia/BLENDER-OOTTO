@@ -22,3 +22,9 @@ Lo que ha funcionado y lo que ha fallado, día a día. La skill maestra se mejor
 - **Pasar archivos del PC a Ootto sin carpeta conectada:** Blender sube el archivo con un PUT a la URL firmada de `request_user_media_upload` y luego `confirm_user_media`. Para GitHub hace falta la carpeta conectada.
 - **Datos:** el gancho de síntoma (volante) es el que mejor funciona (1.621 vistas, 10,8x la mediana); el reel 3D con más tiempo de visionado (23 s de media) fue el de humor con Clod.
 
+
+## 2026-11-27 · Reel diario «Despiece del embrague»
+- **ChatGPT se quedó sin tokens pensando** en la llamada del prompt (7.000: salieron 171 caracteres). Con 16.000 y "piensa poco" escribió todo (5.224). Para el prompt + skill: pedir 14.000-16.000 desde el principio y la skill como secciones nuevas, no entera.
+- **Estudio oscuro de verdad:** con una pieza grande (28 cm) la cámara se aleja y se veía el coche y el taller detrás. Se ocultan con claves (`hide_render`) el taller, el coche y Clod mientras la pieza está en el estudio y en el inserto; las luces del taller siguen bajas hasta A3.
+- **Ojo al ocultar con claves:** poner interpolación constante solo en las curvas `hide_*`; si se cambia todo el `action` del objeto, la animación del esqueleto de Clod se queda a saltos.
+- **Datos (IG 28 días):** el gancho práctico gana ("¿Solo cambias dos neumáticos?" 2.426 vistas y 18,7 s de media); el despiece del neumático 1.486 (6,5x la mediana); el de frenos 165 en IG pero 1.162 en YouTube Shorts.
