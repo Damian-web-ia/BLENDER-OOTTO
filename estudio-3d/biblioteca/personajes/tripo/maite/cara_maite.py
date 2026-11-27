@@ -624,8 +624,9 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
                     c_ = pos + up * (z_borde_sup - O.z + h_ / 2)
                 else:
                     c_ = pos + up * (z_borde_sup - O.z - 0.0004 - h_ / 2)
-                vs = _caja_redonda(bm, c_, tang, nrm_, up, w_ * 0.47, 0.0012, h_ / 2, mats["MAITE_dientes"])
-                partes["dientes_sup" if signo > 0 else "dientes_inf"] += vs
+                antes = set(bm.verts)
+                _caja_redonda(bm, c_, tang, nrm_, up, w_ * 0.47, 0.0012, h_ / 2, mats["MAITE_dientes"])
+                partes["dientes_sup" if signo > 0 else "dientes_inf"] += [v for v in bm.verts if v not in antes]
             s_acum += w_
     # encías: anillos aplastados que siguen el arco de los dientes
     for signo, clave_, r_a, prof in ((1, "encia_sup", 0.0190, 0.0026), (-1, "encia_inf", 0.0170, 0.0040)):
@@ -635,8 +636,10 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     partes["lengua"] += _elipsoide(bm, O - F * 0.0185 + up * (z_borde_sup - O.z - 0.0050), X, F, up, 0.0105, 0.0120, 0.0034, mats["MAITE_lengua"], 28, 14)
     partes["saco"] += _elipsoide(bm, O - F * 0.0215 + up * (-0.0012), X, F, up, 0.031, 0.0170, 0.0125, mats["MAITE_boca_int"], 36, 20)
     bm.verts.index_update()
-    info = {k: [v.index for v in vs] for k, vs in partes.items()}
-    info["bucle"] = [v.index for v in bucle]; info["labio_int"] = [v.index for v in v1]; info["boca_int"] = [v.index for v in v2]
+    malos = {k: sum(1 for v in vs if not v.is_valid) for k, vs in partes.items()}
+    if any(malos.values()): print("BOCA vértices perdidos", malos, flush=True)
+    info = {k: [v.index for v in vs if v.is_valid] for k, vs in partes.items()}
+    info["bucle"] = [v.index for v in bucle if v.is_valid]; info["labio_int"] = [v.index for v in v1 if v.is_valid]; info["boca_int"] = [v.index for v in v2 if v.is_valid]
     info.update(O=tuple(O), F=tuple(F), X=tuple(X))
     bm.normal_update(); bm.to_mesh(m); bm.free(); m.update()
     # pesos del esqueleto de las piezas nuevas: todo a la cabeza
