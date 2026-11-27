@@ -6,15 +6,17 @@ Aquí se guarda todo lo que hacemos para los vídeos de **EKORUEDAS** (taller de
 
 ## Índice
 
+> **27-11-2026 · Limpieza:** Damián pidió borrar todos los vídeos anteriores y quedarse solo con los modelos, y quitó las tareas diarias. Los vídeos viejos siguen en el historial (commit `454db14`); lo publicado en redes no se ha tocado. El proyecto Jesko no se ha tocado.
+
 | Carpeta | Fecha | Qué es | Estado |
 |---|---|---|---|
 | [`2026-11-24_personajes-3d/`](2026-11-24_personajes-3d/) | 24-11-2026 | Personajes 3D reutilizables (Clod, el robot) | Alex retirado el 27-11-2026 · ahora presenta Maite |
-| [`2026-11-24_prueba-clod-3d/`](2026-11-24_prueba-clod-3d/) | 24-11-2026 | Primera prueba: Clod hablando en 3D con voz de Ootto | Prueba terminada |
 | [`2026-11-25_video-jesko-koenigsegg/`](2026-11-25_video-jesko-koenigsegg/) | 25-11-2026 | Vídeo 3D de 60 s: "La caja de cambios imposible" (Koenigsegg Jesko) | Terminado con sonido en Ootto · sin publicar · render 4K a medias |
 | [`2026-11-25_cerebro-de-claude/`](2026-11-25_cerebro-de-claude/) | 25-11-2026 | Código de la página "Cerebro de Claude" (cerebro 3D + mapa del sistema) y su zip | Se actualiza solo cada domingo |
-| [`reels-diarios/`](reels-diarios/) | desde 26-11-2026 | Una subcarpeta por día (`AAAA-MM-DD_tema`) con el prompt, los scripts de Blender, el vídeo sin voz y la portada de cada reel 3D | Se llena sola cada día a las 19:30 |
-| [`skills/`](skills/) | desde 25-11-2026 | La skill maestra `ekoruedas-reel-3d` que escribe ChatGPT y mejora cada día | Se actualiza sola cada día |
-| [`LECCIONES.md`](LECCIONES.md) | desde 25-11-2026 | Lo aprendido cada día (qué falló y qué funcionó) | Se amplía solo cada día |
+| [`estudio-3d/`](estudio-3d/) | desde 25-11-2026 | Modelos 3D de piezas y personajes (Maite, Clod v3), plantillas de montaje y scripts de render | Solo modelos y herramientas desde el 27-11-2026 |
+| [`reels-diarios/`](reels-diarios/) | 26-11-2026 | Reels diarios | Vacía desde el 27-11-2026 (tareas diarias borradas) |
+| [`skills/`](skills/) | desde 25-11-2026 | La skill maestra CGI 4K y la skill `ekoruedas-reel-3d` | Sin tarea diaria desde el 27-11-2026 |
+| [`LECCIONES.md`](LECCIONES.md) | desde 25-11-2026 | Lo aprendido (qué falló y qué funcionó) | Se conserva |
 
 ## Cómo se hace cada vídeo
 

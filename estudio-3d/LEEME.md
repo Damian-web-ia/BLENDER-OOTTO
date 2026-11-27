@@ -1,41 +1,25 @@
 # EKORUEDAS_ESTUDIO_3D
 
-Estudio 3D de los reels diarios. Blender hace la imagen; Ootto pone el sonido y los subtítulos; ChatGPT da la idea y el guion. Esta misma carpeta está en GitHub (`Damian-web-ia/BLENDER-OOTTO`, carpeta `estudio-3d/`).
+Estudio 3D de EKORUEDAS: Blender hace la imagen (por código Python, en el PC del taller) y Ootto pone la voz y el sonido. Esta misma carpeta está en el PC (`Desktop\EKORUEDAS_ESTUDIO_3D`) y en GitHub (`estudio-3d/`).
 
-## Créditos de Ootto (desde el 26-11-2026): presupuesto diario
-- Plan Self-serve de Ootto: 600 créditos al mes; se renueva el día 24 de cada mes.
-- Damián dijo el 24-11 que le quedaban unos 200. Hasta el 24-12 hay 28 días: **como mucho unos 7 créditos al día**, dejando un 10 % de reserva.
-- La animación 3D se hace en Blender, en su PC, y no gasta créditos. Ootto se usa solo para las voces (Alex = "Diego", voz de España, id cartesia-399002e9-7f7d-42d4-a6a8-9b91bd809b9d, desde el 26-11-2026; Damián quiere acento de España, nunca latino), la música y los efectos del montaje.
-- No usar `image_generate` ni `video_generate` de Ootto para los vídeos (regla de Jesko). Si algún día hace falta un clip de IA, pedir permiso y apuntar el gasto.
-- Cada vídeo diario: voces (2-6 tomas) + montaje. Si un día no se gasta, el saldo pasa a los siguientes; nunca gastar más de 15 en un día sin preguntar.
+**Limpieza del 27-11-2026:** Damián pidió borrar todos los vídeos anteriores y quedarse solo con los modelos. Los vídeos, escenas y renders viejos están en el historial de GitHub (commit `454db14`) y, en el PC, en `_papelera\videos_2026-11-27`.
 
-## Formato que más gusta a Damián (26-11-2026): el DESPIECE 3D
-- Se ve el coche por fuera, la cámara entra (rayos X: la carrocería se vuelve azul y transparente), se ve la pieza, se explica, **se rompe en miles de trozos** y se explica cada capa con rótulos y **planos macro realistas** (estilo del vídeo de la caja de cambios).
-- **Alex pone todas las voces. Clod NO habla**: solo gestos y caras graciosas de fondo (desde el 26-11-2026, por petición de Damián).
-- Piezas realistas en `biblioteca/neumatico_real.py`; versión buena: `videos_3d/despiece_neumatico/despiece_neumatico_v2.py`.
-- Primer ejemplo completo: `videos_3d/despiece_neumatico/` (script de Blender, anclas de rótulos, montaje con subtítulos y mezcla de audio).
-- Encaja con lo viral ahora (revelación/transformación en 3D en los primeros segundos, pregunta de gancho, rótulos grandes, efectos de sonido). Próximas piezas: pastillas y disco de freno, amortiguador, embrague, batería, filtro de aceite.
-
-## Personajes v2 (desde el 26-11-2026): usarlos en todos los reels
-
-Los reels nuevos usan **Alex v2** y **Clod v2**, no los de bloques de `biblioteca_ekoruedas.py` (que sigue sirviendo para el coche, las ruedas, el taller y la carretera).
-
-- **Alex v2:** `biblioteca/personajes/alex/alex_v2_rig.blend` (en el PC). Se mete en la escena con `alex_cargar.py` y se anima con `alex_anim.py` (IK, manos, cara con expresiones, habla, músculos). Guía: `biblioteca/personajes/LEEME_ALEX_V2.md`.
-- **Clod v2:** `biblioteca/personajes/clod/clod_v2.blend` (o se construye con `clod_v2.py`), animado con `clod_anim.py` (pantalla LED con caras, saludo, pulgar arriba, rebote, salto, habla). Guía: `biblioteca/personajes/LEEME_CLOD_V2.md`.
-- **Ejemplo completo con los dos y diálogo:** `biblioteca/personajes/escena_alex_clod.py` (cómo anexar a Clod, voces de cada uno, 5 planos con cortes y `comprobar_encuadre()` antes de renderizar).
-- Render: EEVEE 1080×1920 al 67 % con 48 muestras ≈ 1 s por fotograma en este PC.
+## Qué queda
 
 | Carpeta | Qué hay |
 |---|---|
-| `biblioteca/` | `biblioteca_ekoruedas.py` (escenarios y personajes v1) y `biblioteca_ekoruedas_v1.blend`; `personajes/` con Alex v2 y Clod v2 |
-| `plantillas/` | `plantilla_reel.py`: esqueleto del script diario (carga la biblioteca y escribe solo cámaras, textos y acción) |
-| `scripts/` | `render_bg.py` (render en segundo plano) y `encode_bg.py` (fotogramas → mp4) |
-| `referencias/` | Imágenes del estilo al que queremos llegar |
-| `evolucion_videos/` (solo PC) y `videos/` (GitHub) | Demos de cada mejora de los personajes, con fecha |
-| `PLAN_DE_ESTILO.md` | Meta visual, regla de gasto y fases de mejora |
-| `LECCIONES.md` | Errores de cada reel y cómo se arreglaron (para no repetirlos) |
+| `biblioteca/` | **Modelos de piezas** con medidas reales, cada uno en su archivo: `motor_4t_real.py`, `turbo_real.py` (+ `prueba_turbo.py`), `neumatico_real.py`, `freno_real.py`, `amortiguador_real.py`, `embrague_real.py`, `bateria_real.py`, `filtro_aceite_real.py`, `bujia_real.py`. Materiales: `materiales_pro.py`. Escenarios: `biblioteca_ekoruedas.py`, `taller_v2.py`. |
+| `biblioteca/personajes/` | **Clod v3** (`clod_v3.py`, `clod_anim.py`, guía `LEEME_CLOD_V3.md`; en el PC `clod\clod_v3.blend`), **Maite** y los demás personajes de Tripo (`tripo/`: Maite, Lucía, Ane, Iker, Patxi), y Rulo (`rulo_canal_nuevo/`, reservado para el canal nuevo). |
+| `plantillas/` | Herramientas de montaje: `montaje_despiece.py` (rótulos, subtítulos, logo final), `portada_despiece.py`, `despiece_base.py`, `plantilla_reel.py`. |
+| `scripts/` | `render_cycles_bg.py` (render 4K 60 fps con Cycles), `encode_bg.py` (fotogramas → mp4), `prueba_frames.py` (fotogramas de prueba rápidos), `render_bg.py`, `construir_bg.py`. |
+| `marca/` | Logo de EKORUEDAS. |
+| `referencias/`, `disenos/` | Imágenes de estilo y los 8 diseños de vídeo. |
+| `PLAN_DE_ESTILO.md`, `LECCIONES.md` | Meta visual y lo aprendido (para no repetir errores). |
 
-Cada reel tiene su propia carpeta en el escritorio, `CLAUDE VIDEOS\AAAA-MM-DD_TITULO`, y en GitHub, `reels-diarios/`.
+## Personajes
+- **Maite**: la cara de EKORUEDAS desde el 27-11-2026. Voz Renata (Ootto, español de España).
+- **Clod v3**: robot naranja de 32 cm, ayudante. No habla.
+- **Alex** y **Clod v2**: retirados (en la `_papelera` del PC y en el historial de GitHub).
 
-## Personajes de dibujos (cartoon 3D)
-- `biblioteca/personajes/rulo_canal_nuevo/rulo.py`: Rulo, personaje original **reservado para el canal nuevo (no taller)** con brazos de goma (B-Bones) y pelo con físicas (complemento Wiggle Bones). Genera la escena, la animación de 8 s y hornea el pelo. En el PC: `EKORUEDAS_ESTUDIO_3D\personajes_cartoon\rulo\`.
+## Estándar
+Todo lo mecánico sigue la skill `skills/ekoruedas-automotive-cgi-4k/` (4K vertical 2160x3840, 60 fps, Cycles, despiece de cine).
