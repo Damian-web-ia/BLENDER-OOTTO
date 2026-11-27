@@ -57,6 +57,7 @@ Diseño:
 5. Piel con subsurface y rubor suave; nariz y orejas mejor formadas.
 6. Uniforme con textura de tela y costuras (ribete naranja más fino).
 7. Pelo y barba con volumen (mechones modelados).
+8b. Alex: cara seria de verdad (la malla sonreía en reposo): expresión "seria" nueva y neutra/duda/enfado/concentrado sin sonrisa residual. ✔ 27-11 (`alex_anim.py` v3; antes/después en `referencias/evolucion/2026-11-27_alex-cara-seria.png`)
 8. Clod: pantalla con expresiones (feliz, susto, preocupado, solemne) cambiadas por clave. ✔ 26-11
 9. Clod: brazos con codo y manos de 3 dedos; rebote elástico al andar. (codo y rebote ✔ 26-11; faltan dedos)
 10. Iluminación de estudio fija y cálida con contraluz de color (look Arcane: borde cálido y sombras frías).

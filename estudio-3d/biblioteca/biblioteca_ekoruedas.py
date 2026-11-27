@@ -1,4 +1,4 @@
-# EKORUEDAS - BIBLIOTECA 3D (versión 1, 2026-11-25)
+# EKORUEDAS - BIBLIOTECA 3D (versión 3, 2026-11-27: Alex v3 con cara seria en personajes/alex_anim.py; versión 2, 26-11: capa viva; versión 1, 25-11)
 # Personajes, coche, ruedas, taller, carretera cenital, luces y utilidades de cámara/texto/visemas.
 # Uso desde el script de cada reel:  END = 1005; VOICES = [...]; exec(open(BIBLIOTECA).read())
 # Luego el reel solo escribe cámaras, textos y acción. Mejorar aquí = mejorar todos los reels.

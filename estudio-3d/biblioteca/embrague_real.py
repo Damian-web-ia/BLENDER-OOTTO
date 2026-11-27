@@ -98,8 +98,8 @@ def materiales(MP, pref):
             "chapa": MP["acero"](pref + "_MatChapa", (0.48, 0.49, 0.5), (0.22, 0.38), anillos=False),
             "muelle": MP["pintura"](pref + "_MatMuelle", (0.12, 0.13, 0.15), rugo=0.3, barniz=0.5, metal=0.6),
             "plato": MP["fundicion"](pref + "_MatPlato", (0.30, 0.30, 0.31)),
-            "diafragma": MP["acero"](pref + "_MatDiafragma", (0.22, 0.27, 0.36), (0.2, 0.32), anillos=False),
-            "carcasa": MP["pintura"](pref + "_MatCarcasa", (0.07, 0.075, 0.08), rugo=0.42, barniz=0.35, metal=0.3),
+            "diafragma": MP["acero"](pref + "_MatDiafragma", (0.16, 0.22, 0.34), (0.28, 0.42), anillos=False),
+            "carcasa": MP["pintura"](pref + "_MatCarcasa", (0.035, 0.038, 0.042), rugo=0.45, barniz=0.25, metal=0.15),
             "tornillo": MP["acero"](pref + "_MatTornillo", (0.62, 0.6, 0.55), (0.2, 0.35), anillos=False),
             "collarin": MP["pintura"](pref + "_MatCollarin", (0.02, 0.02, 0.022), rugo=0.35, barniz=0.6),
             "rodamiento": MP["cromo"](pref + "_MatRodamiento")}
@@ -259,7 +259,7 @@ def construir_embrague(col, MP, pref="EMB", solo_disco=False, gastado=0.0):
         O.update(_disco(col, g, M, MF, pref, gastado)); O["g_disco"] = g
         return O
     for n in ("g_volante", "g_disco", "g_maza", "g_collarin"):
-        O[n] = _vacio(pref + "_" + n[2:].capitalize(), col, raiz)
+        O[n] = _vacio(pref + "_G" + n[2:].capitalize(), col, raiz)
     O["volante"], O["corona"] = _volante(col, O["g_volante"], M, pref)
     O.update(_disco(col, O["g_disco"], M, MF, pref, gastado))
     pz, O["g_plato"] = _maza(col, O["g_maza"], M, pref); O.update(pz)

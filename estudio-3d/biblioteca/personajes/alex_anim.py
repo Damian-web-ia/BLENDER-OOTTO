@@ -1,4 +1,4 @@
-# ALEX v2 · FUNCIONES DE ANIMACIÓN · v2 de movimiento (26-11-2026: capa_viva). exec() después de cargar alex_v2_rig.blend o su colección
+# ALEX v2 · FUNCIONES DE ANIMACIÓN · v3 (27-11-2026: cara seria sin sonrisa residual) · v2 de movimiento (26-11-2026: capa_viva). exec() después de cargar alex_v2_rig.blend o su colección
 # Unidades: metros y grados, en el espacio del personaje (mira hacia -Y):
 #   +X = izquierda del personaje, -Y = adelante, +Z = arriba.  Lado "R" = derecho, "L" = izquierdo.
 # Todo se anima con fotogramas clave (curvas Bézier suaves). Brazos y piernas por IK.
@@ -397,16 +397,22 @@ MALLA = bpy.data.objects.get("ALEX_v2_Malla")
 CARA_KEYS = ("CejaArriba_R", "CejaArriba_L", "CejaEnfado_R", "CejaEnfado_L", "CejaTriste_R", "CejaTriste_L",
              "OjoAbierto_R", "OjoAbierto_L", "Sonrisa_R", "Sonrisa_L", "BocaTriste_R", "BocaTriste_L",
              "Boca_O", "Boca_Ancha", "Nariz_Arruga")
+# v3 (27-11-2026): la malla de Tripo ya sonríe en reposo (comisuras arriba y ojos entornados), así que "neutra", "duda",
+# "enfado" y "concentrado" bajaban poco y Alex parecía sonreír siempre. Ahora compensan con BocaTriste (comisuras abajo)
+# y OjoAbierto (menos ojos entornados). Nueva expresión "seria": su cara de siempre (seco y serio). Antes/después en
+# estudio-3d/referencias/evolucion/2026-11-27_alex-cara-seria.png. "neutra_v2" guarda la neutra antigua por si hace falta.
 EXPRESIONES = {
-    "neutra":    {},
+    "neutra":    {"BocaTriste_R": 0.4, "BocaTriste_L": 0.4, "OjoAbierto_R": 0.3, "OjoAbierto_L": 0.3, "CejaEnfado_R": 0.12, "CejaEnfado_L": 0.12},
+    "neutra_v2": {},
+    "seria":     {"BocaTriste_R": 0.6, "BocaTriste_L": 0.6, "CejaEnfado_R": 0.25, "CejaEnfado_L": 0.25, "OjoAbierto_R": 0.45, "OjoAbierto_L": 0.45},
     "sonrisa":   {"Sonrisa_R": 1, "Sonrisa_L": 1, "CejaArriba_R": 0.25, "CejaArriba_L": 0.25},
     "risa":      {"Sonrisa_R": 1, "Sonrisa_L": 1, "CejaArriba_R": 0.5, "CejaArriba_L": 0.5, "Boca_Ancha": 0.4},
     "picaro":    {"Sonrisa_L": 0.9, "CejaArriba_R": 0.8, "Sonrisa_R": 0.15},
-    "enfado":    {"CejaEnfado_R": 1, "CejaEnfado_L": 1, "BocaTriste_R": 0.45, "BocaTriste_L": 0.45, "Nariz_Arruga": 0.7},
+    "enfado":    {"CejaEnfado_R": 1, "CejaEnfado_L": 1, "BocaTriste_R": 0.75, "BocaTriste_L": 0.75, "Nariz_Arruga": 0.7, "OjoAbierto_R": 0.3, "OjoAbierto_L": 0.3},
     "sorpresa":  {"CejaArriba_R": 1, "CejaArriba_L": 1, "OjoAbierto_R": 1, "OjoAbierto_L": 1, "Boca_O": 0.5},
     "triste":    {"CejaTriste_R": 1, "CejaTriste_L": 1, "BocaTriste_R": 0.9, "BocaTriste_L": 0.9},
-    "duda":      {"CejaArriba_L": 0.9, "CejaEnfado_R": 0.35, "BocaTriste_R": 0.3, "Sonrisa_L": 0.2},
-    "concentrado": {"CejaEnfado_R": 0.4, "CejaEnfado_L": 0.4, "Boca_O": 0.1},
+    "duda":      {"CejaArriba_L": 0.9, "CejaEnfado_R": 0.45, "BocaTriste_R": 0.65, "BocaTriste_L": 0.4, "OjoAbierto_R": 0.3, "OjoAbierto_L": 0.45},
+    "concentrado": {"CejaEnfado_R": 0.4, "CejaEnfado_L": 0.4, "Boca_O": 0.1, "BocaTriste_R": 0.5, "BocaTriste_L": 0.5, "OjoAbierto_R": 0.25, "OjoAbierto_L": 0.25},
 }
 def _sk(nombre): return MALLA.data.shape_keys.key_blocks[nombre]
 def cara(f, expresion="neutra", intensidad=1.0, **extra):
