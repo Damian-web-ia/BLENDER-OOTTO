@@ -391,8 +391,8 @@ def cl(f, pos, mira, lens, fstop=None):
     a = MP @ Vector(pos); b = MP @ Vector(mira)
     ck(f, tuple(a), tuple(b), lens, dof=tuple(b) if fstop else None, fstop=fstop or 2.8)
 # plano A: Alex, el coche y Clod botando -> entramos en la rueda -> estalla (temblor) -> sale el amortiguador
-ck(1, (-1.15, -2.75, 1.30), (-1.15, -0.05, 1.00), 29)
-ck(62, (-1.18, -2.60, 1.28), (-1.20, 0.0, 0.98), 30)
+ck(1, (-1.40, -1.95, 1.20), (-1.48, 0.40, 0.92), 36)
+ck(62, (-1.42, -1.85, 1.18), (-1.50, 0.45, 0.92), 38)
 ck(74, (-1.42, -1.75, 1.15), (-1.55, 0.62, 0.95), 44)
 ck(86, (-1.44, -1.68, 1.12), (-1.55, 0.62, 0.93), 46)
 ck(98, (-1.05, -2.05, 0.95), (-1.22, 0.0, 0.45), 31)

@@ -46,8 +46,8 @@ def materiales():
     M["goma"] = _mat("AM_Goma", (0.011, 0.011, 0.012), 0.0, 0.7)
     M["hueco"] = _mat("AM_Hueco", (0.008, 0.008, 0.01), 0.0, 0.9)
     M["lamina"] = _mat("AM_Lamina", (0.42, 0.45, 0.52), 1.0, 0.18)
-    M["chispa"] = _mat("AM_Flujo", (1.0, 0.85, 0.4), 0.0, 0.4, emis=(1.0, 0.82, 0.35), fuerza=9.0)
-    M["sucio"] = _mat("AM_PinturaSucia", (0.045, 0.034, 0.024), 0.15, 0.75)
+    M["chispa"] = _mat("AM_Flujo", (1.0, 0.95, 0.75), 0.0, 0.4, emis=(1.0, 0.95, 0.7), fuerza=16.0)
+    M["sucio"] = _mat("AM_PinturaSucia", (0.15, 0.115, 0.075), 0.1, 0.8)
     M["fuga"] = _mat("AM_Fuga", (0.03, 0.018, 0.005), 0.0, 0.05, coat=1.0)
     M["corte"] = _mat("AM_Corte", (0.95, 0.3, 0.04), 0.0, 0.45, emis=(1.0, 0.35, 0.05), fuerza=0.6)
     M["aceite"] = aceite()
@@ -142,7 +142,7 @@ def muelle(nombre, mat, col, padre):
     return o
 
 
-def mancha_fuga(nombre, mat, col, padre, a0=-2.2, a1=-0.95, z0=0.07, z1=0.29):
+def mancha_fuga(nombre, mat, col, padre, a0=-2.5, a1=-0.65, z0=0.06, z1=0.29):
     """Película de aceite sobre el cuerpo, con chorretones hacia abajo."""
     bm = bmesh.new(); r = R_CUERPO + 0.0007; na, nz = 18, 22
     filas = []
@@ -228,7 +228,7 @@ def construir_amortiguador(col, pref="AM", interior=True, gastado=False):
     for k in range(HUECOS):
         a = k * math.tau / HUECOS
         cil(f"{pref}_Hueco{k}", R_HUECO, -H_PIS / 2 - 0.0004, H_PIS / 2 + 0.0004, M["hueco"], col, pis, seg=12, loc=(RH * math.cos(a), RH * math.sin(a), 0))
-    for k, (r, dz) in enumerate(((0.0135, 0.0014), (0.0118, 0.0014), (0.0100, 0.0014))):
+    for k, (r, dz) in enumerate(((0.0088, 0.0014), (0.0077, 0.0014), (0.0066, 0.0014))):
         z0 = H_PIS / 2 + k * dz
         cil(f"{pref}_Lamina{k}", r, z0, z0 + dz * 0.8, M["lamina"], col, pis, seg=40)
         cil(f"{pref}_LaminaB{k}", r, -z0 - dz * 0.8, -z0, M["lamina"], col, pis, seg=40)
@@ -238,9 +238,9 @@ def construir_amortiguador(col, pref="AM", interior=True, gastado=False):
     for k in range(HUECOS):
         a = k * math.tau / HUECOS + 0.2
         for j in range(3):
-            bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=6, radius=0.0019)
+            bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=6, radius=0.0012)
             s = _obj(f"{pref}_Gota_{k}_{j}", bm, M["chispa"], col, pis)
-            s.location = (RH * math.cos(a), RH * math.sin(a), -0.03); s["fase"] = j * 8 + k * 3
+            s.location = (RH * math.cos(a), RH * math.sin(a), -0.03); s.scale = (1, 1, 2.6); s["fase"] = j * 5 + k * 3
             fl.append(s)
     O["flujo"] = fl
     return O
