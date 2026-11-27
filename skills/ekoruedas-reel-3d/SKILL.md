@@ -1,6 +1,6 @@
 ---
 name: ekoruedas-reel-3d
-description: Skill para idear, producir y publicar reels diarios de EkoRuedas en 3D con Blender, usando datos reales del canal, tendencias verificadas, voces de Ootto y animación de Alex y Clod. Mantiene las reglas editoriales, técnicas y de seguridad del canal, y aprende de las métricas de cada publicación.
+description: Skill para idear, producir y publicar reels diarios de EkoRuedas en 3D con Blender, usando datos reales del canal, tendencias verificadas, voces de Ootto y animación de Maite (la cara de EKORUEDAS) y Clod. Mantiene las reglas editoriales, técnicas y de seguridad del canal, y aprende de las métricas de cada publicación.
 ---
 
 # ekoruedas-reel-3d
@@ -34,17 +34,13 @@ Esos datos solo pueden aparecer en el pie de texto y se deben copiar del bloque 
 
 ### Personajes
 
-**Alex**
+**Maite** (desde el 27-11-2026 es la cara de EKORUEDAS)
 
-- Mecánico de unos 45 años, piel morena y barba corta canosa.
-- Mono negro liso con ribetes naranjas.
-- Serio, seco y claro; puede usar ironía contenida y una media sonrisa.
-- Desde el 26-11-2026, Alex pone **todas las voces**, con voz **Diego** (España): `reel_voice="cartesia-399002e9-7f7d-42d4-a6a8-9b91bd809b9d"`. Pedirla siempre por este id: hay voces con el mismo nombre y otro acento (el "Gonzalo" de Panamá sonaba latino y Damián no lo quiere). Acento de España siempre.
-- Animar la mandíbula según los tiempos de voz.
-- Usar el rig de Alex v2 y las poses disponibles.
-- Mantener respiración y cambios de peso continuos: Alex nunca queda completamente inmóvil.
-- Anticipar los gestos: ojos y cabeza antes que brazo.
-- En encuadre vertical, respetar la limitación de manos indicada en la producción del día y no cruzarlas delante de la cara.
+- Damián, 27-11-2026: "la chica ahora va a sustituir a Alex ... Va a explicar y va a tener voz de chica también" y, a las 21:39, "quiero que elimines el modelo 3D de Alex" y "Quiero que desde ahora la chica sea la que pone la cara en ecorruedas, ¿vale? En los vídeos". Alex queda retirado (sus archivos están en `_papelera` del PC y en el historial de GitHub) y no vuelve a salir.
+- Mecánica joven con trenza larga, camiseta blanca, mono vaquero azul, guantes negros y botas de trabajo. Cercana, segura y clara; humor amable.
+- Modelo de Tripo con esqueleto Mixamo: `biblioteca\personajes\tripo\maite\maite_tripo.blend` (escala 1.73). Escena de referencia con sus gestos (`dirigir`, `girar`, `pose_base`, `gesto_explica`, `senala_motor`): `estudio-3d/videos_3d/motor_4t/motor_4t.py`.
+- **Única voz**: Ootto `reel_voice="Renata"` (español de España). Frase a frase, con la emoción del guion; si `voice_check` marca palabras mal oídas, repetir con `fresh=true`.
+- Mantener respiración y pequeños cambios de peso: nunca queda completamente inmóvil. Anticipar los gestos: ojos y cabeza antes que brazo. Manos fuera de la cara.
 
 **Clod**
 
@@ -75,7 +71,7 @@ Esos datos solo pueden aparecer en el pie de texto y se deben copiar del bloque 
 
 Antes de modelar algo nuevo, revisar si ya existe:
 
-- Alex v2, rig con IK de brazos y piernas, seis poses de mano, nueve expresiones, mandíbula sincronizable, caminar, agacharse, señalar, pulgar arriba y encogerse.
+- Maite (Tripo, esqueleto Mixamo) con gestos de explicar y señalar en `motor_4t.py`; otros personajes de Tripo para apariciones cortas: Lucía, Ane, Iker, Patxi.
 - Clod v2, piezas rígidas, caras LED y acciones disponibles.
 - Coche compacto, ruedas nuevas y gastadas.
 - Taller, carretera cenital mojada, estudio con ciclorama y banco de trabajo.
@@ -86,7 +82,7 @@ Antes de modelar algo nuevo, revisar si ya existe:
 
 ### Paso 0 — Mejora pequeña de biblioteca
 
-Cada día se intenta una mejora pequeña de diseño o movimiento de Alex o Clod.
+Cada día se intenta una mejora pequeña de diseño o movimiento de Maite o Clod.
 
 1. Elegir un cambio acotado: una transición, una expresión, una pose, un ajuste de peso o un detalle de diseño.
 2. Guardar una prueba **antes/después**.
@@ -160,9 +156,9 @@ Guardar también el prompt y la skill utilizados, siguiendo la estructura existe
 
 ### Paso 4 — Voces primero
 
-1. Preparar el guion final con todas las frases habladas por Alex.
+1. Preparar el guion final con todas las frases habladas por Maite.
 2. Generar las voces en Ootto **antes de animar**.
-3. Usar **Diego** para Alex, por su id (`cartesia-399002e9-7f7d-42d4-a6a8-9b91bd809b9d`).
+3. Usar **Renata** para Maite (`reel_voice="Renata"`, español de España).
 4. No generar ni asignar ninguna voz a Clod.
 5. Dividir la locución por frases para facilitar ajuste y edición.
 6. Medir los tiempos por palabra y guardar el resultado en:
@@ -181,7 +177,7 @@ En el PC del taller:
 1. Preparar el script diario para Blender 5.3.
 2. Cargar:
    - `taller_v2.py`
-   - Alex v2 mediante `alex_anim.py`
+   - Maite desde `biblioteca\personajes\tripo\maite\maite_tripo.blend` (como en `motor_4t.py`)
    - Clod v2 mediante `clod_anim.py`
 3. Cargar los activos existentes antes de modelar.
 4. Crear por código las piezas nuevas estrictamente necesarias.
@@ -204,7 +200,7 @@ Transferir los renders desde el PC del taller a Ootto. Verificar que el material
 
 Montar con Ootto y ffmpeg:
 
-- Voz de Alex según `data/voces.json`.
+- Voz de Maite según `data/voces.json`.
 - Música rítmica suave, inicialmente alrededor de **0,2** de nivel, con ducking bajo la voz.
 - **2–4 efectos** pertinentes; evitar saturar o tapar la voz.
 - Subtítulos ASS con caja oscura.
@@ -289,13 +285,13 @@ Antes de escribir una afirmación mecánica:
 
 ## 5. Actuación creíble y seguridad
 
-### Alex
+### Maite
 
 - Mira al interlocutor o a cámara antes de comenzar el gesto.
 - Usa gestos sencillos y económicos; no señalar continuamente.
 - Mantiene postura viva con respiración y pequeños cambios de peso.
 - Las expresiones deben acompañar la intención de la línea, sin sobreactuar.
-- El humor de Alex se expresa con pausas breves, sequedad y una reacción precisa, no con crueldad.
+- El humor de Maite se expresa con pausas breves, sequedad y una reacción precisa, no con crueldad.
 
 ### Clod
 
@@ -309,7 +305,7 @@ Antes de escribir una afirmación mecánica:
 ### Seguridad
 
 - No representar como segura una conducta peligrosa con ruedas, elevadores, herramientas o maquinaria.
-- No poner a Clod, a Alex ni a una persona en contacto con partes móviles.
+- No poner a Clod, a Maite ni a una persona en contacto con partes móviles.
 - Si un gag utiliza una máquina, dejar claro visualmente cuándo está apagada o que el movimiento es una visualización separada.
 - Evitar sustos de accidentes, burlas, lesiones gráficas o humor de mal gusto.
 - La exageración mecánica debe leerse como visualización, no como instrucción de reparación.
@@ -322,7 +318,7 @@ Antes de escribir una afirmación mecánica:
 - Reservar espacio para subtítulos, especialmente en la parte inferior.
 - Evitar que elementos importantes queden bajo controles de interfaz de Instagram, TikTok o YouTube.
 - Usar:
-  - Primeros planos a la altura de los ojos para la explicación de Alex.
+  - Primeros planos a la altura de los ojos para la explicación de Maite.
   - Macros lentos para piezas y despieces.
   - Planos algo más abiertos para que Clod se lea con claridad.
   - Movimientos cortos y deliberados; no mover cámara por adornar.
@@ -333,7 +329,7 @@ Antes de escribir una afirmación mecánica:
 ## 7. Portada
 
 - Debe funcionar sin audio y entenderse al primer vistazo.
-- Mostrar a Alex y/o Clod con una emoción legible y coherente con el tema.
+- Mostrar a Maite y/o Clod con una emoción legible y coherente con el tema.
 - Texto corto y grande; priorizar una pregunta o síntoma. Evitar frases largas.
 - Usar el naranja **#FF8400** como color de énfasis y asegurar contraste con el fondo.
 - No ocultar caras, gestos o pieza principal.
@@ -343,7 +339,7 @@ Antes de escribir una afirmación mecánica:
 
 ## 8. Sonido
 
-- Alex es la única voz (Ootto, `reel_voice="cartesia-399002e9-7f7d-42d4-a6a8-9b91bd809b9d"` = Diego, español de España, elegido por Damián el 26-11-2026 a las 20:21). Clod no habla: sus reacciones se oyen con efectos cortos.
+- Maite es la única voz (Ootto, `reel_voice="Renata"`, español de España; desde el 27-11-2026 sustituye a Alex). Clod no habla: sus reacciones se oyen con efectos cortos.
 - Voces primero, frase a frase, con la emoción del guion; los tiempos de cada palabra (`words`) van a `data/voces.json` y mandan sobre la animación.
 - Música suave de `/work/audio/music_library` a ~0,2, con `sidechaincompress` bajo la voz.
 - 2-4 efectos de `/work/audio/sfx` o `/work/project/public/sfx_pack`, cada uno ligado a una acción visible.
@@ -365,7 +361,7 @@ Antes de escribir una afirmación mecánica:
 - YouTube: Ootto sube como máximo 3 vídeos al día por marca; si se pasa, lo deja en cola y dice a qué hora sube (se acepta y se apunta, nunca se vuelve a subir).
 - Comprobar YouTube después de cada publicación: `own_media_list(platform="youtube")`. El 26-11 el reel de las ruedas se programó en Instagram + YouTube y a YouTube no llegó. Si falta, `reel_post(platform="youtube", title, tags, privacy "public")` con el mismo job.
 - YouTube Shorts (26-11-2026): Damián quiere monetizar, así que todo va como Short. YouTube lo clasifica solo: vídeo vertical 9:16 (o cuadrado), de 3 minutos o menos y público. No hay casilla aparte ni hace falta #shorts. Comprobado en own_media_list(platform="youtube"): `short: true` en psIf9sMLZGk (frenos, 27 s) y x5FS1ogsBQw (caja de cambios, 61 s). Nunca subir en 16:9 ni como oculto o privado: esas vistas no cuentan para monetizar.
-- Plan A y plan B (27-11-2026, Damián): "el plan A siempre va a ser el de 3D y el desmontaje y todo con Claude y Alex". La tarea de las 19:30 hace cada día un despiece 3D de una pieza del coche (modelos: estudio-3d/videos_3d/despiece_frenos y despiece_neumatico), con Alex como única voz (Diego) y Clod sin hablar, y lo programa para el día siguiente a las 19:00. La tarea de las 04:47 es el plan B: solo crea vídeo (estilo antiguo, con Ootto) si ese día no hay nada programado.
+- Plan A y plan B (27-11-2026, Damián): "el plan A siempre va a ser el de 3D y el desmontaje y todo con Claude y Alex". La tarea de las 19:30 hace cada día un despiece 3D de una pieza del coche (modelos: estudio-3d/videos_3d/despiece_frenos y despiece_neumatico), con Alex como única voz (Diego) y Clod sin hablar, y lo programa para el día siguiente a las 19:00. La tarea de las 04:47 es el plan B: solo crea vídeo (estilo antiguo, con Ootto) si ese día no hay nada programado. **Actualizado 27-11-2026 (21:39):** Alex retirado, Maite es la cara y la única voz (Renata); los vídeos siguen la skill CGI 4K (2160x3840, 60 fps, Cycles); la tarea de las 04:47 (plan B, con Alex) está en pausa por decisión de Damián.
 - Pie: 1-2 frases con el dato y su fuente + bloque fijo del taller + 4-6 hashtags (#ekoruedas #derio #bizkaia #taller + 1-2 del tema).
 
 ## 11. Comprobaciones antes de entregar
@@ -401,15 +397,15 @@ Usar este flujo para convertir cualquier pieza del coche en un reel vertical de 
    - Elegir el despiece que revele mejor la función: **corte por la mitad** para mostrar un interior; **explosión axial o por capas** para conjuntos apilados; **rayos X** para ubicar la pieza en el coche. Se pueden combinar solo si mejora comprensión.
    - Aplicar materiales diferenciables y verosímiles. Controlar reflejos para que no oculten geometría y evitar que goma, forros u otros materiales parezcan plástico. Hacer una prueba de lectura a tamaño móvil.
 
-4. **Escribir un guion de 4–5 frases.** Orden recomendado: síntoma-pregunta; nombre y función; cómo trabaja por dentro; síntoma reconocible y recomendación prudente; consejo/CTA. Una idea principal por frase, términos técnicos nombrados y explicados en media frase. Alex es la única voz. Clod participa visualmente, nunca verbalmente.
+4. **Escribir un guion de 4–5 frases.** Orden recomendado: síntoma-pregunta; nombre y función; cómo trabaja por dentro; síntoma reconocible y recomendación prudente; consejo/CTA. Una idea principal por frase, términos técnicos nombrados y explicados en media frase. Maite es la única voz. Clod participa visualmente, nunca verbalmente.
 
 5. **Ajustar palabras al tiempo.** Usar como punto de partida unas **2,2–2,7 palabras por segundo** de voz efectiva (132–162 palabras/minuto), dejando huecos para acción, rótulos y reacción visual. Contar el texto hablado y medir una lectura real o de prueba; no “solucionar” un guion largo acelerándolo. El gancho aparece desde el primer fotograma y se entiende en el primer segundo.
 
 6. **Planificar los tiempos y la animación.** Repartir el reel entre gancho, ubicación/extracción, despiece, funcionamiento, síntoma y consejo/cierre. Animar con anticipación y asentamiento: mostrar dónde está la pieza, extraerla, separar partes, mantenerlas legibles, acercar cámara al mecanismo y volver a montar o comparar cuando corresponda. Usar fotogramas clave con 30 fps y revisar cada plano por separado.
 
-7. **Rótulos y comparación.** Nombrar cada parte cuando Alex la menciona; rótulo breve, línea clara hasta el ancla y tiempo suficiente para leerlo. Mantener textos fuera de caras y dentro de la zona segura. Si hay inserto nuevo/gastado, presentarlo como comparación visual prudente: sin espesores, cifras o desgaste extremo inventados.
+7. **Rótulos y comparación.** Nombrar cada parte cuando Maite la menciona; rótulo breve, línea clara hasta el ancla y tiempo suficiente para leerlo. Mantener textos fuera de caras y dentro de la zona segura. Si hay inserto nuevo/gastado, presentarlo como comparación visual prudente: sin espesores, cifras o desgaste extremo inventados.
 
-8. **Dar a Clod un gag sin quitar foco.** Puede observar, señalar, anticipar mal, sobresaltarse o corregir un gesto. Alex responde con calma y sin contacto agresivo. Sin voz, frases, risas ni chistes a costa del cliente. El gag no debe tapar la pieza ni competir con el síntoma o la explicación.
+8. **Dar a Clod un gag sin quitar foco.** Puede observar, señalar, anticipar mal, sobresaltarse o corregir un gesto. Maite responde con calma y sin contacto agresivo. Sin voz, frases, risas ni chistes a costa del cliente. El gag no debe tapar la pieza ni competir con el síntoma o la explicación.
 
 9. **Portada.** Elegir una imagen que comunique la pieza y el problema de inmediato: elemento principal grande, texto breve (idealmente una pregunta), contraste alto y personajes secundarios a la pieza. Componer vertical y comprobar el recorte cuadrado. Respetar la prohibición de logos, nombre, teléfono y web en el vídeo; la chapa final de logo solo se usa según las reglas del canal.
 

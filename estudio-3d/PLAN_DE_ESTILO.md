@@ -1,5 +1,7 @@
 # Plan de estilo 3D: EKORUEDAS
 
+> **27-11-2026 (21:39), Damián:** "quiero que elimines el modelo 3D de Alex y quiero que hagas un modelo 3D mejor de Clod" y "desde ahora la chica sea la que pone la cara en ecorruedas". Alex queda retirado (lo de abajo sobre Alex es historia); la presentadora es Maite (Tripo) y Clod pasa a la versión 3.
+
 ## Meta visual
 
 Personajes con acabado de película de animación 3D (estilo dibujo animado tipo Disney/Pixar o pictórico tipo Arcane, siempre con diseño propio: Alex y Clod no copian a ningún personaje existente), como la imagen de referencia de Damián (`referencias/objetivo_estilo_01.png`):

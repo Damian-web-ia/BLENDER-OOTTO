@@ -8,7 +8,7 @@ Aquí se guarda todo lo que hacemos para los vídeos de **EKORUEDAS** (taller de
 
 | Carpeta | Fecha | Qué es | Estado |
 |---|---|---|---|
-| [`2026-11-24_personajes-3d/`](2026-11-24_personajes-3d/) | 24-11-2026 | Personajes 3D reutilizables (Clod, el robot) | Clod listo · Alex se construye por código en cada proyecto |
+| [`2026-11-24_personajes-3d/`](2026-11-24_personajes-3d/) | 24-11-2026 | Personajes 3D reutilizables (Clod, el robot) | Alex retirado el 27-11-2026 · ahora presenta Maite |
 | [`2026-11-24_prueba-clod-3d/`](2026-11-24_prueba-clod-3d/) | 24-11-2026 | Primera prueba: Clod hablando en 3D con voz de Ootto | Prueba terminada |
 | [`2026-11-25_video-jesko-koenigsegg/`](2026-11-25_video-jesko-koenigsegg/) | 25-11-2026 | Vídeo 3D de 60 s: "La caja de cambios imposible" (Koenigsegg Jesko) | Terminado con sonido en Ootto · sin publicar · render 4K a medias |
 | [`2026-11-25_cerebro-de-claude/`](2026-11-25_cerebro-de-claude/) | 25-11-2026 | Código de la página "Cerebro de Claude" (cerebro 3D + mapa del sistema) y su zip | Se actualiza solo cada domingo |
@@ -19,14 +19,15 @@ Aquí se guarda todo lo que hacemos para los vídeos de **EKORUEDAS** (taller de
 ## Cómo se hace cada vídeo
 
 1. **Ideas:** vidIQ da las tendencias; ChatGPT (por Zapier) entrevista a Claude y escribe el prompt del día y la skill.
-2. **Voces (Ootto):** Alex con la voz de Carlos, Clod con la de Diego.
-3. **Animación y portada (Blender):** en el PC del taller, por código Python.
+2. **Voces (Ootto):** Maite con la voz Renata (español de España). Clod no habla.
+3. **Animación y portada (Blender):** en el PC del taller, por código Python, con la skill CGI 4K (2160x3840, 60 fps, Cycles).
 4. **De PC a Ootto:** el vídeo sin voz se sube aquí y Ootto lo importa desde este repositorio.
 5. **Sonido y publicación (Ootto y vidIQ):** música, efectos y subtítulos; se publica a las 19:00 en Instagram, YouTube y TikTok.
 
 ## Personajes
 
-- **Clod** (en pantalla, "Claude"): robot naranja pequeño, pantalla negra con ojos LED blancos, auriculares naranjas, símbolo blanco en el pecho, sin antena. Entusiasta, torpe y gracioso. Voz: Diego.
-- **Alex:** mecánico de unos 45 años, piel morena, barba corta canosa, mono negro liso con ribetes naranjas. Serio y seco; explica bien. Voz: Carlos.
+- **Maite** (desde el 27-11-2026, la cara de EKORUEDAS): mecánica con trenza larga, mono vaquero azul, guantes y botas. Explica cada pieza. Voz: Renata (Ootto, español de España). Modelo de Tripo en `estudio-3d/biblioteca/personajes/tripo/`.
+- **Clod** (en pantalla, "Claude"): robot naranja pequeño, pantalla negra con ojos LED blancos, auriculares naranjas, símbolo blanco en el pecho, sin antena. Entusiasta, torpe y gracioso. **No habla.**
+- **Alex** quedó retirado el 27-11-2026 a petición de Damián ("quiero que elimines el modelo 3D de Alex"). Sus archivos siguen en el historial de GitHub y en la `_papelera` del PC.
 
 > El repositorio es público para que Ootto pueda importar los vídeos. No subir aquí nada privado (claves, contraseñas, datos de clientes).

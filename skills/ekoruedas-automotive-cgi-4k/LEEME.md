@@ -22,5 +22,4 @@
 ## Pendiente
 - **El vídeo de referencia** del punto 1 ("el vídeo adjunto") no llegó con la skill: falta que lo mande.
 - **120 fps en cámara lenta** (punto 2, "cuando sea técnicamente viable"): de momento no; dobla otra vez el tiempo de render.
-- **Personajes**: Alex y Clod son de estilo animación; la skill pide realismo para las piezas mecánicas, no cambia a los personajes.
-- **Mañana en diseño:** Alex tiene la cara muy sonriente aunque la expresión sea "duda" o "enfado": revisar la intensidad de las formas de la boca al hablar.
+- **Personajes** (27-11-2026, 21:39): Alex retirado; Maite (Tripo) es la cara de EKORUEDAS y la única voz (Renata). Clod se rehace como Clod v3, con más detalle y materiales PBR, y el Clod v2 se retira cuando el v3 esté probado.
