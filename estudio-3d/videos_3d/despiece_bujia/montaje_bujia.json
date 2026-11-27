@@ -163,5 +163,8 @@
   "grande": "DIÉSEL: SIN BUJÍAS",
   "medio": "LLEVA CALENTADORES",
   "color": "azul"
- }
+ },
+ "logo": "marca/logo_ekoruedas.png",
+ "logo_ancho": 130,
+ "logo_y": 0.215
 }

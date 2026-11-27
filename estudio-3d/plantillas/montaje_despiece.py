@@ -6,22 +6,58 @@
 import sys, json, math, subprocess, re
 from PIL import Image, ImageDraw, ImageFont
 SRC, ANCLAS, AUDIO, OUT, VOZJ, CFGJ = sys.argv[1:7]
-PRUEBA = [int(x) for x in sys.argv[7:]]
+PRUEBA = [float(x) for x in sys.argv[7:]]
+# 27-11 (skill 4K): el diseño se sigue escribiendo en 1080x1920 y a 30 fps ("fotogramas lógicos"), pero se dibuja al tamaño
+# real del render (2160x3840 = x2) y se compone a sus fps reales (60): cada fotograma real es un fotograma lógico fraccionario.
 W, H = 1080, 1920
+_pr = json.loads(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height,r_frame_rate",
+                                 "-of", "json", SRC], capture_output=True, text=True).stdout)["streams"][0]
+WR, HR = int(_pr["width"]), int(_pr["height"]); _n, _d = _pr["r_frame_rate"].split("/"); FPSV = round(int(_n) / int(_d))
+S = WR / W; RAT = FPSV / 30.0
 FONT = "/usr/share/fonts/truetype/google-fonts/ofl/montserrat/Montserrat[wght].ttf"
 _cache = {}
+class _Fuente:
+    """Fuente al tamaño real; getlength devuelve medidas lógicas (1080)."""
+    def __init__(self, f): self.f = f
+    def getlength(self, t): return self.f.getlength(t) / S
 def fnt(sz, peso="ExtraBold"):
     k = (sz, peso)
     if k not in _cache:
-        f = ImageFont.truetype(FONT, max(8, sz))
+        f = ImageFont.truetype(FONT, max(8, int(round(sz * S))))
         try: f.set_variation_by_name(peso)
         except Exception: pass
-        _cache[k] = f
+        _cache[k] = _Fuente(f)
     return _cache[k]
+def _sx(v):
+    if isinstance(v, (list, tuple)): return [_sx(x) for x in v]
+    return v * S
+class Dib:
+    """ImageDraw en coordenadas lógicas: escala posiciones, radios, grosores y contornos al tamaño real."""
+    def __init__(self, im): self.d = ImageDraw.Draw(im)
+    def _k(self, kw):
+        kw = dict(kw)
+        if "font" in kw: kw["font"] = kw["font"].f
+        for a in ("width", "stroke_width", "radius"):
+            if a in kw and kw[a]: kw[a] = max(1, int(round(kw[a] * S)))
+        return kw
+    def text(self, xy, t, **kw): self.d.text(tuple(_sx(xy)), t, **self._k(kw))
+    def rounded_rectangle(self, box, **kw): self.d.rounded_rectangle(_sx(box), **self._k(kw))
+    def rectangle(self, box, **kw): self.d.rectangle(_sx(box), **self._k(kw))
+    def ellipse(self, box, **kw): self.d.ellipse(_sx(box), **self._k(kw))
+    def line(self, xy, **kw): self.d.line(_sx(xy), **self._k(kw))
+def lienzo(): return Image.new("RGBA", (WR, HR), (0, 0, 0, 0))
 AMARILLO = (255, 212, 0); BLANCO = (255, 255, 255); NEGRO = (0, 0, 0)
 COLORES = {"amarillo": AMARILLO, "blanco": BLANCO, "rojo": (255, 70, 60), "verde": (90, 220, 120), "azul": (110, 200, 255), "naranja": (255, 140, 40)}
 def col(c): return tuple(c) if isinstance(c, (list, tuple)) else COLORES[c]
-_a = json.load(open(ANCLAS)); anclas = _a["anclas"]; EV = _a["eventos"]; FIN = _a["fin"]
+_a = json.load(open(ANCLAS)); anclas = _a["anclas"]; EV = _a["eventos"]; FIN = _a["fin"]; CORTES = set(_a.get("cortes", []))
+def anc(f):
+    """Anclas del fotograma lógico f (fraccionario a 60 fps): se interpolan dentro del plano; justo antes de un corte se
+    queda el plano anterior (la cámara cambia de golpe en el fotograma del corte)."""
+    f0 = int(math.floor(f)); u = f - f0
+    A = anclas.get(str(f0)) or {}
+    if u < 1e-6 or (f0 + 1) in CORTES: return A
+    B = anclas.get(str(f0 + 1)) or {}
+    return {k: ([a + (b - a) * u for a, b in zip(v, B[k])] if v is not None and B.get(k) is not None else v) for k, v in A.items()}
 CFG = json.load(open(CFGJ, encoding="utf-8"))
 def T(f): return (f - 1) / 30.0
 def F(t): return int(round(t * 30)) + 1
@@ -86,7 +122,7 @@ def gancho(img, f):
     G0 = 4
     if not (G0 <= f <= GH): return
     a = 1.0 if f < GH - 10 else max(0.0, (GH - f) / 10)
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa); al = int(255 * a)
+    capa = lienzo(); dd = Dib(capa); al = int(255 * a)
     y = 0.085 * H
     for k, (txt, c) in enumerate(CFG["gancho"]):
         pk = ease_back((f - G0 - k * 5) / 7.0)
@@ -114,12 +150,12 @@ def caja(dd, cx, cy, texto, sub, color, escala=1.0, alfa=255):
 # ---------------------------------------------------------------- rótulos de las piezas (uno activo, con línea a su pieza)
 PIEZAS = [(p["ancla"], RF(p["desde"]), RF(p["hasta"]), p["titulo"], p.get("sub", ""), col(p["color"])) for p in CFG.get("piezas", [])]
 def rotulos(img, f):
-    A = anclas.get(str(f)) or {}
+    A = anc(f)
     act = [p for p in PIEZAS if p[1] <= f <= p[2]]
     if not act: return
     cl, f0, f1, tit, sub, c = act[-1]
     pt = A.get(cl)
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
+    capa = lienzo(); dd = Dib(capa)
     p = ease_back((f - f0) / 8.0); alfa = 255 if f < f1 - 5 else int(255 * max(0.0, (f1 - f) / 5))
     cj = caja(dd, W / 2, 0.095 * H, tit, sub, c, escala=0.75 + 0.25 * p, alfa=alfa)
     if pt is not None and 0.03 < pt[0] < 0.97 and 0.06 < pt[1] < 0.95:
@@ -138,8 +174,8 @@ def numeros(img, f):
     if not N: return
     f0, f1 = RF(N["desde"]), RF(N["hasta"])
     if not (f0 <= f <= f1): return
-    A = anclas.get(str(f)) or {}
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
+    A = anc(f)
+    capa = lienzo(); dd = Dib(capa)
     alfa = 255 if f < f1 - 5 else int(255 * max(0.0, (f1 - f) / 5)); c = col(N.get("color", "amarillo"))
     for k, cl in enumerate(N["anclas"]):
         fk = f0 + k * N.get("cada", 4)
@@ -157,7 +193,7 @@ def grafico(img, f):
     if not G: return
     f0, f1 = RF(G["desde"]), RF(G["hasta"])
     if not (f0 <= f <= f1): return
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
+    capa = lienzo(); dd = Dib(capa)
     a = min(1.0, (f - f0) / 6.0, max(0.0, (f1 - f) / 5.0)); al = int(255 * a)
     y0 = int(G.get("y", 0.60) * H)
     if G["tipo"] == "barras":
@@ -194,7 +230,7 @@ def avisos(img, f):
     act = [a for a in AVISOS if a[0] <= f <= a[1]]
     if not act: return
     f0, f1, txt, c, sub, ya = act[-1]
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
+    capa = lienzo(); dd = Dib(capa)
     alfa = 255 if f < f1 - 4 else int(255 * max(0.0, (f1 - f) / 4))
     base = 80
     while fnt(base, "Black").getlength(txt) > W - 90 and base > 40: base -= 2
@@ -208,8 +244,8 @@ def avisos(img, f):
 def inserto(img, f):
     I = CFG.get("inserto")
     if not I or not (INS <= f < A3): return
-    A = anclas.get(str(f)) or {}
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
+    A = anc(f)
+    capa = lienzo(); dd = Dib(capa)
     alfa = 255 if f < A3 - 4 else int(255 * (A3 - f) / 4)
     p0 = ease_back((f - INS) / 7.0)
     if I.get("sub"): dd.text((W / 2, 0.075 * H + 70), I["sub"], font=fnt(30, "Black"), fill=(235, 235, 235, alfa), anchor="mm", stroke_width=6, stroke_fill=(0, 0, 0, alfa))
@@ -231,7 +267,7 @@ def dato(img, f):
     if not D: return
     f0, f1 = RF(D["desde"]), RF(D.get("hasta", "CTA"))
     if not (f0 <= f < f1): return
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
+    capa = lienzo(); dd = Dib(capa)
     p = ease_back((f - f0) / 8.0); al = 255 if f < f1 - 4 else int(255 * (f1 - f) / 4); e = 0.85 + 0.15 * p
     c = col(D.get("color", "rojo"))
     cx, cy = W / 2, D.get("y", 0.645) * H
@@ -247,32 +283,49 @@ def dato(img, f):
 # ---------------------------------------------------------------- cierre
 def cierre(img, f):
     if f < CTA + 4: return
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
+    capa = lienzo(); dd = Dib(capa)
     p = ease_back((f - CTA - 4) / 8.0)
     dd.text((W / 2, 0.095 * H), "SÍGUENOS", font=fnt(int(104 * (0.6 + 0.4 * p)), "Black"), fill=AMARILLO + (255,), anchor="mm", stroke_width=12, stroke_fill=(0, 0, 0, 255))
     if f >= CTA + 12:
         p2 = ease_back((f - CTA - 12) / 8.0)
         dd.text((W / 2, 0.095 * H + 100), CFG.get("pregunta_final", "¿QUÉ PIEZA DESMONTAMOS MAÑANA?"), font=fnt(int(44 * (0.6 + 0.4 * p2)), "Black"), fill=BLANCO + (255,), anchor="mm", stroke_width=9, stroke_fill=(0, 0, 0, 255))
+    if LOGO is not None and f >= CTA + 20:
+        # logo oficial, discreto: pequeño, centrado bajo la pregunta, aparece fundiendo
+        a = min(1.0, (f - CTA - 20) / 10.0) * CFG.get("logo_opacidad", 0.92)
+        yl = CFG.get("logo_y", 0.215) * H; rl = CFG.get("logo_ancho", 130) * 0.66
+        # chapa oscura redonda con filo del color de la marca (#00827C) para que se lea sobre cualquier fondo
+        dd.ellipse((W / 2 - rl, yl - rl, W / 2 + rl, yl + rl), fill=(12, 14, 18, int(205 * a)), outline=(0, 130, 124, int(255 * a)), width=3)
+        lg = LOGO.copy(); lg.putalpha(lg.getchannel("A").point(lambda v: int(v * a)))
+        capa.alpha_composite(lg, (int((WR - lg.width) / 2), int(yl * S - lg.height / 2)))
     img.alpha_composite(capa)
 
+LOGO = None
+if CFG.get("logo"):
+    import os as _os
+    _lp = CFG["logo"] if _os.path.isabs(CFG["logo"]) else _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", CFG["logo"])
+    _l = Image.open(_lp).convert("RGBA"); _w = int(CFG.get("logo_ancho", 250) * S)
+    LOGO = _l.resize((_w, max(1, int(_l.height * _w / _l.width))), Image.LANCZOS)
 def componer(fr, f):
     img = fr.convert("RGBA")
     gancho(img, f); rotulos(img, f); numeros(img, f); grafico(img, f); avisos(img, f); inserto(img, f); dato(img, f); cierre(img, f)
-    subtitulo(ImageDraw.Draw(img), f)
+    subtitulo(Dib(img), f)
     return img.convert("RGB")
 
 if PRUEBA:
     for f in PRUEBA:
-        raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", SRC, "-vf", f"select=eq(n\\,{f - 1}),scale={W}:{H}:flags=lanczos", "-vframes", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True).stdout
-        componer(Image.frombytes("RGB", (W, H), raw), f).save(f"/tmp/prueba_{f:04d}.png")
+        n_ = int(round((f - 1) * RAT))
+        raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", SRC, "-vf", f"select=eq(n\\,{n_})", "-vframes", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True).stdout
+        componer(Image.frombytes("RGB", (WR, HR), raw), f).save(f"/tmp/prueba_{int(round(f * 10)):05d}.png")
     sys.exit(0)
-dec = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-i", SRC, "-vf", f"scale={W}:{H}:flags=lanczos", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
-enc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", "30", "-i", "-", "-i", AUDIO,
-                        "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
+dec = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-i", SRC, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
+# 4K60: x264 "slow" con techo de 24 Mb/s (calidad alta para 4K60 y el archivo cabe en GitHub, < 100 MB)
+_cal = ["-preset", "slow", "-crf", "18", "-maxrate", "24M", "-bufsize", "48M", "-profile:v", "high", "-level", "5.2"] if WR >= 2000 else ["-preset", "veryfast", "-crf", "18"]
+enc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{WR}x{HR}", "-r", str(FPSV), "-i", "-", "-i", AUDIO,
+                        "-map", "0:v", "-map", "1:a", "-c:v", "libx264", *_cal, "-pix_fmt", "yuv420p",
                         "-af", "volume=-0.8dB,alimiter=limit=0.89:level=false", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", OUT], stdin=subprocess.PIPE)
-f = 0; n = W * H * 3
+k = 0; n = WR * HR * 3
 while True:
     buf = dec.stdout.read(n)
     if len(buf) < n: break
-    f += 1; enc.stdin.write(componer(Image.frombytes("RGB", (W, H), buf), f).tobytes())
-enc.stdin.close(); enc.wait(); print("fotogramas", f)
+    k += 1; enc.stdin.write(componer(Image.frombytes("RGB", (WR, HR), buf), 1 + (k - 1) / RAT).tobytes())
+enc.stdin.close(); enc.wait(); print("fotogramas", k, f"{WR}x{HR} a {FPSV} fps")

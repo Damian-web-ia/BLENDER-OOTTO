@@ -90,3 +90,10 @@
 - Render pro (100 %, 64 muestras, raytracing): unos 5-6 s por fotograma frente a 2,5 s al 67 %. Se nota en el metal y en el aceite.
 - En Blender 5.3 el nodo es `ShaderNodeBsdfPrincipled` (no `ShaderNodePrincipledBSDF`).
 
+
+## 2026-11-27 (tarde) · Paso a 4K60 con Cycles (skill maestra de Damián)
+- EEVEE → Cycles con el mismo .blend: casi todo se ve igual o mejor. Lo que cambia: el electrolito y el aceite hechos para EEVEE (subsuperficie 0,3 + brillo propio 0,12) salen lechosos en Cycles y tapan las placas; con transmisión 1, sin subsuperficie ni brillo, el líquido es transparente de verdad y se ven las placas de plomo y el sulfato del fondo.
+- 64 muestras + OIDN = 128 muestras a la vista (diferencia media < 1/255) en la mitad de tiempo.
+- 60 fps sin rehacer la animación: `frame_map_old=100`, `frame_map_new=200` y el doble de fotogramas. Los cortes con interpolación constante siguen cayendo en su sitio (el medio fotograma anterior al corte es del plano viejo).
+- Profundidad de campo automática: 9 rayos en el centro del cuadro, percentil 30 de las distancias (gana lo cercano) → `focus_distance` con clave en cada fotograma. Con foco a menos de 12 cm (macro) no se puede enfocar con un 40-45 mm: f/400.
+- El primer fotograma de Cycles tarda más (carga de núcleos OptiX); el cálculo del foco tarda de 13 s (batería) a 6 min (bujía).

@@ -197,5 +197,8 @@
   "medio": "LO QUE DURA UNA BATERÍA",
   "fuente": "Fuente: RACE",
   "color": "naranja"
- }
+ },
+ "logo": "marca/logo_ekoruedas.png",
+ "logo_ancho": 130,
+ "logo_y": 0.215
 }
