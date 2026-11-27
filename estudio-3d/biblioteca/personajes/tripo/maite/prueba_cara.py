@@ -70,6 +70,10 @@ ESTADOS = (json.loads(open(argv[4], encoding="utf-8").read() if argv[4].endswith
     ["mira_abajo", {"eyeLookDownLeft": 1, "eyeLookDownRight": 1}, [0, -0.10]],
     ["mira_su_izquierda", {"eyeLookOutLeft": 1, "eyeLookInRight": 1}, [0.16, 0]],
 ]
+# la mirada de reposo va a la cámara (retrato): con el objetivo a 45 cm los ojos convergen y desde un lado parecen bizcos
+if mir and os.environ.get("MAITE_MIRADA", "camara") == "camara":
+    bpy.context.view_layer.update()
+    mir_rest = ARM.matrix_world.inverted() @ cam.matrix_world.translation
 for nombre, claves, (dx, dz) in ESTADOS:
     for k in KB:
         if k.name != "Basis": k.value = 0.0

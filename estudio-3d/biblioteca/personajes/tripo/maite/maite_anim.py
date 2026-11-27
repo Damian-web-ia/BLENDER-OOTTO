@@ -281,7 +281,7 @@ VISEMAS = {
     "i": {"jawOpen": 0.16, "mouthStretchLeft": 0.50, "mouthStretchRight": 0.50, "mouthSmileLeft": 0.25, "mouthSmileRight": 0.25},
     "o": {"jawOpen": 0.40, "mouthFunnel": 0.75},
     "u": {"jawOpen": 0.14, "mouthPucker": 0.85},
-    "mbp": {"jawOpen": 0.0, "mouthPressLeft": 0.55, "mouthPressRight": 0.55, "mouthRollLower": 0.15},
+    "mbp": {"jawOpen": 0.0, "mouthClose": 0.95, "mouthPressLeft": 0.25, "mouthPressRight": 0.25, "mouthRollLower": 0.15},
     "fv": {"jawOpen": 0.08, "mouthRollLower": 0.6, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
     "dental": {"jawOpen": 0.18, "mouthStretchLeft": 0.15, "mouthStretchRight": 0.15},
     "ch": {"jawOpen": 0.18, "mouthFunnel": 0.35},
