@@ -12,6 +12,8 @@ Plan A del canal: un despiece en 3D de una pieza del coche (después del neumát
 | **Escena** | `despiece_amortiguador.py` (abre antes `biblioteca/personajes/alex/alex_v2_rig.blend`). Usa el taller, el coche y los personajes del despiece del neumático. |
 | **Montaje** | `montaje_amortiguador.py`: gancho que bota, subtítulos palabra a palabra, rótulos con línea a cada pieza, gráfico del rebote (sin / con amortiguador), síntomas uno a uno, nuevo frente a gastado, dato del RACE con contador y cierre "Síguenos". |
 | **Sonido** | `mezcla_amortiguador.ogg` (-14,6 LUFS): voz, música electronic-minimal con ducking, efectos en cada evento (botes, explosión, muelle, aceite, válvulas, calor). |
+| **Vídeo final** | `estudio-3d/videos/2026-11-27_despiece_amortiguador_voz_diego.mp4` (30,5 s, -15,4 LUFS, pico -0,9 dBTP) y portada `2026-11-27_despiece_amortiguador_portada.jpg`. Copias en el PC: `CLAUDE VIDEOS` y `evolucion_videos`. Render: 915 fotogramas al 67 %, 48 muestras, unos 2,5 s por fotograma (unos 40 min). |
+| **Publicación** | Viernes 27-11-2026 a las 20:30 (Madrid). Instagram + YouTube por Ootto: reel 63427 (`media_d8264a5cb7`, portada `media_33c4408965`). TikTok por vidIQ: post `846a4ae6-9919-47b4-92cd-56309e5f61aa`, programado. |
 | **Novedades frente a los frenos** | Corte por la mitad en lugar de rayos X (se ve el interior limpio), gráfico animado, temblor de cámara en la explosión, plano corto de Alex con el dato, Alex fuera de plano mientras la pieza flota, cierre con pregunta. |
 
 ## Planos (fotogramas)
