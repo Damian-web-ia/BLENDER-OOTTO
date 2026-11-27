@@ -14,10 +14,13 @@ from mathutils import Vector, Matrix, Quaternion
 # 'L' = izquierda de ELLA (x > 0.02), como en ARKit ("eyeBlinkLeft" = su ojo izquierdo).
 # sup = línea donde termina el delineado pintado (esquina exterior, centro, esquina interior): por debajo, globo.
 OJOS = {
-    "R": dict(caja=(-0.034, 0.011, 0.860, 0.897), sup=((-0.0255, 0.8775), (-0.0100, 0.8822), (0.0055, 0.8765))),
-    "L": dict(caja=(0.026, 0.071, 0.862, 0.900), sup=((0.0640, 0.8835), (0.0490, 0.8862), (0.0365, 0.8790))),
+    "R": dict(caja=(-0.034, 0.011, 0.860, 0.897), sup=((-0.0255, 0.8775), (-0.0100, 0.8822), (0.0055, 0.8765)),
+              inf=((-0.0255, 0.8775), (-0.0095, 0.8664), (0.0055, 0.8765))),
+    "L": dict(caja=(0.026, 0.071, 0.862, 0.900), sup=((0.0640, 0.8835), (0.0490, 0.8862), (0.0365, 0.8790)),
+              inf=((0.0640, 0.8835), (0.0480, 0.8703), (0.0365, 0.8790))),
 }
-IRIS_RADIO = 0.0064          # radio del iris visto de frente (medido en la pintura de Tripo)
+IRIS_RADIO = 0.0076          # radio del iris visto de frente (el de la pintura de Tripo es grande, de película)
+IRIS_COLOR = (0.20, 0.135, 0.06)   # avellana oscuro (la pintura de Tripo es marrón verdoso oscuro)
 
 
 def _parabola(p):
@@ -90,7 +93,9 @@ def material_ojo(nombre, iris_rgb, theta_iris, theta_pupila):
     # colores del iris: base muestreada, fibras claras, anillo oscuro exterior
     rmp = N.new("ShaderNodeValToRGB"); rmp.location = (-350, 200)
     base = Vector(iris_rgb)
-    rmp.color_ramp.elements[0].color = (*(base * 0.55), 1); rmp.color_ramp.elements[1].color = (*(base * 1.6), 1)
+    rmp.color_ramp.elements[0].color = (*(base * 0.45), 1); rmp.color_ramp.elements[1].color = (*(base * 2.2), 1)
+    rmp.color_ramp.elements[1].position = 0.8
+    e = rmp.color_ramp.elements.new(0.55); e.color = (*(Vector((0.10, 0.12, 0.05)) * 1.4), 1)    # motas verdosas
     # u = ángulo / ángulo del iris (0 centro, 1 borde del iris)
     u = N.new("ShaderNodeMath"); u.operation = 'DIVIDE'; u.inputs[1].default_value = theta_iris; L.new(ang.outputs[0], u.inputs[0]); u.location = (-600, -200)
     up = N.new("ShaderNodeValue"); up.name = "Pupila"; up.label = "Pupila (0.25-0.6)"; up.outputs[0].default_value = theta_pupila / theta_iris; up.location = (-600, -400)
@@ -111,7 +116,7 @@ def material_ojo(nombre, iris_rgb, theta_iris, theta_pupila):
     scl.inputs["From Min"].default_value = 1.0; scl.inputs["From Max"].default_value = 3.2
     L.new(u.outputs[0], scl.inputs["Value"])
     esc = N.new("ShaderNodeMix"); esc.data_type = 'RGBA'; esc.location = (-150, -400)
-    L.new(scl.outputs["Result"], esc.inputs["Factor"]); esc.inputs[6].default_value = (0.93, 0.91, 0.88, 1); esc.inputs[7].default_value = (0.86, 0.72, 0.68, 1)
+    L.new(scl.outputs["Result"], esc.inputs["Factor"]); esc.inputs[6].default_value = (0.80, 0.77, 0.73, 1); esc.inputs[7].default_value = (0.70, 0.56, 0.52, 1)
     borde = N.new("ShaderNodeMapRange"); borde.location = (-150, -150)
     borde.inputs["From Min"].default_value = 0.97; borde.inputs["From Max"].default_value = 1.06; L.new(u.outputs[0], borde.inputs["Value"])
     fin = N.new("ShaderNodeMix"); fin.data_type = 'RGBA'; fin.location = (300, 0)
@@ -149,16 +154,24 @@ def construir_ojos(arm, me, col_ojo=None):
     cen = np.empty(len(m.polygons) * 3, np.float32); m.polygons.foreach_get('center', cen); cen = cen.reshape(-1, 3)
     datos = {}
     bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table(); bm.verts.ensure_lookup_table()
-    mat_borde = material_simple("MAITE_parpado_borde", (0.80, 0.42, 0.38), rug=0.25, sss=0.3, coat=0.4)
+    mat_borde = material_simple("MAITE_parpado_borde", (0.62, 0.32, 0.27), rug=0.35, sss=0.25, coat=0.25)
     m.materials.append(mat_borde); i_borde = len(m.materials) - 1
+    mat_cuenca = material_simple("MAITE_cuenca", (0.16, 0.06, 0.05), rug=0.4, coat=0.5)
+    m.materials.append(mat_cuenca); i_cuenca = len(m.materials) - 1
+    mat_lin = material_simple("MAITE_delineado", (0.030, 0.018, 0.016), rug=0.45)
+    m.materials.append(mat_lin); i_lin = len(m.materials) - 1
     for lado, O in OJOS.items():
-        x0, x1, z0, z1 = O["caja"]; top = _parabola(O["sup"])
+        x0, x1, z0, z1 = O["caja"]; top = _parabola(O["sup"]); bot = _parabola(O["inf"])
         xs = sorted(p[0] for p in (O["sup"][0], O["sup"][2]))
-        sel = set()
+        sel = set(); lin = set()
         for i, c in enumerate(cen):
-            if x0 < c[0] < x1 and z0 < c[2] < z1 and c[1] < -0.02 and not _es_piel(fc[i]) \
-                    and xs[0] - 0.0015 < c[0] < xs[1] + 0.0015 and c[2] < top(c[0]):
-                sel.add(i)
+            if not (x0 < c[0] < x1 and z0 < c[2] < z1 and c[1] < -0.02): continue
+            if xs[0] < c[0] < xs[1] and bot(c[0]) < c[2] < top(c[0]):
+                sel.add(i)                                  # dentro de la abertura del ojo: fuera (globo detrás)
+            elif not _es_piel(fc[i]) and c[2] >= top(c[0]) - 0.0005 and c[2] < top(c[0]) + 0.009 \
+                    and xs[0] - 0.004 < c[0] < xs[1] + 0.002:
+                lin.add(i)                                  # delineado y pestañas pintadas: color oscuro limpio
+        for i in lin: bm.faces[i].material_index = i_lin
         # mayor componente conexa
         caras = [bm.faces[i] for i in sel]; vis = set(); grupos = []
         for f in caras:
@@ -186,16 +199,16 @@ def construir_ojos(arm, me, col_ojo=None):
         cx = np.mean([p[0] for p in d["P"]]); cz = np.mean([p[2] for p in d["P"]])
         bordes = [e for e in bm.edges if e.is_boundary and all(abs(v.co.x - cx) < 0.03 and abs(v.co.z - cz) < 0.02 and v.co.y < -0.02 for v in e.verts)]
         bucle = _bucle(bordes)
-        # suavizar el borde: la parte de arriba sigue la línea del delineado; luego relajar a lo largo del bucle
+        # el borde se ajusta a las dos curvas del diseño (arriba el delineado, abajo el párpado inferior)
+        bot = _parabola(O["inf"])
         for v in bucle:
-            if v.co.z > cz: v.co.z = v.co.z * 0.4 + top(v.co.x) * 0.6
-        for _ in range(4):
-            nuevos = []
-            n = len(bucle)
+            zt, zb = top(v.co.x), bot(v.co.x)
+            v.co.z = zt if abs(v.co.z - zt) < abs(v.co.z - zb) else zb
+        for _ in range(3):
+            n = len(bucle); nuevos = []
             for k, v in enumerate(bucle):
-                a, b = bucle[k - 1].co, bucle[(k + 1) % n].co
-                nuevos.append(v.co * 0.5 + (a + b) * 0.25)
-            for v, p in zip(bucle, nuevos): v.co.x, v.co.z = p.x, p.z
+                a, b = bucle[k - 1].co, bucle[(k + 1) % n].co; nuevos.append(v.co * 0.5 + (a + b) * 0.25)
+            for v, p in zip(bucle, nuevos): v.co.x, v.co.y, v.co.z = p.x, p.y, p.z
         # esfera del globo: su frente queda donde estaba el ojo pintado; radio entre 9 y 18 mm (unidades de malla)
         Cf, Rf = _esfera(d["P"])
         Pm = Vector(np.mean(np.asarray(d["P"]), axis=0)); nrm = (Pm - Cf).normalized()
@@ -208,15 +221,23 @@ def construir_ojos(arm, me, col_ojo=None):
             if dl > 1e-5: R = min(R, (a2 + dl * dl) / (2 * dl) - 0.0005)
         R = max(R, 0.009)
         C = Pc - nrm * R
-        # párpado con grosor: el borde se extruye hacia el globo
+        # párpado con grosor: 1) un milímetro de piel hacia dentro  2) pliegue oscuro hasta tocar el globo
         sb = set(bucle)
         ext = bmesh.ops.extrude_edge_only(bm, edges=[e for e in bm.edges if e.is_boundary and e.verts[0] in sb and e.verts[1] in sb])
-        nv = [x for x in ext["geom"] if isinstance(x, bmesh.types.BMVert)]
-        for v in nv:
-            dv = v.co - C
-            v.co = C + dv.normalized() * (R + 0.00035)
+        nv1 = [x for x in ext["geom"] if isinstance(x, bmesh.types.BMVert)]
+        for v in nv1:
+            dv = v.co - C; dist = dv.length
+            v.co = C + dv.normalized() * max(R + 0.0004, dist - 0.0009)
         for f in [x for x in ext["geom"] if isinstance(x, bmesh.types.BMFace)]:
             f.material_index = i_borde; f.smooth = True
+        sb1 = set(nv1)
+        ext2 = bmesh.ops.extrude_edge_only(bm, edges=[e for e in bm.edges if e.is_boundary and e.verts[0] in sb1 and e.verts[1] in sb1])
+        nv = [x for x in ext2["geom"] if isinstance(x, bmesh.types.BMVert)]
+        for v in nv:
+            dv = v.co - C; v.co = C + dv.normalized() * (R + 0.0002)
+        for f in [x for x in ext2["geom"] if isinstance(x, bmesh.types.BMFace)]:
+            f.material_index = i_cuenca; f.smooth = True
+        nv = nv1 + nv
         d.update(C=C, R=R, nrm=nrm, bucle_v=bucle, borde_v=nv)
         print("GLOBO", lado, tuple(round(x, 4) for x in C), round(R, 4), flush=True)
     bm.verts.index_update()
@@ -242,8 +263,8 @@ def construir_ojos(arm, me, col_ojo=None):
     if col.name not in bpy.context.scene.collection.children: bpy.context.scene.collection.children.link(col)
     for lado, d in datos.items():
         C, R = d["C"], d["R"]
-        th_i = math.asin(min(0.95, IRIS_RADIO / R)); th_p = th_i * 0.42
-        iris_rgb = tuple(float(x) for x in (col_ojo or d["iris"]))
+        th_i = math.asin(min(0.95, IRIS_RADIO / R)); th_p = th_i * 0.40
+        iris_rgb = tuple(float(x) for x in (col_ojo or IRIS_COLOR))
         mt = material_ojo(f"MAITE_ojo_{lado}", iris_rgb, th_i, th_p)
         for nombre, radio, mat_ in ((f"MAITE_globo_{lado}", R, mt), (f"MAITE_cornea_{lado}", R + 0.00018, material_cornea())):
             bmg = bmesh.new(); bmesh.ops.create_uvsphere(bmg, u_segments=64, v_segments=40, radius=radio)
