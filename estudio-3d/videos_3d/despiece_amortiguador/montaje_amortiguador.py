@@ -40,7 +40,7 @@ for k, g in enumerate(GRUPOS):
     fin = g[-1][2] + 0.35
     if k + 1 < len(GRUPOS):
         if GRUPOS[k + 1][0][1] - g[-1][2] < 0.6: fin = min(fin, GRUPOS[k + 1][0][1])
-    else: fin = 99.0
+    else: fin = g[-1][2] + 0.6
     GRUPOS[k] = (g, g[0][1] - 0.04, fin)
 
 # ---------------------------------------------------------------- subtítulos (abajo; en los planos del freno, más abajo para dejar sitio a los rótulos)
