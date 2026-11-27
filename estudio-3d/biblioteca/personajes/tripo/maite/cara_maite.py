@@ -271,10 +271,10 @@ def material_cuenca():
     mt = bpy.data.materials.get("MAITE_cuenca") or bpy.data.materials.new("MAITE_cuenca"); mt.use_nodes = True
     N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
     ao = N.new("ShaderNodeAmbientOcclusion"); ao.inputs["Distance"].default_value = 0.006; ao.samples = 8; ao.location = (-700, 0)
-    pw = N.new("ShaderNodeMath"); pw.operation = 'POWER'; pw.inputs[1].default_value = 1.6; L.new(ao.outputs["AO"], pw.inputs[0]); pw.location = (-500, 0)
+    pw = N.new("ShaderNodeMath"); pw.operation = 'POWER'; pw.inputs[1].default_value = 2.2; L.new(ao.outputs["AO"], pw.inputs[0]); pw.location = (-500, 0)
     mx = N.new("ShaderNodeMix"); mx.data_type = 'RGBA'; mx.location = (-300, 0)
     L.new(pw.outputs[0], _sk(mx.inputs, "Factor_Float"))
-    _sk(mx.inputs, "A_Color").default_value = (0.10, 0.045, 0.045, 1); _sk(mx.inputs, "B_Color").default_value = (0.52, 0.40, 0.38, 1)
+    _sk(mx.inputs, "A_Color").default_value = (0.08, 0.035, 0.035, 1); _sk(mx.inputs, "B_Color").default_value = (0.34, 0.24, 0.23, 1)
     L.new(_sk(mx.outputs, "Result_Color"), bs.inputs["Base Color"])
     bs.inputs["Roughness"].default_value = 0.35; bs.inputs["Coat Weight"].default_value = 0.4; bs.inputs["Coat Roughness"].default_value = 0.08
     return mt
@@ -418,7 +418,8 @@ def construir_ojos(arm, me, col_ojo=None):
     for lado, d in datos.items():
         b = eb.new(f"Ojo_{lado}"); b.head = d["C"]; b.tail = d["C"] + adelante * 0.012; b.parent = cab; b.use_deform = False
     mid = (datos["L"]["C"] + datos["R"]["C"]) / 2
-    t = eb.new("Mirada"); t.head = mid + adelante * 0.45; t.tail = t.head + Vector((0, 0, 0.02)); t.parent = cab; t.use_deform = False
+    t = eb.new("Mirada"); t.head = mid + adelante * 1.0;   # a 1 m: los ojos apenas convergen (a 45 cm parecían bizcos)
+    t.tail = t.head + Vector((0, 0, 0.02)); t.parent = cab; t.use_deform = False
     bpy.ops.object.mode_set(mode='OBJECT')
     for lado in datos:
         pb = arm.pose.bones[f"Ojo_{lado}"]; pb.rotation_mode = 'QUATERNION'
@@ -545,7 +546,7 @@ def preparar_parpados(arm, me, datos, adelante, semilla=7):
                 if not exterior_es_B: continue
             radial = (base - C); radial = radial - lat * radial.dot(lat); radial.normalize()
             nsup = (base - C).normalized()
-            grosor = (0.00045 + 0.00095 * tout ** 1.3) if j <= nseg else 0.0013 * (1 - (j - nseg) / 4.5)
+            grosor = (0.00045 + 0.00080 * tout ** 1.3) * (1 - 0.85 * _ss(0.86, 1.0, tout)) if j <= nseg else 0.0013 * (1 - (j - nseg) / 4.5)
             va = bm.verts.new(base + nsup * 0.00012 - radial * 0.00005); vb = bm.verts.new(base + nsup * 0.00012 + radial * grosor)
             origen += [(va, pref), (vb, pref)]
             if prev:
@@ -1179,7 +1180,15 @@ def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010,
     am = m.attributes.new("mascara_piel", 'FLOAT', 'POINT')
     am.data.foreach_set('value', mask.astype(np.float32))
     if "sin_relieve" in m.attributes: m.attributes.remove(m.attributes["sin_relieve"])
-    cara = np.where(es_piel_v, _ss(0.786, 0.800, co[:, 2]), 0.0)
+    # sólo donde la textura es piel (o junto a las cejas): hay caras de "piel" en el nacimiento del pelo pintadas de pelo,
+    # que necesitan su relieve para no verse como un parche liso
+    pareceme_piel = (vc[:, 0] - vc[:, 2] > 0.25) & (lum > 0.42)
+    junto_ceja = (_dist_a(co, co[cejas]) < 0.005) if cejas.any() else np.zeros(N, bool)
+    cara = np.where(es_piel_v & (pareceme_piel | junto_ceja), _ss(0.786, 0.800, co[:, 2]), 0.0)
+    for _ in range(2):                                              # suavizado por aristas (sin escalones)
+        acc = np.zeros(N); cnt_ = np.zeros(N); np.add.at(acc, ev[:, 0], cara[ev[:, 1]]); np.add.at(acc, ev[:, 1], cara[ev[:, 0]])
+        np.add.at(cnt_, ev[:, 0], 1); np.add.at(cnt_, ev[:, 1], 1)
+        cara = np.where(es_piel_v, np.maximum(cara * 0.5, 0.5 * cara + 0.5 * acc / np.maximum(cnt_, 1)), 0.0)
     ar = m.attributes.new("sin_relieve", 'FLOAT', 'POINT'); ar.data.foreach_set('value', np.maximum(mask, cara).astype(np.float32))
     # rugosidad de piel sana (ya pasada por el Map Range del material)
     mt = m.materials[i_piel]; Nn = mt.node_tree.nodes; Lk = mt.node_tree.links
@@ -1286,6 +1295,18 @@ def maquillaje(me, datos_ojos, info_boca, tam=2048):
         Cb = C - np.array([0, 0, 1.0]) * 0.024 + fuera * 0.005 + F * 0.012
         r = np.linalg.norm(P - Cb, axis=1)
         rubor = np.maximum(rubor, 1 - _ss(0.004, 0.016, r))
+    # orificios de la nariz: sombra suave en la cara de abajo (el modelo no los tiene; los pintaba el mapa de normales)
+    co_ = np.empty(len(m.vertices) * 3, np.float64); m.vertices.foreach_get('co', co_); co_ = co_.reshape(-1, 3)
+    rel = co_ - O; fxv, fzv, ffv = rel @ X, rel[:, 2], rel @ F
+    zona_n = np.where((np.abs(fxv) < 0.016) & (fzv > 0.004) & (fzv < 0.045) & (ffv > -0.02))[0]
+    punta = zona_n[np.argmax(ffv[zona_n])] if len(zona_n) else None
+    nariz = np.zeros(len(P))
+    if punta is not None:
+        for sgn_ in (-1, 1):
+            Nc = O + X * (fxv[punta] + sgn_ * 0.0045) + np.array([0, 0, 1.0]) * (fzv[punta] - 0.0062) + F * (ffv[punta] - 0.0047)
+            q = P - Nc
+            e = np.sqrt(((q @ X) / 0.0024) ** 2 + (q[:, 2] / 0.0014) ** 2 + ((q @ F) / 0.0030) ** 2)
+            nariz = np.maximum(nariz, 1 - _ss(0.55, 1.0, e))
     img = bpy.data.images.get("MAITE_maquillaje")
     if img: bpy.data.images.remove(img)
     img = bpy.data.images.new("MAITE_maquillaje", tam, tam, alpha=False)
@@ -1293,12 +1314,14 @@ def maquillaje(me, datos_ojos, info_boca, tam=2048):
     px = np.zeros((tam, tam, 4), np.float32); px[:, :, 3] = 1
     np.maximum.at(px[:, :, 0], (ys, xs), labios.astype(np.float32))
     np.maximum.at(px[:, :, 1], (ys, xs), rubor.astype(np.float32))
+    np.maximum.at(px[:, :, 2], (ys, xs), nariz.astype(np.float32))
     img.pixels.foreach_set(px.ravel()); img.update(); img.pack()
     _material_maquillaje(m.materials[ip], img)
-    print("MAQUILLAJE", len(caras), "caras,", len(P), "píxeles; labios", int((labios > 0.5).sum()), "rubor", int((rubor > 0.5).sum()), flush=True)
+    print("MAQUILLAJE", len(caras), "caras,", len(P), "píxeles; labios", int((labios > 0.5).sum()), "rubor", int((rubor > 0.5).sum()),
+          "nariz", int((nariz > 0.5).sum()), flush=True)
 
 
-def _material_maquillaje(mt, img, tinte_labios=(0.86, 0.50, 0.52), tinte_rubor=(0.98, 0.74, 0.72), k_labios=0.55, k_rubor=0.30):
+def _material_maquillaje(mt, img, tinte_labios=(0.82, 0.44, 0.47), tinte_rubor=(0.98, 0.74, 0.72), k_labios=0.75, k_rubor=0.30):
     T = mt.node_tree; Nn = T.nodes; Lk = T.links
     for n in [n for n in Nn if n.name.startswith("MAQ_")]: Nn.remove(n)
     uvn = next(n for n in Nn if n.type == 'UVMAP')
@@ -1307,7 +1330,8 @@ def _material_maquillaje(mt, img, tinte_labios=(0.86, 0.50, 0.52), tinte_rubor=(
     sp = Nn.new("ShaderNodeSeparateColor"); sp.name = "MAQ_sep"; sp.location = (-650, 900); Lk.new(tx.outputs["Color"], sp.inputs["Color"])
     mx = Nn.get("LISA_mezcla"); destino = [l.to_socket for l in _sk(mx.outputs, "Result_Color").links]
     prev = _sk(mx.outputs, "Result_Color")
-    for nombre, canal, tinte, k, x_ in (("MAQ_labios", "Red", tinte_labios, k_labios, -450), ("MAQ_rubor", "Green", tinte_rubor, k_rubor, -300)):
+    for nombre, canal, tinte, k, x_ in (("MAQ_labios", "Red", tinte_labios, k_labios, -450), ("MAQ_rubor", "Green", tinte_rubor, k_rubor, -300),
+                                        ("MAQ_nariz", "Blue", (0.40, 0.21, 0.19), 0.80, -150)):
         mu = Nn.new("ShaderNodeMath"); mu.name = nombre + "_k"; mu.operation = 'MULTIPLY'; mu.inputs[1].default_value = k; mu.location = (x_, 1000)
         Lk.new(sp.outputs[canal], mu.inputs[0])
         mm = Nn.new("ShaderNodeMix"); mm.name = nombre; mm.data_type = 'RGBA'; mm.blend_type = 'MULTIPLY'; mm.location = (x_, 800)

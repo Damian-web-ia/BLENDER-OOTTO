@@ -334,11 +334,12 @@ def _cara_metodos(cls):
                 self.parpadeo(f, doble=rnd.random() < 0.12, parcial=1.0 if rnd.random() > 0.15 else 0.6)
             f += rnd.randint(int(2.0 * fps), int(5.0 * fps))
     def mirar(self, f, x=0.0, z=0.0, tiempo=None):
-        """Mueve el hueso 'Mirada' (x + = su izquierda, z + = arriba, en metros del modelo) y pone clave."""
+        """Mueve el hueso 'Mirada' (x + = su izquierda, z + = arriba, en metros del modelo; el objetivo está a 1 m:
+        0,10 son unos 6 grados) y pone clave."""
         b = self.pb.get("Mirada")
         if not b: return
         b.location = Vector((x, z, 0.0)); b.keyframe_insert("location", frame=f)
-    def mirada_viva(self, f0, f1, semilla=5, amplitud=0.012):
+    def mirada_viva(self, f0, f1, semilla=5, amplitud=0.026):
         """Microsacadas: la mirada salta un poco cada 0,5-1,5 s (así no parece fija)."""
         import random
         rnd = random.Random(semilla); fps = self.sc.render.fps; f = f0
