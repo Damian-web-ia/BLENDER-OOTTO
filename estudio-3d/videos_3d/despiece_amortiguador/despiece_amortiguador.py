@@ -118,7 +118,7 @@ def vis(o, f, ver):
 def kp(prop, f, v): sc[prop] = v; sc.keyframe_insert(f'["{prop}"]', frame=f)
 
 EST = 120
-B0, C0, D0, E0, F0, A2, INS, A3, CTA = 150, 214, 264, 357, 453, 533, 650, 719, 850
+B0, C0, D0, E0, F0, A2, INS, A3, CTA = 150, 214, 297, 357, 453, 533, 650, 719, 850
 CORTES = [1, B0, C0, D0, E0, F0, A2, INS, A3, CTA, FIN + 1]
 Z0 = Vector((0, 0, 0))
 # --- la rueda: rayos X, estalla en trozos, la llanta cae; vuelve entera en el consejo
@@ -150,7 +150,7 @@ for o in (MUE, FUE, COP): vis(o, 1, True); vis(o, C0 + 25, False)
 kl(FRENTE, 1, Z0, (0, 0, 0)); kl(FRENTE, C0 + 6, Z0, (0, 0, 0)); kl(FRENTE, C0 + 22, Vector((-0.24, -0.10, -0.12)), (0, R(-20), R(35)))
 vis(FRENTE, 1, True); vis(FRENTE, C0 + 23, False)
 # "cuando la rueda sube, el vástago mete el pistón en el aceite"
-kl(VAS, D0 + 8, (0, 0, 0.0)); kl(VAS, FW(1, 15), (0, 0, -0.012)); kl(VAS, FW(1, 23, True) + 4, (0, 0, -0.075))
+kl(VAS, D0 - 1, (0, 0, 0.0)); kl(VAS, FW(1, 23, True) + 4, (0, 0, -0.075))
 # válvulas: sigue bajando despacio y el aceite pasa por los agujeros del pistón
 kl(VAS, F0 - 2, (0, 0, -0.105))
 # calor: va y viene (bache tras bache) y el aceite se calienta
