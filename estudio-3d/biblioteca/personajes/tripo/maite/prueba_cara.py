@@ -33,9 +33,10 @@ luz("Contra", (0.6, 1.2, 2.0), 140, 0.8, (1.0, 0.8, 0.6), mira=(0, 0, 1.55))
 w = bpy.data.worlds.new("Mundo"); sc.world = w; w.use_nodes = True
 w.node_tree.nodes["Background"].inputs[0].default_value = (0.02, 0.022, 0.028, 1)
 cd = bpy.data.cameras.new("Cam"); cam = bpy.data.objects.new("Cam", cd); sc.collection.objects.link(cam); sc.camera = cam
-PLANOS = {"ojos": ((0.10, -0.62, 1.525), (0.032, 0, 1.518), 120, (0.032, -0.10, 1.52)),
+PLANOS = {"ojos": ((0.10, -0.62, 1.535), (0.032, 0, 1.540), 110, (0.032, -0.10, 1.52)),
           "cara": ((0.16, -0.95, 1.50), (0.035, 0, 1.49), 85, (0.035, -0.12, 1.50)),
-          "boca": ((0.06, -0.62, 1.45), (0.038, 0, 1.445), 120, (0.038, -0.12, 1.44))}
+          "boca": ((0.06, -0.62, 1.45), (0.038, 0, 1.455), 110, (0.038, -0.12, 1.44)),
+          "cara3q": ((-0.42, -0.85, 1.52), (0.03, 0, 1.49), 85, (0.0, -0.10, 1.50))}
 loc, mira, lente, foco = PLANOS[PLANO]
 cam.location = loc; cd.lens = lente; cam.rotation_euler = (Vector(mira) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
 cd.dof.use_dof = True; cd.dof.aperture_fstop = 8; cd.dof.focus_distance = (Vector(foco) - Vector(loc)).length

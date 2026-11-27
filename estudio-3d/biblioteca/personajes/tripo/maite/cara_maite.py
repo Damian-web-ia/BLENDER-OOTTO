@@ -86,6 +86,44 @@ def _bucle(bordes):
     return bucle
 
 
+def repintar_piel(me, caras, color=None, margen_px=3, ruido=0.012, semilla=3):
+    """Pinta en la textura 4K las caras dadas con color de piel (quita el ojo/delineado pintados de Tripo).
+    Si no se da color, se toma la media de la piel de alrededor."""
+    m = me.data
+    img = max((n.image for mt in m.materials for n in mt.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image
+               and n.image.colorspace_settings.name == 'sRGB'), key=lambda i: i.size[0] * i.size[1])
+    w, h = img.size
+    px = np.empty(w * h * 4, np.float32); img.pixels.foreach_get(px); px = px.reshape(h, w, 4)
+    uvl = m.uv_layers.active.data; rng = np.random.default_rng(semilla)
+    if color is None: color = (0.93, 0.56, 0.42)
+    col = np.array(color, np.float32)
+    pintados = 0
+    for fi in caras:
+        p = m.polygons[fi]
+        uv = np.array([uvl[li].uv[:] for li in p.loop_indices], np.float64) * [w, h]
+        c = uv.mean(0); uv = c + (uv - c) * (1 + margen_px / max(1.0, np.linalg.norm(uv - c, axis=1).mean()))
+        x0, y0 = np.floor(uv.min(0)).astype(int); x1, y1 = np.ceil(uv.max(0)).astype(int)
+        x0, y0 = max(0, x0), max(0, y0); x1, y1 = min(w - 1, x1), min(h - 1, y1)
+        if x1 < x0 or y1 < y0: continue
+        gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
+        dentro = np.zeros(gx.shape, bool)
+        for k in range(1, len(uv) - 1):                          # abanico de triángulos
+            a, b, cc = uv[0], uv[k], uv[k + 1]
+            d1 = (gx - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (gy - b[1])
+            d2 = (gx - cc[0]) * (b[1] - cc[1]) - (b[0] - cc[0]) * (gy - cc[1])
+            d3 = (gx - a[0]) * (cc[1] - a[1]) - (cc[0] - a[0]) * (gy - a[1])
+            neg = (d1 < 0) | (d2 < 0) | (d3 < 0); pos = (d1 > 0) | (d2 > 0) | (d3 > 0)
+            dentro |= ~(neg & pos)
+        if not dentro.any(): continue
+        blk = px[y0:y1 + 1, x0:x1 + 1, :3]
+        blk[dentro] = col + rng.normal(0, ruido, (int(dentro.sum()), 3)).astype(np.float32)
+        pintados += int(dentro.sum())
+    img.pixels.foreach_set(px.ravel()); img.update()
+    try: img.pack()
+    except Exception as e: print("PACK", e)
+    print("REPINTADO", len(caras), "caras,", pintados, "píxeles", flush=True)
+
+
 def material_ojo(nombre, iris_rgb, theta_iris, theta_pupila):
     mt = bpy.data.materials.new(nombre); mt.use_nodes = True; nt = mt.node_tree; N = nt.nodes; L = nt.links
     bs = N["Principled BSDF"]; bs.location = (700, 0)
@@ -167,7 +205,7 @@ def construir_ojos(arm, me, col_ojo=None):
     cen = np.empty(len(m.polygons) * 3, np.float32); m.polygons.foreach_get('center', cen); cen = cen.reshape(-1, 3)
     datos = {}
     bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table(); bm.verts.ensure_lookup_table()
-    mat_borde = material_simple("MAITE_parpado_borde", (0.62, 0.32, 0.27), rug=0.35, sss=0.25, coat=0.25)
+    mat_borde = material_simple("MAITE_parpado_borde", (0.80, 0.44, 0.33), rug=0.45, sss=0.25, coat=0.10)
     m.materials.append(mat_borde); i_borde = len(m.materials) - 1
     mat_cuenca = material_simple("MAITE_cuenca", (0.16, 0.06, 0.05), rug=0.4, coat=0.5)
     m.materials.append(mat_cuenca); i_cuenca = len(m.materials) - 1
@@ -181,10 +219,9 @@ def construir_ojos(arm, me, col_ojo=None):
             if not (x0 < c[0] < x1 and z0 < c[2] < z1 and c[1] < -0.02): continue
             if xs[0] < c[0] < xs[1] and bot(c[0]) < c[2] < top(c[0]):
                 sel.add(i)                                  # dentro de la abertura del ojo: fuera (globo detrás)
-            elif not _es_piel(fc[i]) and c[2] >= top(c[0]) - 0.0005 and c[2] < top(c[0]) + 0.009 \
-                    and xs[0] - 0.004 < c[0] < xs[1] + 0.002:
-                lin.add(i)                                  # delineado y pestañas pintadas: color oscuro limpio
-        for i in lin: bm.faces[i].material_index = i_lin
+            elif not _es_piel(fc[i]) and xs[0] - 0.006 < c[0] < xs[1] + 0.004 and bot(c[0]) - 0.006 < c[2] < top(c[0]) + 0.010:
+                lin.add(i)                                  # delineado, pestañas y restos de blanco pintados: a piel
+        datos_lin = datos.setdefault("_repintar", set()); datos_lin |= lin
         # mayor componente conexa
         caras = [bm.faces[i] for i in sel]; vis = set(); grupos = []
         for f in caras:
@@ -201,7 +238,13 @@ def construir_ojos(arm, me, col_ojo=None):
         P = [tuple(v.co) for f in g for v in f.verts]
         iris_cols = [fc[f.index] for f in g if 0.12 < max(fc[f.index]) and min(fc[f.index]) < 0.6]
         datos[lado] = dict(P=P, caras=[f.index for f in g], iris=np.mean(iris_cols, axis=0) if iris_cols else (0.2, 0.22, 0.14))
+        # color de piel de alrededor del ojo
+        alrededor = [i for i, c in enumerate(cen) if x0 < c[0] < x1 and z0 - 0.01 < c[2] < z1 and c[1] < -0.02 and _es_piel(fc[i])]
+        datos[lado]["piel"] = np.median(fc[alrededor], axis=0) if alrededor else np.array((0.93, 0.56, 0.42))
         print("OJO", lado, len(g), "caras", flush=True)
+    rep = datos.pop("_repintar", set())
+    piel_media = np.mean([d["piel"] for d in datos.values()], axis=0)
+    repintar_piel(me, sorted(rep), tuple(float(x) for x in piel_media))
     # borrar las caras de los dos ojos a la vez
     borrar = [bm.faces[i] for d in datos.values() for i in d["caras"]]
     bmesh.ops.delete(bm, geom=borrar, context='FACES')
@@ -320,7 +363,7 @@ def _rot_puntos(P, C, eje, ang):
     return np.asarray(C) + v * c + np.cross(k, v) * s_ + k * (v @ k)[:, None] * (1 - c)
 
 
-def parpados_y_pestanas(arm, me, datos, adelante, semilla=7):
+def preparar_parpados(arm, me, datos, adelante, semilla=7):
     m = me.data; rng = np.random.default_rng(semilla)
     lat = (datos["L"]["C"] - datos["R"]["C"]); lat.z = 0; lat.normalize(); up = Vector((0, 0, 1))
     co0 = np.empty(len(m.vertices) * 3, np.float64); m.vertices.foreach_get('co', co0); co0 = co0.reshape(-1, 3)
@@ -374,11 +417,54 @@ def parpados_y_pestanas(arm, me, datos, adelante, semilla=7):
     bm = bmesh.new(); bm.from_mesh(m)
     mat_p = material_simple("MAITE_pestanas", (0.020, 0.013, 0.011), rug=0.5)
     m.materials.append(mat_p); i_p = len(m.materials) - 1
+    i_lin = next((k for k, mt in enumerate(m.materials) if mt and mt.name.startswith("MAITE_delineado")), None)
+    if i_lin is None:
+        m.materials.append(material_simple("MAITE_delineado", (0.030, 0.018, 0.016), rug=0.45)); i_lin = len(m.materials) - 1
     bm.verts.ensure_lookup_table()
     origen = []                                  # (índice del vértice nuevo, vértice del borde del que nace)
     for lado, I in info.items():
         C = Vector(I["C"]); A, B = Vector(I["A"]), Vector(I["B"])
-        for fila, (lista, n, Lmin, Lmax, haciaarriba) in enumerate(((I["sup"], 52, 0.0020, 0.0043, 1), (I["sup"], 30, 0.0016, 0.0030, 1), (I["inf"], 20, 0.0007, 0.0013, -1))):
+        # delineado: banda oscura lisa sobre el borde superior, más ancha hacia fuera y con un rabito final
+        pts_s = sorted(I["sup"], key=lambda k: (Vector(co0[k]) - A).dot(B - A))
+        cs_ = [Vector(co0[k]) for k in pts_s]
+        exterior_es_B = (B - A).dot(lat) * (1 if lado == "L" else -1) > 0
+        prev = None; nseg = 40
+        largo = [0.0]
+        for a_, b_ in zip(cs_[:-1], cs_[1:]): largo.append(largo[-1] + (b_ - a_).length)
+        for j in range(nseg + 5):
+            if j <= nseg:
+                s_ = j / nseg * largo[-1]; k = max(1, min(len(cs_) - 1, int(np.searchsorted(largo, s_))))
+                f_ = (s_ - largo[k - 1]) / max(1e-9, largo[k] - largo[k - 1]); base = cs_[k - 1].lerp(cs_[k], f_)
+                pref = pts_s[k - 1] if f_ < 0.5 else pts_s[k]
+                tt = j / nseg; tout = tt if exterior_es_B else 1 - tt
+            else:                                            # rabito hacia la sien
+                ext = (j - nseg) / 4.0
+                fin = cs_[-1] if exterior_es_B else cs_[0]; ant = cs_[-2] if exterior_es_B else cs_[1]
+                dirx = (fin - ant).normalized()
+                base = fin + dirx * 0.0011 * ext + up * 0.0007 * ext * ext
+                pref = pts_s[-1] if exterior_es_B else pts_s[0]; tout = 1.0
+                if not exterior_es_B: continue
+            radial = (base - C); radial = radial - lat * radial.dot(lat); radial.normalize()
+            nsup = (base - C).normalized()
+            grosor = (0.00045 + 0.00095 * tout ** 1.3) if j <= nseg else 0.0013 * (1 - (j - nseg) / 4.5)
+            va = bm.verts.new(base + nsup * 0.00012 - radial * 0.00005); vb = bm.verts.new(base + nsup * 0.00012 + radial * grosor)
+            origen += [(va, pref), (vb, pref)]
+            if prev:
+                f2 = bm.faces.new((prev[0], prev[1], vb, va)); f2.material_index = i_lin; f2.smooth = True
+            prev = (va, vb)
+        if not exterior_es_B:                                 # rabito del lado A (cuando la sien está en A)
+            fin = cs_[0]; ant = cs_[1]; dirx = (fin - ant).normalized()
+            prev = None
+            for e_ in range(5):
+                ext = e_ / 4.0; base = fin + dirx * 0.0011 * ext + up * 0.0007 * ext * ext
+                radial = (base - C); radial = radial - lat * radial.dot(lat); radial.normalize(); nsup = (base - C).normalized()
+                grosor = 0.0014 * (1 - ext * 0.9)
+                va = bm.verts.new(base + nsup * 0.00012 - radial * 0.00005); vb = bm.verts.new(base + nsup * 0.00012 + radial * grosor)
+                origen += [(va, pts_s[0]), (vb, pts_s[0])]
+                if prev:
+                    f2 = bm.faces.new((prev[0], prev[1], vb, va)); f2.material_index = i_lin; f2.smooth = True
+                prev = (va, vb)
+        for fila, (lista, n, Lmin, Lmax, haciaarriba) in enumerate(((I["sup"], 64, 0.0024, 0.0050, 1), (I["sup"], 40, 0.0018, 0.0034, 1), (I["inf"], 22, 0.0007, 0.0014, -1))):
             pts = sorted(lista, key=lambda k: (Vector(co0[k]) - A).dot(B - A))
             cur = [Vector(co0[k]) for k in pts]
             if len(cur) < 3: continue
@@ -428,26 +514,311 @@ def parpados_y_pestanas(arm, me, datos, adelante, semilla=7):
             ws = np.array([I["wsup"][pos[b]] if b in pos else (1.0 if b in set(I["sup"]) else 0.0) for a, b in nuevos])
             wi = np.array([I["winf"][pos[b]] if b in pos else (1.0 if b in set(I["inf"]) else 0.0) for a, b in nuevos])
             I["idx"] = np.r_[I["idx"], extra_idx]; I["wsup"] = np.r_[I["wsup"], ws]; I["winf"] = np.r_[I["winf"], wi]
-    if not m.shape_keys: me.shape_key_add(name="Basis", from_mix=False)
-    def clave(nombre, cambios):
-        X = co.copy()
-        for lado, ang_sup, ang_inf, giro in cambios:
-            I = info[lado]; idx = I["idx"]; C = I["C"]
-            Q = X[idx]
-            Q = _rot_puntos(Q, C, lat, ang_sup * I["wsup"]) if ang_sup else Q
-            Q = _rot_puntos(Q, C, lat, ang_inf * I["winf"]) if ang_inf else Q
-            if giro: Q = _rot_puntos(Q, C, (0, 0, 1), giro * np.maximum(I["wsup"], I["winf"]))
-            X[idx] = Q
-        k = me.shape_key_add(name=nombre, from_mix=False); k.data.foreach_set('co', X.ravel().astype(np.float32)); k.value = 0.0
-    for lado, sufijo in (("L", "Left"), ("R", "Right")):
-        th = info[lado]["th"]
-        fuera = 1 if lado == "L" else -1          # girar hacia fuera (de la nariz hacia la sien)
-        clave(f"eyeBlink{sufijo}", [(lado, 0.80 * th + 0.03, -0.20 * th - 0.01, 0)])
-        clave(f"eyeWide{sufijo}", [(lado, -0.20 * th, 0.06 * th, 0)])
-        clave(f"eyeSquint{sufijo}", [(lado, 0.12 * th, -0.38 * th, 0)])
-        clave(f"eyeLookUp{sufijo}", [(lado, -0.16 * th, -0.07 * th, 0)])
-        clave(f"eyeLookDown{sufijo}", [(lado, 0.32 * th, 0.08 * th, 0)])
-        clave(f"eyeLookOut{sufijo}", [(lado, 0, 0, 0.06 * fuera)])
-        clave(f"eyeLookIn{sufijo}", [(lado, 0, 0, -0.06 * fuera)])
-    print("SHAPE_KEYS_OJOS", [k.name for k in m.shape_keys.key_blocks], flush=True)
     return info
+
+
+
+# ================================================================ BOCA: abertura, labios con grosor, dientes, encías, lengua
+BOCA = dict(esq_d=(-0.0032, 0.8325), esq_i=(0.0436, 0.8325), sup_c=(0.0205, 0.8350), inf_c=(0.0210, 0.8297))
+
+
+def _reindexar(me, puntos):
+    from mathutils import kdtree
+    m = me.data; kd = kdtree.KDTree(len(m.vertices))
+    for v in m.vertices: kd.insert(v.co, v.index)
+    kd.balance()
+    return [kd.find(Vector(p))[1] for p in puntos]
+
+
+def _caja_redonda(bm, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
+    """Caja de esquinas redondeadas (para dientes): cubo subdividido y 'inflado' hacia una superesfera."""
+    r = bmesh.ops.create_cube(bm, size=2.0)
+    vs = r["verts"]
+    res = bmesh.ops.subdivide_edges(bm, edges=list({e for v in vs for e in v.link_edges}), cuts=segs, use_grid_fill=True)
+    vs = list({v for v in bm.verts if v not in _caja_redonda.previos})
+    for v in vs:
+        p = v.co.copy()
+        n = Vector((abs(p.x) ** 3 + 1e-9, abs(p.y) ** 3 + 1e-9, abs(p.z) ** 3 + 1e-9))
+        k = (n.x + n.y + n.z) ** (1 / 3)
+        p = p / max(k, 1e-6)
+        v.co = centro + X * (p.x * sx) + Y * (p.y * sy) + Z * (p.z * sz)
+    for f in {f for v in vs for f in v.link_faces}:
+        f.material_index = mat_i; f.smooth = True
+    _caja_redonda.previos |= set(vs)
+    return vs
+_caja_redonda.previos = set()
+
+
+def _elipsoide(bm, centro, X, Y, Z, rx, ry, rz, mat_i, u=24, v=14):
+    r = bmesh.ops.create_uvsphere(bm, u_segments=u, v_segments=v, radius=1.0)
+    vs = r["verts"]
+    for q in vs:
+        p = q.co.copy(); q.co = centro + X * (p.x * rx) + Y * (p.y * ry) + Z * (p.z * rz)
+    for f in {f for q in vs for f in q.link_faces}:
+        f.material_index = mat_i; f.smooth = True
+    return vs
+
+
+def construir_boca(arm, me, adelante, lat, datos_ojos):
+    m = me.data; up = Vector((0, 0, 1)); F = adelante.copy(); X = lat.copy()
+    B = BOCA; sup = _parabola((B["esq_d"], B["sup_c"], B["esq_i"])); inf = _parabola((B["esq_d"], B["inf_c"], B["esq_i"]))
+    x0, x1 = B["esq_d"][0], B["esq_i"][0]
+    # posiciones de los bucles de los ojos (los índices cambian al borrar la boca)
+    for d in datos_ojos.values():
+        d["bucle_co"] = [tuple(m.vertices[i].co) for i in d["bucle"]]; d["borde_co"] = [tuple(m.vertices[i].co) for i in d["borde_int"]]
+    cen = np.empty(len(m.polygons) * 3, np.float32); m.polygons.foreach_get('center', cen); cen = cen.reshape(-1, 3)
+    sel = [i for i, c in enumerate(cen) if x0 + 0.0008 < c[0] < x1 - 0.0008 and inf(c[0]) < c[2] < sup(c[0]) and c[1] < -0.04]
+    bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table()
+    mats = {}
+    for nombre, col, rug, sss, coat in (("MAITE_labio_int", (0.62, 0.24, 0.24), 0.3, 0.3, 0.5), ("MAITE_boca_int", (0.16, 0.035, 0.04), 0.5, 0.0, 0.3),
+                                         ("MAITE_dientes", (0.86, 0.84, 0.78), 0.28, 0.15, 0.35), ("MAITE_encias", (0.70, 0.27, 0.29), 0.35, 0.3, 0.4),
+                                         ("MAITE_lengua", (0.66, 0.26, 0.27), 0.45, 0.35, 0.25)):
+        m.materials.append(material_simple(nombre, col, rug=rug, sss=sss, coat=coat)); mats[nombre] = len(m.materials) - 1
+    bmesh.ops.delete(bm, geom=[bm.faces[i] for i in sel], context='FACES')
+    bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=10)
+    cx = (x0 + x1) / 2; cz = (B["sup_c"][1] + B["inf_c"][1]) / 2
+    bordes = [e for e in bm.edges if e.is_boundary and all(abs(v.co.x - cx) < 0.032 and abs(v.co.z - cz) < 0.012 and v.co.y < -0.03 for v in e.verts)]
+    bucle = _bucle(bordes)
+    print("BOCA agujero", len(sel), "caras,", len(bordes), "aristas,", len(bucle), "en el bucle", flush=True)
+    for v in bucle:
+        zt, zb = sup(v.co.x), inf(v.co.x)
+        v.co.z = zt if abs(v.co.z - zt) < abs(v.co.z - zb) else zb
+    for _ in range(3):
+        n = len(bucle); nuevos = []
+        for k, v in enumerate(bucle):
+            a, b = bucle[k - 1].co, bucle[(k + 1) % n].co; nuevos.append(v.co * 0.5 + (a + b) * 0.25)
+        for v, p in zip(bucle, nuevos): v.co.x, v.co.y, v.co.z = p.x, p.y, p.z
+    O = sum((v.co for v in bucle), Vector()) / len(bucle)
+    O.y = min(v.co.y for v in bucle) * 0.5 + O.y * 0.5
+    # labios con grosor: 1) cara interna del labio (rosa húmedo)  2) hacia dentro, oscuro
+    sb = set(bucle)
+    e1 = bmesh.ops.extrude_edge_only(bm, edges=[e for e in bm.edges if e.is_boundary and e.verts[0] in sb and e.verts[1] in sb])
+    v1 = [x for x in e1["geom"] if isinstance(x, bmesh.types.BMVert)]
+    for v in v1:
+        dz = v.co.z - O.z
+        v.co = v.co - F * 0.0022 - up * (0.0004 if dz > 0 else -0.0004)
+    for f in [x for x in e1["geom"] if isinstance(x, bmesh.types.BMFace)]: f.material_index = mats["MAITE_labio_int"]; f.smooth = True
+    sb1 = set(v1)
+    e2 = bmesh.ops.extrude_edge_only(bm, edges=[e for e in bm.edges if e.is_boundary and e.verts[0] in sb1 and e.verts[1] in sb1])
+    v2 = [x for x in e2["geom"] if isinstance(x, bmesh.types.BMVert)]
+    for v in v2:
+        dz = v.co.z - O.z
+        v.co = v.co - F * 0.0055 + up * (0.0014 if dz > 0 else -0.0014)
+    for f in [x for x in e2["geom"] if isinstance(x, bmesh.types.BMFace)]: f.material_index = mats["MAITE_boca_int"]; f.smooth = True
+    # ---- piezas de dentro (en el marco de la boca: X lateral, F hacia delante, up)
+    _caja_redonda.previos = set(bm.verts)
+    partes = {"dientes_sup": [], "dientes_inf": [], "encia_sup": [], "encia_inf": [], "lengua": [], "saco": []}
+    anchos = [0.0043, 0.0037, 0.0035, 0.0032, 0.0031, 0.0030]
+    altos_s = [0.0050, 0.0044, 0.0047, 0.0041, 0.0038, 0.0035]
+    z_borde_sup = O.z - 0.0007                     # filo de los dientes de arriba
+    for fila, (r_arco, prof, esc, signo) in enumerate(((0.0185, 0.0026, 1.0, 1), (0.0165, 0.0040, 0.88, -1))):
+        s_acum = 0.0
+        for k, (w_, h_) in enumerate(zip(anchos, altos_s)):
+            w_ *= esc; h_ *= esc * (0.85 if signo < 0 else 1.0)
+            for lado_s in (-1, 1):
+                s_ = (s_acum + w_ / 2) * lado_s; phi = s_ / r_arco
+                pos = O + X * (r_arco * math.sin(phi)) - F * (prof + r_arco * (1 - math.cos(phi)))
+                tang = (X * math.cos(phi) - F * math.sin(phi)).normalized()
+                nrm_ = tang.cross(up).normalized()
+                if signo > 0:
+                    c_ = pos + up * (z_borde_sup - O.z + h_ / 2)
+                else:
+                    c_ = pos + up * (z_borde_sup - O.z - 0.0004 - h_ / 2)
+                vs = _caja_redonda(bm, c_, tang, nrm_, up, w_ * 0.47, 0.0012, h_ / 2, mats["MAITE_dientes"])
+                partes["dientes_sup" if signo > 0 else "dientes_inf"] += vs
+            s_acum += w_
+    # encías: anillos aplastados que siguen el arco de los dientes
+    for signo, clave_, r_a, prof in ((1, "encia_sup", 0.0190, 0.0026), (-1, "encia_inf", 0.0170, 0.0040)):
+        cprof = prof + r_a - 0.0006
+        c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0004 if signo < 0 else 0))
+        partes[clave_] += _elipsoide(bm, c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12)
+    partes["lengua"] += _elipsoide(bm, O - F * 0.0185 + up * (z_borde_sup - O.z - 0.0050), X, F, up, 0.0105, 0.0120, 0.0034, mats["MAITE_lengua"], 28, 14)
+    partes["saco"] += _elipsoide(bm, O - F * 0.0215 + up * (-0.0012), X, F, up, 0.031, 0.0170, 0.0125, mats["MAITE_boca_int"], 36, 20)
+    bm.verts.index_update()
+    info = {k: [v.index for v in vs] for k, vs in partes.items()}
+    info["bucle"] = [v.index for v in bucle]; info["labio_int"] = [v.index for v in v1]; info["boca_int"] = [v.index for v in v2]
+    info.update(O=tuple(O), F=tuple(F), X=tuple(X))
+    bm.normal_update(); bm.to_mesh(m); bm.free(); m.update()
+    # pesos del esqueleto de las piezas nuevas: todo a la cabeza
+    g = me.vertex_groups.get("mixamorig:Head") or me.vertex_groups.new(name="mixamorig:Head")
+    nuevas = [i for k in ("dientes_sup", "dientes_inf", "encia_sup", "encia_inf", "lengua", "saco") for i in info[k]]
+    g.add(nuevas, 1.0, 'REPLACE')
+    # reindexar los ojos
+    for d in datos_ojos.values():
+        d["bucle"] = _reindexar(me, d["bucle_co"]); d["borde_int"] = _reindexar(me, d["borde_co"])
+    print("BOCA lista: dientes", len(info["dientes_sup"]) // 8, "piezas, centro", tuple(round(x, 4) for x in O), flush=True)
+    return info
+
+
+# ================================================================ LAS 52 SHAPE KEYS DE ARKIT (+ todo en la misma malla)
+def _dist_a(P, Q):
+    """Distancia de cada punto de P al punto más cercano de Q (por bloques para no gastar memoria)."""
+    out = np.empty(len(P))
+    for i in range(0, len(P), 4000):
+        out[i:i + 4000] = np.min(np.linalg.norm(P[i:i + 4000, None, :] - Q[None, :, :], axis=2), axis=1)
+    return out
+
+
+def crear_claves(arm, me, info_ojos, info_boca, adelante):
+    m = me.data; N = len(m.vertices)
+    co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
+    nor = np.empty(N * 3, np.float64); m.vertices.foreach_get('normal', nor); nor = nor.reshape(-1, 3)
+    up = np.array([0.0, 0.0, 1.0])
+    O = np.array(info_boca["O"]); F = np.array(info_boca["F"]); X = np.array(info_boca["X"])
+    lat = X.copy()
+    B = BOCA; sup = _parabola((B["esq_d"], B["sup_c"], B["esq_i"])); inf = _parabola((B["esq_d"], B["inf_c"], B["esq_i"]))
+    mid = lambda x: (sup(x) + inf(x)) / 2
+    d = co - O; dx = d @ X; dz = d @ up; dep = -(d @ F)
+    x, z = co[:, 0], co[:, 2]
+    # conjuntos
+    def mask(lista):
+        mk = np.zeros(N, bool); mk[np.asarray(lista, int)] = True; return mk
+    t_sup, t_inf = mask(info_boca["dientes_sup"]), mask(info_boca["dientes_inf"])
+    g_sup, g_inf = mask(info_boca["encia_sup"]), mask(info_boca["encia_inf"])
+    leng, saco = mask(info_boca["lengua"]), mask(info_boca["saco"])
+    rim = mask(info_boca["labio_int"]) | mask(info_boca["boca_int"])
+    interior = t_sup | t_inf | g_sup | g_inf | leng | saco
+    piel = ~interior
+    lm = mid(x)
+    abajo = z < lm
+    # ---- peso de la mandíbula
+    wj = (1 - _ss(-0.0022, 0.0004, z - lm)) * (1 - _ss(0.028, 0.052, np.abs(dx))) * (1 - _ss(0.022, 0.050, dep)) * _ss(0.783, 0.801, z)
+    wj = np.where(piel, wj, 0.0)
+    wj = np.where(rim, np.where(abajo, 1.0, 0.0) * (1 - _ss(0.028, 0.04, np.abs(dx))), wj)
+    wj = np.where(t_inf | g_inf | leng, 1.0, wj)
+    wj = np.where(saco, 1 - _ss(-0.006, 0.003, dz), wj)
+    piv = O - F * 0.068 + up * 0.019
+    # ---- zonas de los labios
+    cerca_linea = 1 - _ss(0.0006, 0.0075, np.abs(z - lm))
+    ancho_boca = 1 - _ss(0.020, 0.034, np.abs(dx))
+    frente = 1 - _ss(0.012, 0.026, dep)
+    w_lab = np.where(piel, cerca_linea * ancho_boca * frente, 0.0)
+    w_lab_sup = w_lab * (~abajo); w_lab_inf = w_lab * abajo
+    zona_boca = np.where(piel, (1 - _ss(0.0, 0.016, np.abs(z - lm))) * (1 - _ss(0.022, 0.042, np.abs(dx))) * frente, 0.0)
+    # esquinas (extremos del bucle de la boca a lo largo del eje lateral)
+    bl = co[info_boca["bucle"]]; tb = (bl - O) @ X
+    K = {"Right": bl[np.argmin(tb)], "Left": bl[np.argmax(tb)]}
+    def w_punto(P, radio, solo_piel=True):
+        w = 1 - _ss(0.0, radio, np.linalg.norm(co - P, axis=1))
+        return np.where(piel, w, 0.0) if solo_piel else w
+    lado_x = {"Left": _ss(-0.004, 0.010, dx), "Right": _ss(-0.004, 0.010, -dx)}
+    sgn = {"Left": 1.0, "Right": -1.0}
+    # ---- cejas: lo oscuro por encima de cada ojo
+    fc = _color_caras(me)
+    vcol = np.zeros((N, 3)); cnt = np.zeros(N)
+    for p in m.polygons:
+        for vi in p.vertices: vcol[vi] += fc[p.index]; cnt[vi] += 1
+    vcol /= np.maximum(cnt, 1)[:, None]
+    lum = vcol @ np.array([0.3, 0.55, 0.15])
+    cejas = {}
+    for lado, lado_arkit in (("L", "Left"), ("R", "Right")):
+        Ce = info_ojos[lado]["C"]
+        cand = piel & (lum < 0.33) & (z > Ce[2] + 0.013) & (z < Ce[2] + 0.032) & (np.abs(co[:, 0] - Ce[0]) < 0.024) & (co[:, 1] < Ce[1] - 0.004)
+        idx = np.where(cand)[0]
+        if len(idx) < 5:
+            print("CEJA", lado, "sin vértices oscuros", flush=True); continue
+        P = co[idx]; t = (P - Ce) @ X * sgn[lado_arkit]                 # + hacia fuera (sien)
+        tn = (t - t.min()) / max(1e-6, t.max() - t.min())
+        dist = _dist_a(co, P)
+        w = np.where(piel, 1 - _ss(0.0008, 0.0065, dist), 0.0)
+        # parámetro dentro-fuera para cada vértice (del más cercano de la ceja)
+        tv = (co - Ce) @ X * sgn[lado_arkit]; tvn = np.clip((tv - t.min()) / max(1e-6, t.max() - t.min()), 0, 1)
+        cejas[lado_arkit] = dict(w=w, t=tvn, interior_dir=-X * sgn[lado_arkit])
+        print("CEJA", lado, len(idx), "vértices", flush=True)
+    claves = {}
+    def rotar(P, C, eje, ang):
+        return _rot_puntos(P, C, eje, ang)
+    def k_add(nombre, Xn):
+        claves[nombre] = Xn
+    # ---------------- mandíbula
+    k_add("jawOpen", rotar(co, piv, lat, math.radians(14) * wj))
+    k_add("jawForward", co + np.outer(wj, F) * 0.0026)
+    for s_, nombre in ((1, "jawLeft"), (-1, "jawRight")):
+        k_add(nombre, rotar(co, piv, up, math.radians(5) * s_ * wj) + np.outer(wj, X) * 0.0012 * s_)
+    # ---------------- boca
+    Xc = rotar(co, piv, lat, -math.radians(12) * wj * cerca_linea * ancho_boca * abajo)
+    Xc = Xc - np.outer(w_lab_sup, up) * 0.0010
+    k_add("mouthClose", Xc)
+    Xf = co + np.outer(w_lab, F) * 0.0022 - np.outer(w_lab * dx * 0.28, X) + np.outer(w_lab_sup, up) * 0.0009 - np.outer(w_lab_inf, up) * 0.0012
+    k_add("mouthFunnel", Xf)
+    Xp = co + np.outer(w_lab, F) * 0.0030 - np.outer(w_lab * dx * 0.48, X) - np.outer(w_lab * (z - lm) * 0.40, up)
+    k_add("mouthPucker", Xp)
+    for s_, nombre in ((1, "mouthLeft"), (-1, "mouthRight")):
+        k_add(nombre, co + np.outer(zona_boca, X) * 0.0040 * s_)
+    for lado in ("Left", "Right"):
+        Kp = K[lado]; s_ = sgn[lado]
+        wc = w_punto(Kp, 0.016) * frente
+        wc2 = w_punto(Kp, 0.010) * frente
+        mejilla = w_punto(Kp + X * 0.010 * s_ + up * 0.010 - F * 0.004, 0.016)
+        k_add(f"mouthSmile{lado}", co + np.outer(wc, up) * 0.0027 + np.outer(wc, X) * 0.0017 * s_ - np.outer(wc, F) * 0.0010 + np.outer(mejilla, up) * 0.0010)
+        k_add(f"mouthFrown{lado}", co - np.outer(wc, up) * 0.0024 + np.outer(wc2, X) * 0.0004 * s_)
+        k_add(f"mouthDimple{lado}", co - np.outer(wc2, F) * 0.0016 + np.outer(wc2, X) * 0.0008 * s_)
+        k_add(f"mouthStretch{lado}", co + np.outer(wc, X) * 0.0032 * s_ - np.outer(wc, up) * 0.0008)
+        wl = lado_x[lado]
+        k_add(f"mouthPress{lado}", co - np.outer(w_lab * wl * (z - lm) * 0.55, up))
+        k_add(f"mouthLowerDown{lado}", co - np.outer(w_lab_inf * wl, up) * 0.0026)
+        k_add(f"mouthUpperUp{lado}", co + np.outer(w_lab_sup * wl, up) * 0.0024)
+    k_add("mouthRollLower", co - np.outer(w_lab_inf * cerca_linea, F) * 0.0018 + np.outer(w_lab_inf * cerca_linea, up) * 0.0010)
+    k_add("mouthRollUpper", co - np.outer(w_lab_sup * cerca_linea, F) * 0.0016 - np.outer(w_lab_sup * cerca_linea, up) * 0.0008)
+    barbilla = np.where(piel & abajo, (1 - _ss(0.0, 0.020, lm - z)) * (1 - _ss(0.018, 0.032, np.abs(dx))) * frente, 0.0)
+    k_add("mouthShrugLower", co + np.outer(barbilla, up) * 0.0016 + np.outer(barbilla, F) * 0.0006)
+    k_add("mouthShrugUpper", co + np.outer(w_lab_sup, up) * 0.0012)
+    # ---------------- mejillas y nariz
+    ojos = {"Left": np.array(info_ojos["L"]["C"]), "Right": np.array(info_ojos["R"]["C"])}
+    pc = np.zeros(N)
+    for lado in ("Left", "Right"):
+        s_ = sgn[lado]
+        cp = K[lado] + X * 0.014 * s_ + up * 0.008 - F * 0.006
+        pc = np.maximum(pc, w_punto(cp, 0.022))
+        cs_ = ojos[lado] - up * 0.016 + X * 0.004 * s_ + F * 0.004
+        ws = w_punto(cs_, 0.016)
+        k_add(f"cheekSquint{lado}", co + np.outer(ws, up) * 0.0018 + np.outer(ws, F) * 0.0004)
+        ala = O + X * (0.0175 * s_) + up * 0.0165
+        wn = w_punto(ala, 0.009)
+        k_add(f"noseSneer{lado}", co + np.outer(wn, up) * 0.0016 + np.outer(wn, F) * 0.0003)
+    k_add("cheekPuff", co + nor * (pc * 0.0030)[:, None])
+    # ---------------- cejas
+    ci = np.zeros(N); 
+    for lado in ("Left", "Right"):
+        if lado not in cejas: continue
+        c = cejas[lado]; w, t = c["w"], c["t"]
+        k_add(f"browDown{lado}", co - np.outer(w * (1.0 - 0.4 * t), up) * 0.0022 + np.outer(w * (1 - t), c["interior_dir"]) * 0.0009)
+        k_add(f"browOuterUp{lado}", co + np.outer(w * _ss(0.3, 1.0, t), up) * 0.0026)
+        ci = np.maximum(ci, w * (1 - _ss(0.0, 0.7, t)))
+    k_add("browInnerUp", co + np.outer(ci, up) * 0.0028)
+    # ---------------- lengua
+    k_add("tongueOut", rotar(co, piv, lat, math.radians(14) * np.where(leng, 1.0, 0.0)) + np.outer(np.where(leng, 1.0, 0.0), F) * 0.010 - np.outer(np.where(leng, 1.0, 0.0), up) * 0.001)
+    # ---------------- ojos (párpados)
+    for lado, sufijo in (("L", "Left"), ("R", "Right")):
+        I = info_ojos[lado]; th = I["th"]; fuera = 1 if lado == "L" else -1
+        def kp(nombre, ang_sup, ang_inf, giro):
+            Xn = co.copy(); idx = I["idx"]; Q = Xn[idx]; C = I["C"]
+            if ang_sup: Q = _rot_puntos(Q, C, lat, ang_sup * I["wsup"])
+            if ang_inf: Q = _rot_puntos(Q, C, lat, ang_inf * I["winf"])
+            if giro: Q = _rot_puntos(Q, C, up, giro * np.maximum(I["wsup"], I["winf"]))
+            Xn[idx] = Q; k_add(nombre, Xn)
+        kp(f"eyeBlink{sufijo}", 0.80 * th + 0.03, -0.20 * th - 0.01, 0)
+        kp(f"eyeWide{sufijo}", -0.20 * th, 0.06 * th, 0)
+        kp(f"eyeSquint{sufijo}", 0.12 * th, -0.38 * th, 0)
+        kp(f"eyeLookUp{sufijo}", -0.16 * th, -0.07 * th, 0)
+        kp(f"eyeLookDown{sufijo}", 0.32 * th, 0.08 * th, 0)
+        kp(f"eyeLookOut{sufijo}", 0, 0, 0.06 * fuera)
+        kp(f"eyeLookIn{sufijo}", 0, 0, -0.06 * fuera)
+    # ---------------- escribir las shape keys en el orden de ARKit
+    ORDEN = ["eyeBlinkLeft", "eyeLookDownLeft", "eyeLookInLeft", "eyeLookOutLeft", "eyeLookUpLeft", "eyeSquintLeft", "eyeWideLeft",
+             "eyeBlinkRight", "eyeLookDownRight", "eyeLookInRight", "eyeLookOutRight", "eyeLookUpRight", "eyeSquintRight", "eyeWideRight",
+             "jawForward", "jawLeft", "jawRight", "jawOpen", "mouthClose", "mouthFunnel", "mouthPucker", "mouthLeft", "mouthRight",
+             "mouthSmileLeft", "mouthSmileRight", "mouthFrownLeft", "mouthFrownRight", "mouthDimpleLeft", "mouthDimpleRight",
+             "mouthStretchLeft", "mouthStretchRight", "mouthRollLower", "mouthRollUpper", "mouthShrugLower", "mouthShrugUpper",
+             "mouthPressLeft", "mouthPressRight", "mouthLowerDownLeft", "mouthLowerDownRight", "mouthUpperUpLeft", "mouthUpperUpRight",
+             "browDownLeft", "browDownRight", "browInnerUp", "browOuterUpLeft", "browOuterUpRight", "cheekPuff", "cheekSquintLeft",
+             "cheekSquintRight", "noseSneerLeft", "noseSneerRight", "tongueOut"]
+    if not m.shape_keys: me.shape_key_add(name="Basis", from_mix=False)
+    hechas = []
+    for nombre in ORDEN:
+        if nombre not in claves: continue
+        k = me.shape_key_add(name=nombre, from_mix=False); k.data.foreach_set('co', claves[nombre].ravel().astype(np.float32))
+        k.value = 0.0; k.slider_min = 0.0; k.slider_max = 1.0; hechas.append(nombre)
+    faltan = [n for n in ORDEN if n not in hechas]
+    print("ARKIT", len(hechas), "de 52", ("faltan " + ",".join(faltan)) if faltan else "", flush=True)
+    return hechas
