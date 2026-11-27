@@ -185,8 +185,7 @@ def material_ojo(nombre, iris_rgb, theta_iris, theta_pupila):
     fin = N.new("ShaderNodeMix"); fin.data_type = 'RGBA'; fin.location = (300, 0)
     L.new(borde.outputs["Result"], fin.inputs["Factor"]); L.new(conp.outputs[2], fin.inputs[6]); L.new(esc.outputs[2], fin.inputs[7])
     L.new(fin.outputs[2], bs.inputs["Base Color"])
-    bs.inputs["Roughness"].default_value = 0.35; bs.inputs["Subsurface Weight"].default_value = 0.12
-    bs.inputs["Subsurface Radius"].default_value = (1.0, 0.5, 0.4); bs.inputs["Subsurface Scale"].default_value = 0.002
+    bs.inputs["Roughness"].default_value = 0.4
     # el iris está algo hundido: relieve
     bu = N.new("ShaderNodeBump"); bu.location = (450, -300); bu.inputs["Strength"].default_value = 0.25; bu.inputs["Distance"].default_value = 0.0006
     L.new(fib.outputs["Fac"], bu.inputs["Height"]); L.new(bu.outputs["Normal"], bs.inputs["Normal"])
@@ -345,7 +344,7 @@ def construir_ojos(arm, me, col_ojo=None):
         th_i = math.asin(min(0.95, IRIS_RADIO / R)); th_p = th_i * 0.40
         iris_rgb = tuple(float(x) for x in (col_ojo or IRIS_COLOR))
         mt = material_ojo(f"MAITE_ojo_{lado}", iris_rgb, th_i, th_p)
-        for nombre, radio, mat_ in ((f"MAITE_globo_{lado}", R, mt), (f"MAITE_cornea_{lado}", R + 0.00018, material_cornea())):
+        for nombre, radio, mat_ in ((f"MAITE_globo_{lado}", R, mt), (f"MAITE_cornea_{lado}", R + 0.0001, material_cornea())):
             bmg = bmesh.new(); bmesh.ops.create_uvsphere(bmg, u_segments=64, v_segments=40, radius=radio)
             md = bpy.data.meshes.new(nombre); bmg.to_mesh(md); bmg.free()
             for p in md.polygons: p.use_smooth = True
@@ -585,12 +584,13 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     sel = [i for i, c in enumerate(cen) if x0 + 0.0008 < c[0] < x1 - 0.0008 and inf(c[0]) < c[2] < sup(c[0]) and c[1] < -0.04]
     bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table()
     mats = {}
-    for nombre, col, rug, sss, coat in (("MAITE_labio_int", (0.62, 0.24, 0.24), 0.3, 0.3, 0.5), ("MAITE_boca_int", (0.16, 0.035, 0.04), 0.5, 0.0, 0.3),
+    for nombre, col, rug, sss, coat in (("MAITE_labio_int", (0.62, 0.24, 0.24), 0.3, 0.3, 0.5), ("MAITE_boca_int", (0.075, 0.016, 0.018), 0.6, 0.0, 0.0),
                                          ("MAITE_dientes", (0.86, 0.84, 0.78), 0.28, 0.15, 0.35), ("MAITE_encias", (0.70, 0.27, 0.29), 0.35, 0.3, 0.4),
                                          ("MAITE_lengua", (0.66, 0.26, 0.27), 0.45, 0.35, 0.25)):
         m.materials.append(material_simple(nombre, col, rug=rug, sss=sss, coat=coat)); mats[nombre] = len(m.materials) - 1
     fc = _color_caras(me)
-    restos = [i for i, c in enumerate(cen) if i not in set(sel) and x0 - 0.006 < c[0] < x1 + 0.006 and inf(c[0]) - 0.005 < c[2] < sup(c[0]) + 0.004
+    ssel = set(sel)
+    restos = [i for i, c in enumerate(cen) if i not in ssel and x0 - 0.008 < c[0] < x1 + 0.008 and inf(c[0]) - 0.009 < c[2] < sup(c[0]) + 0.007
               and c[1] < -0.04 and not _es_piel(fc[i])]
     if restos: repintar_piel(me, restos, colores=colores_locales(cen, fc, restos, excluir=sel))
     bmesh.ops.delete(bm, geom=[bm.faces[i] for i in sel], context='FACES')
@@ -655,7 +655,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
         cprof = prof + r_a - 0.0006
         c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0004 if signo < 0 else 0))
         partes[clave_].append(_elipsoide(bm, c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12))
-    partes["lengua"].append(_elipsoide(bm, O - F * 0.0185 + up * (z_borde_sup - O.z - 0.0050), X, F, up, 0.0105, 0.0120, 0.0034, mats["MAITE_lengua"], 28, 14))
+    partes["lengua"].append(_elipsoide(bm, O - F * 0.0200 + up * (z_borde_sup - O.z - 0.0068), X, F, up, 0.0092, 0.0115, 0.0030, mats["MAITE_lengua"], 28, 14))
     partes["saco"].append(_elipsoide(bm, O - F * 0.0235 + up * (-0.0012), X, F, up, 0.026, 0.0180, 0.0125, mats["MAITE_boca_int"], 36, 20))
     bm.verts.index_update(); bm.verts.ensure_lookup_table()
     info = {k: [i for (a_, b_) in tramos for i in range(a_, b_)] for k, tramos in partes.items()}
@@ -863,3 +863,35 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
     faltan = [n for n in ORDEN if n not in hechas]
     print("ARKIT", len(hechas), "de 52", ("faltan " + ",".join(faltan)) if faltan else "", flush=True)
     return hechas
+
+
+
+def ajustar_globos(me, datos, margen=0.00025):
+    """La subdivisión del render encoge un poco la piel: se evalúa la malla subdividida y, si el globo o la córnea
+    asomarían por la piel, se encogen (con el centro fijo)."""
+    sub = me.modifiers.get("Sub_render"); arm_mods = [md for md in me.modifiers if md.type == 'ARMATURE']
+    lv = sub.levels if sub else 0
+    if sub: sub.levels = max(1, sub.render_levels)
+    for md in arm_mods: md.show_viewport = False
+    dg = bpy.context.evaluated_depsgraph_get(); ev = me.evaluated_get(dg); mm = ev.to_mesh()
+    P = np.empty(len(mm.vertices) * 3, np.float64); mm.vertices.foreach_get('co', P); P = P.reshape(-1, 3)
+    ev.to_mesh_clear()
+    if sub: sub.levels = lv
+    for md in arm_mods: md.show_viewport = True
+    m = me.data
+    for lado, d in datos.items():
+        C = np.array(d["C"]); R = d["R"]
+        bucle = np.array([tuple(m.vertices[i].co) for i in d["bucle"]])
+        cerca = np.linalg.norm(P - C, axis=1) < R + 0.006
+        Q = P[cerca]
+        lejos_borde = _dist_a(Q, bucle) > 0.0012
+        Q = Q[lejos_borde]
+        if not len(Q): continue
+        dmin = float(np.min(np.linalg.norm(Q - C, axis=1)))
+        Rn = min(R, dmin - margen)
+        if Rn < R:
+            f = Rn / R
+            for nombre in (f"MAITE_globo_{lado}", f"MAITE_cornea_{lado}"):
+                o = bpy.data.objects.get(nombre)
+                if o: o.scale = (o.scale[0] * f, o.scale[1] * f, o.scale[2] * f)
+        print("GLOBO_AJUSTE", lado, "R", round(R, 5), "->", round(Rn, 5), flush=True)

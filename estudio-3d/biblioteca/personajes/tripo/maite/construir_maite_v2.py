@@ -295,6 +295,7 @@ LAT = (OJOS_DATOS["L"]["C"] - OJOS_DATOS["R"]["C"]); LAT.z = 0; LAT.normalize()
 BOCA_INFO = CM["construir_boca"](ARM, ME, ADELANTE, LAT, OJOS_DATOS)
 PARPADOS = CM["preparar_parpados"](ARM, ME, OJOS_DATOS, ADELANTE)
 ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE)
+CM["ajustar_globos"](ME, OJOS_DATOS)
 trenza = preparar_trenza(ARM, ME)
 ARM["trenza"] = ",".join(trenza)
 ARM["maite_version"] = "v2-fase1"
