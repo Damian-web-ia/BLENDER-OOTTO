@@ -195,6 +195,10 @@ def colores_locales(cen, fc, caras, k=10, excluir=()):
     return out
 
 
+def _sk(sockets, ident):
+    return next(x for x in sockets if x.identifier == ident)
+
+
 def material_ojo(nombre, iris_rgb, theta_iris, theta_pupila):
     mt = bpy.data.materials.new(nombre); mt.use_nodes = True; nt = mt.node_tree; N = nt.nodes; L = nt.links
     bs = N["Principled BSDF"]; bs.location = (700, 0)
@@ -245,6 +249,7 @@ def material_ojo(nombre, iris_rgb, theta_iris, theta_pupila):
     L.new(borde.outputs["Result"], fin.inputs["Factor"]); L.new(conp.outputs[2], fin.inputs[6]); L.new(esc.outputs[2], fin.inputs[7])
     L.new(fin.outputs[2], bs.inputs["Base Color"])
     bs.inputs["Roughness"].default_value = 0.4
+    bs.inputs["Specular IOR Level"].default_value = 0.0          # el brillo lo pone la córnea (si no, pupila gris lechosa)
     # el iris está algo hundido: relieve
     bu = N.new("ShaderNodeBump"); bu.location = (450, -300); bu.inputs["Strength"].default_value = 0.25; bu.inputs["Distance"].default_value = 0.0006
     L.new(fib.outputs["Fac"], bu.inputs["Height"]); L.new(bu.outputs["Normal"], bs.inputs["Normal"])
@@ -255,8 +260,23 @@ def material_cornea():
     mt = bpy.data.materials.get("MAITE_cornea") or bpy.data.materials.new("MAITE_cornea"); mt.use_nodes = True
     bs = mt.node_tree.nodes["Principled BSDF"]
     bs.inputs["Base Color"].default_value = (1, 1, 1, 1); bs.inputs["Roughness"].default_value = 0.0
-    bs.inputs["Transmission Weight"].default_value = 1.0; bs.inputs["IOR"].default_value = 1.336
-    bs.inputs["Specular IOR Level"].default_value = 0.8
+    bs.inputs["Transmission Weight"].default_value = 1.0; bs.inputs["IOR"].default_value = 1.376
+    bs.inputs["Specular IOR Level"].default_value = 0.5
+    return mt
+
+
+def material_cuenca():
+    """Fondo entre el párpado y el globo: sigue siendo 'blanco del ojo' (algo rosado) y se oscurece donde se mete
+    (oclusión ambiental), así las comisuras de un ojo almendrado se leen como esclera y no como un pliegue marrón."""
+    mt = bpy.data.materials.get("MAITE_cuenca") or bpy.data.materials.new("MAITE_cuenca"); mt.use_nodes = True
+    N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
+    ao = N.new("ShaderNodeAmbientOcclusion"); ao.inputs["Distance"].default_value = 0.004; ao.samples = 8; ao.location = (-700, 0)
+    pw = N.new("ShaderNodeMath"); pw.operation = 'POWER'; pw.inputs[1].default_value = 1.6; L.new(ao.outputs["AO"], pw.inputs[0]); pw.location = (-500, 0)
+    mx = N.new("ShaderNodeMix"); mx.data_type = 'RGBA'; mx.location = (-300, 0)
+    L.new(pw.outputs[0], _sk(mx.inputs, "Factor_Float"))
+    _sk(mx.inputs, "A_Color").default_value = (0.20, 0.10, 0.10, 1); _sk(mx.inputs, "B_Color").default_value = (0.74, 0.64, 0.62, 1)
+    L.new(_sk(mx.outputs, "Result_Color"), bs.inputs["Base Color"])
+    bs.inputs["Roughness"].default_value = 0.35; bs.inputs["Coat Weight"].default_value = 0.4; bs.inputs["Coat Roughness"].default_value = 0.08
     return mt
 
 
@@ -277,7 +297,7 @@ def construir_ojos(arm, me, col_ojo=None):
     bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table(); bm.verts.ensure_lookup_table()
     mat_borde = material_simple("MAITE_parpado_borde", (0.70, 0.36, 0.30), rug=0.5, sss=0.25, coat=0.05)
     m.materials.append(mat_borde); i_borde = len(m.materials) - 1
-    mat_cuenca = material_simple("MAITE_cuenca", (0.16, 0.06, 0.05), rug=0.4, coat=0.5)
+    mat_cuenca = material_cuenca()
     m.materials.append(mat_cuenca); i_cuenca = len(m.materials) - 1
     mat_lin = material_simple("MAITE_delineado", (0.030, 0.018, 0.016), rug=0.45)
     m.materials.append(mat_lin); i_lin = len(m.materials) - 1
@@ -371,7 +391,7 @@ def construir_ojos(arm, me, col_ojo=None):
         nv1 = [x for x in ext["geom"] if isinstance(x, bmesh.types.BMVert)]
         for v in nv1:
             dv = v.co - C; dist = dv.length
-            v.co = C + dv.normalized() * max(R + 0.0004, dist - 0.0009)
+            v.co = C + dv.normalized() * max(R + 0.0004, dist - 0.0006)
         for f in [x for x in ext["geom"] if isinstance(x, bmesh.types.BMFace)]:
             f.material_index = i_borde; f.smooth = True
         sb1 = set(nv1)
@@ -543,7 +563,7 @@ def preparar_parpados(arm, me, datos, adelante, semilla=7):
                 if prev:
                     f2 = bm.faces.new((prev[0], prev[1], vb, va)); f2.material_index = i_lin; f2.smooth = True
                 prev = (va, vb)
-        for fila, (lista, n, Lmin, Lmax, haciaarriba) in enumerate(((I["sup"], 64, 0.0024, 0.0050, 1), (I["sup"], 40, 0.0018, 0.0034, 1), (I["inf"], 22, 0.0007, 0.0014, -1))):
+        for fila, (lista, n, Lmin, Lmax, haciaarriba) in enumerate(((I["sup"], 64, 0.0024, 0.0050, 1), (I["sup"], 40, 0.0018, 0.0034, 1), (I["inf"], 24, 0.0008, 0.0019, -1))):
             pts = sorted(lista, key=lambda k: (Vector(co0[k]) - A).dot(B - A))
             cur = [Vector(co0[k]) for k in pts]
             if len(cur) < 3: continue
@@ -557,6 +577,8 @@ def preparar_parpados(arm, me, datos, adelante, semilla=7):
                 exterior = (base - A).length / max(1e-6, (B - A).length)        # 0 esquina A, 1 esquina B
                 hacia_fuera = exterior if (B - A).dot(lat) * (1 if lado == "L" else -1) > 0 else 1 - exterior
                 L = (Lmin + (Lmax - Lmin) * (hacia_fuera ** 1.4)) * rng.uniform(0.85, 1.15)
+                if exterior < 0.035 or exterior > 0.965: continue          # en las esquinas mismas no (se clavan en la piel)
+                if fila == 2 and hacia_fuera < 0.40: continue               # abajo sólo en la mitad de fuera (si no, parecen puntos de costura)
                 radial = (base - C); radial = radial - lat * radial.dot(lat); radial.normalize()
                 d0 = (radial * 0.55 + adelante * 0.65).normalized()
                 curva = up * haciaarriba
@@ -1161,9 +1183,6 @@ def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010,
     _material_piel_lisa(mt, rug_lisa)
     print("PIEL_LISA", int(U.sum()), "vértices rellenos,", int(libres.sum()), "libres, rugosidad", round(rug_lisa, 3), flush=True)
 
-
-def _sk(sockets, ident):
-    return next(x for x in sockets if x.identifier == ident)
 
 
 def _material_piel_lisa(mt, rug_lisa):
