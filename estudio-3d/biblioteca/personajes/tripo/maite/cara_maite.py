@@ -57,6 +57,15 @@ def _esfera(P, rmin=0.011):
     return Vector(c), r
 
 
+def _pliegue(bm, verts_bucle, valor=0.8):
+    """Marca con 'crease' las aristas que unen vértices consecutivos de un bucle (borde de párpado o labio)."""
+    cr = bm.edges.layers.float.get('crease_edge') or bm.edges.layers.float.new('crease_edge')
+    sv = set(verts_bucle)
+    for v in verts_bucle:
+        for e in v.link_edges:
+            if e.other_vert(v) in sv: e[cr] = max(e[cr], valor)
+
+
 def _bucle(bordes):
     """Bucle cerrado más grande formado por las aristas de borde dadas (ignora agujeritos sueltos)."""
     vec = {}
@@ -372,6 +381,7 @@ def construir_ojos(arm, me, col_ojo=None):
             dv = v.co - C; v.co = C + dv.normalized() * (R + 0.0002)
         for f in [x for x in ext2["geom"] if isinstance(x, bmesh.types.BMFace)]:
             f.material_index = i_cuenca; f.smooth = True
+        _pliegue(bm, bucle, 0.6); _pliegue(bm, nv1, 0.8); _pliegue(bm, nv, 1.0)
         nv = nv1 + nv
         d.update(C=C, R=R, nrm=nrm, bucle_v=bucle, borde_v=nv)
         print("GLOBO", lado, tuple(round(x, 4) for x in C), round(R, 4), flush=True)
@@ -681,11 +691,15 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
         dz = v.co.z - O.z
         v.co = v.co - F * 0.0055 + up * (0.0014 if dz > 0 else -0.0014)
     for f in [x for x in e2["geom"] if isinstance(x, bmesh.types.BMFace)]: f.material_index = mats["MAITE_boca_int"]; f.smooth = True
+    _pliegue(bm, bucle, 0.5); _pliegue(bm, v1, 0.9); _pliegue(bm, v2, 1.0)
     # ---- piezas de dentro (en el marco de la boca: X lateral, F hacia delante, up)
     bm.verts.index_update(); bm.verts.ensure_lookup_table()
     idx_bucle = [v.index for v in bucle]; idx_v1 = [v.index for v in v1]; idx_v2 = [v.index for v in v2]
     from mathutils.bvhtree import BVHTree
-    bvh_piel = BVHTree.FromBMesh(bm)
+    i_piel = next((i for i, mt in enumerate(m.materials) if mt and mt.name.startswith("MAITE_piel")), 0)
+    caras_piel = [f for f in bm.faces if f.material_index == i_piel and (f.calc_center_median() - O).length < 0.06]
+    vp = {v: k for k, v in enumerate({v for f in caras_piel for v in f.verts})}
+    bvh_piel = BVHTree.FromPolygons([v.co.copy() for v in vp], [[vp[v] for v in f.verts] for f in caras_piel])
     abertura = [((v.co - O).dot(X), (v.co - O).dot(up)) for v in bucle]
     partes = {"dientes_sup": [], "dientes_inf": [], "encia_sup": [], "encia_inf": [], "lengua": [], "saco": []}   # tramos de índices
     anchos = [0.0043, 0.0037, 0.0035, 0.0032, 0.0031, 0.0030]
@@ -728,11 +742,12 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
         for i in info[k]:
             v = bm.verts[i]; p = v.co
             if en_abertura((p - O).dot(X) * 0.92, (p - O).dot(up) * 0.92): continue
-            hit_f = bvh_piel.ray_cast(p, F, 0.08)[0]
-            if hit_f is not None: continue                    # hay piel delante: está dentro de la cabeza
-            hit_b, _n, _i, dist = bvh_piel.ray_cast(p, -F, 0.05)
-            if hit_b is not None:
-                v.co = p - F * (dist + 0.0015); metidos += 1
+            loc, nrm_p, _i, dist = bvh_piel.find_nearest(p, 0.012)
+            if loc is None: continue
+            if nrm_p.dot(F) < 0.2: continue                             # sólo piel que mira hacia delante (la cara)
+            fuera = (p - loc).dot(nrm_p) > -0.0012                 # delante de la piel (o a menos de 1,2 mm por dentro)
+            if fuera:
+                v.co = loc - nrm_p * 0.0016; metidos += 1
     print("BOCA vértices metidos dentro de la cara:", metidos, flush=True)
     info["bucle"] = idx_bucle; info["labio_int"] = idx_v1; info["boca_int"] = idx_v2
     info.update(O=tuple(O), F=tuple(F), X=tuple(X))

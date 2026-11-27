@@ -10,6 +10,17 @@ sc = bpy.context.scene
 ARM = bpy.data.objects["MAITE_rig"]; ME = bpy.data.objects["MAITE_cuerpo"]
 ARM.scale = (1.73, 1.73, 1.73); bpy.context.view_layer.update()
 KB = ME.data.shape_keys.key_blocks if ME.data.shape_keys else {}
+# diagnóstico: MAITE_DIAG=arcilla (todo gris, para ver sólo la forma), sin_cornea, sin_globo
+DIAG = os.environ.get("MAITE_DIAG", "")
+if "arcilla" in DIAG:
+    gris = bpy.data.materials.new("ARCILLA"); gris.use_nodes = True
+    bs = gris.node_tree.nodes["Principled BSDF"]; bs.inputs["Base Color"].default_value = (0.55, 0.55, 0.55, 1); bs.inputs["Roughness"].default_value = 0.55
+    for i in range(len(ME.data.materials)):
+        if ME.data.materials[i] and not any(k in ME.data.materials[i].name for k in ("pestan", "delineado", "dientes")):
+            ME.data.materials[i] = gris
+for o in bpy.data.objects:
+    if ("sin_cornea" in DIAG and "cornea" in o.name.lower()) or ("sin_globo" in DIAG and "globo" in o.name.lower()):
+        o.hide_render = True
 PB = ARM.pose.bones
 # brazos abajo para que no estorben a la luz
 for lado, sx in (("Left", 1), ("Right", -1)):
@@ -48,7 +59,7 @@ try:
 except Exception as e: print("GPU", e)
 sc.render.resolution_x, sc.render.resolution_y = 900, 640
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
-ESTADOS = json.loads(argv[4]) if len(argv) > 4 else [
+ESTADOS = (json.loads(open(argv[4], encoding="utf-8").read() if argv[4].endswith(".json") else argv[4])) if len(argv) > 4 else [
     ["neutra", {}, [0, 0]],
     ["parpadeo_medio", {"eyeBlinkLeft": 0.5, "eyeBlinkRight": 0.5}, [0, 0]],
     ["ojos_cerrados", {"eyeBlinkLeft": 1, "eyeBlinkRight": 1}, [0, 0]],
