@@ -65,12 +65,15 @@ def _rango(nt, fac, a, b):
     return mp.outputs["Result"]
 
 
-def _calor(nt, bsdf, color_frio=None, fuerza=6.0, prop="calor"):
-    """La propiedad de escena 'calor' (0-1) enciende un brillo naranja (para frenos y amortiguadores)."""
+def _calor(nt, bsdf, color_frio=None, fuerza=6.0, prop="calor", base=0.0):
+    """La propiedad de escena 'calor' (0-1) enciende un brillo naranja (para frenos y amortiguadores).
+    'base' y 'color_frio' son el brillo y el color que tiene en frío."""
     at = nt.nodes.new("ShaderNodeAttribute"); at.attribute_type = 'VIEW_LAYER'; at.attribute_name = prop
-    mu = nt.nodes.new("ShaderNodeMath"); mu.operation = 'MULTIPLY'; mu.inputs[1].default_value = fuerza
+    mu = nt.nodes.new("ShaderNodeMath"); mu.operation = 'MULTIPLY_ADD'; mu.inputs[1].default_value = fuerza; mu.inputs[2].default_value = base
     nt.links.new(at.outputs["Fac"], mu.inputs[0]); nt.links.new(mu.outputs[0], bsdf.inputs["Emission Strength"])
-    _set(bsdf, "Emission Color", (1.0, 0.32, 0.05, 1))
+    mc = nt.nodes.new("ShaderNodeMix"); mc.data_type = 'RGBA'; nt.links.new(at.outputs["Fac"], mc.inputs[0])
+    mc.inputs[6].default_value = (*(color_frio or (1.0, 0.32, 0.05)), 1); mc.inputs[7].default_value = (1.0, 0.32, 0.05, 1)
+    nt.links.new(mc.outputs[2], bsdf.inputs["Emission Color"])
     return at
 
 
@@ -80,8 +83,10 @@ def aceite(nombre="MP_Aceite", color=(0.98, 0.7, 0.22), calor=True, ondas=True):
     superficie con ondas lentas que se mueven solas y, con calor, se vuelve naranja incandescente."""
     m = _nuevo(nombre); nt = m.node_tree; out = _salida(nt); b = _bsdf(nt)
     _set(b, "Base Color", (*color, 1)); _set(b, "Roughness", 0.025); _set(b, "IOR", 1.47)
-    _set(b, "Transmission Weight", 1.0); _set(b, "Specular IOR Level", 0.6)
-    _set(b, "Coat Weight", 0.25); _set(b, "Coat Roughness", 0.02)
+    _set(b, "Transmission Weight", 0.82); _set(b, "Specular IOR Level", 0.7)
+    _set(b, "Subsurface Weight", 0.3); _set(b, "Subsurface Radius", (1.0, 0.6, 0.2)); _set(b, "Subsurface Scale", 0.01)
+    _set(b, "Coat Weight", 0.3); _set(b, "Coat Roughness", 0.02)
+    _set(b, "Emission Color", (1.0, 0.7, 0.25, 1)); _set(b, "Emission Strength", 0.12)
     if ondas:
         ob = _objeto(nt)
         nz = _ruido(nt, ob, 38.0, 3.0, 0.5, w_anim=1.6)
@@ -90,7 +95,7 @@ def aceite(nombre="MP_Aceite", color=(0.98, 0.7, 0.22), calor=True, ondas=True):
         nt.links.new(nz.outputs["Fac"], ad.inputs[0]); nt.links.new(nz2.outputs["Fac"], ad.inputs[1])
         nt.links.new(_bump(nt, ad.outputs[0], 0.18, 0.002), b.inputs["Normal"])
     if calor:
-        at = _calor(nt, b, fuerza=14.0)
+        at = _calor(nt, b, color_frio=(1.0, 0.7, 0.25), fuerza=8.0, base=0.12)
         # con calor el tinte pasa de ámbar a naranja rojizo
         mx = nt.nodes.new("ShaderNodeMix"); mx.data_type = 'RGBA'
         nt.links.new(at.outputs["Fac"], mx.inputs[0]); mx.inputs[6].default_value = (*color, 1); mx.inputs[7].default_value = (1.0, 0.25, 0.04, 1)
