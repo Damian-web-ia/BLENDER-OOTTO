@@ -199,6 +199,7 @@ def construir_ojos(arm, me, col_ojo=None):
         cx = np.mean([p[0] for p in d["P"]]); cz = np.mean([p[2] for p in d["P"]])
         bordes = [e for e in bm.edges if e.is_boundary and all(abs(v.co.x - cx) < 0.03 and abs(v.co.z - cz) < 0.02 and v.co.y < -0.02 for v in e.verts)]
         bucle = _bucle(bordes)
+        print("AGUJERO", lado, len(bordes), "aristas de borde,", len(bucle), "en el bucle", flush=True)
         # el borde se ajusta a las dos curvas del diseño (arriba el delineado, abajo el párpado inferior)
         bot = _parabola(O["inf"])
         for v in bucle:
@@ -322,6 +323,10 @@ def parpados_y_pestanas(arm, me, datos, adelante, semilla=7):
         h = encima(P)
         sup = [bucle[k] for k in range(len(bucle)) if h[k] > 0.0003]
         inf = [bucle[k] for k in range(len(bucle)) if h[k] < -0.0003]
+        print("BUCLE", lado, len(bucle), "h", round(float(h.min()), 4), round(float(h.max()), 4), "esquinas", np.round(A, 4), np.round(B, 4), flush=True)
+        if len(sup) < 3 or len(inf) < 3:                  # por si el bucle sale raro: arriba/abajo del centro
+            sup = [bucle[k] for k in range(len(bucle)) if P[k][2] > C[2] + 0.0005]
+            inf = [bucle[k] for k in range(len(bucle)) if P[k][2] < C[2] - 0.0005]
         Ps, Pi = co0[sup], co0[inf]
         # ángulo de apertura (en el plano perpendicular al eje lateral)
         ptop = Ps[np.argmax(Ps[:, 2])]; pbot = Pi[np.argmin(Pi[:, 2])]
