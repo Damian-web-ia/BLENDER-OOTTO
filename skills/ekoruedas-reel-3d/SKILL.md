@@ -358,6 +358,7 @@ Antes de escribir una afirmación mecánica:
 - YouTube: Ootto sube como máximo 3 vídeos al día por marca; si se pasa, lo deja en cola y dice a qué hora sube (se acepta y se apunta, nunca se vuelve a subir).
 - Comprobar YouTube después de cada publicación: `own_media_list(platform="youtube")`. El 26-11 el reel de las ruedas se programó en Instagram + YouTube y a YouTube no llegó. Si falta, `reel_post(platform="youtube", title, tags, privacy "public")` con el mismo job.
 - YouTube Shorts (26-11-2026): Damián quiere monetizar, así que todo va como Short. YouTube lo clasifica solo: vídeo vertical 9:16 (o cuadrado), de 3 minutos o menos y público. No hay casilla aparte ni hace falta #shorts. Comprobado en own_media_list(platform="youtube"): `short: true` en psIf9sMLZGk (frenos, 27 s) y x5FS1ogsBQw (caja de cambios, 61 s). Nunca subir en 16:9 ni como oculto o privado: esas vistas no cuentan para monetizar.
+- Plan A y plan B (27-11-2026, Damián): "el plan A siempre va a ser el de 3D y el desmontaje y todo con Claude y Alex". La tarea de las 19:30 hace cada día un despiece 3D de una pieza del coche (modelos: estudio-3d/videos_3d/despiece_frenos y despiece_neumatico), con Alex como única voz (Diego) y Clod sin hablar, y lo programa para el día siguiente a las 19:00. La tarea de las 04:47 es el plan B: solo crea vídeo (estilo antiguo, con Ootto) si ese día no hay nada programado.
 - Pie: 1-2 frases con el dato y su fuente + bloque fijo del taller + 4-6 hashtags (#ekoruedas #derio #bizkaia #taller + 1-2 del tema).
 
 ## 11. Comprobaciones antes de entregar
