@@ -66,7 +66,7 @@ kluz(LF, [(1, 0), (E0 + 4, 0), (E0 + 34, 140), (A2 - 1, 140), (A2, 0)])
 COLI = col_pieza("BATERIA_INSERTO")
 DQ = Vector((-0.50, -0.26, 0.14)).normalized(); RQ = Vector((-DQ.y, DQ.x, 0)).normalized()
 ANG = math.atan2(DQ.y, DQ.x) + math.pi / 2
-INS_DIST = 0.78
+INS_DIST = 0.95
 for clave, pref, lado, gast in (("AN", "BATN", -1, False), ("AG", "BATG", 1, True)):
     o2 = BT["construir_bateria"](COLI, MP, pref, interior=False, gastada=gast)
     r_ = o2["raiz"]; r_.rotation_mode = 'XYZ'; r_.scale = (0.45, 0.45, 0.45); r_.rotation_euler = (0, 0, ANG)
