@@ -55,7 +55,7 @@ ins += ["-i", S["zumbido"]]
 t0, t1 = T(ev["F_GIRO"]), T(ev["A2"]); ms = int(t0 * 1000)
 filt.append(f"[{n}:a]atrim=0:{t1 - t0:.3f},afade=t=in:d=0.3,afade=t=out:st={max(0.0, t1 - t0 - 0.5):.3f}:d=0.5,adelay={ms}|{ms},volume=0.8[zz]"); sfx_lbl.append("[zz]"); n += 1
 filt.append("".join(voz_lbl) + f"amix=inputs={len(voz_lbl)}:normalize=0[voz]")
-filt.append("[voz]asplit=2[voz1][vozsc]")
+filt.append(f"[voz]apad=whole_dur={DUR:.2f},asplit=2[voz1][vozsc]")        # sin apad, el ducking corta la música al acabar la voz
 filt.append(f"[0:a]atrim=0:{DUR:.2f},aresample=48000,aformat=channel_layouts=stereo,volume=0.18,afade=t=in:d=0.4,afade=t=out:st={DUR - 1.2:.2f}:d=1.2[mus]")
 filt.append("[mus][vozsc]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=350[musd]")
 filt.append("".join(sfx_lbl) + f"amix=inputs={len(sfx_lbl)}:normalize=0,volume=0.8[fx]")
