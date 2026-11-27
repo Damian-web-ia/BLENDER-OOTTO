@@ -763,6 +763,52 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     return info
 
 
+def alisar_parpados(me, datos, adelante, iteraciones=60, grosor=0.0014):
+    """El modelo de Tripo trae el párpado de arriba esculpido con un pliegue que se dobla hacia dentro (caras del revés
+    a 10-14 mm sobre el ojo: en el render es una 'aleta'). Se relaja la piel alrededor del agujero del ojo como una
+    membrana (bucle del agujero y piel de fuera fijos) sin dejar que se meta en el globo."""
+    m = me.data; N = len(m.vertices)
+    co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
+    F = np.array(adelante, np.float64)
+    fam = [i for i, mt in enumerate(m.materials) if mt and mt.name in ("MAITE_piel", "MAITE_ojos_dientes", "MAITE_pelo")]
+    mi = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('material_index', mi)
+    lt = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('loop_total', lt)
+    lv = np.empty(len(m.loops), np.int64); m.loops.foreach_get('vertex_index', lv)
+    lf = np.repeat(np.arange(len(m.polygons)), lt)
+    en_fam = np.isin(mi, fam)
+    otro = np.zeros(N, bool); otro[lv[~en_fam[lf]]] = True       # vértices que tocan caras que no son piel: fijos
+    solo_fam = ~otro
+    ev = np.empty(len(m.edges) * 2, np.int64); m.edges.foreach_get('vertices', ev); ev = ev.reshape(-1, 2)
+    a = np.r_[ev[:, 0], ev[:, 1]]; b = np.r_[ev[:, 1], ev[:, 0]]
+    total = 0
+    for lado, d in datos.items():
+        C = np.array(d["C"], np.float64); R = float(d["R"])
+        bucle = co[d["bucle"]]
+        rel = co - C
+        cerca = np.linalg.norm(rel, axis=1) < 0.03
+        dl = np.full(N, 1e9); dl[cerca] = _dist_a(co[cerca], bucle)
+        zona = solo_fam & cerca & (dl > 1e-5) & (dl < 0.011) & (rel[:, 2] > -0.013) & (rel[:, 2] < 0.017) & (rel @ F > -0.006)
+        zona[d["bucle"]] = False
+        lam = 0.55 * (1 - _ss(0.0070, 0.0110, dl))
+        sel = zona[a]; aa, bb = a[sel], b[sel]
+        deg = np.zeros(N); np.add.at(deg, aa, 1)
+        zi = np.where(zona & (deg > 0))[0]
+        x = co.copy()
+        for _ in range(iteraciones):
+            acc = np.zeros((N, 3)); np.add.at(acc, aa, x[bb])
+            media = acc[zi] / deg[zi][:, None]
+            x[zi] = x[zi] + (media - x[zi]) * lam[zi][:, None]
+            r_ = x[zi] - C; nr = np.linalg.norm(r_, axis=1)
+            dentro = nr < R + grosor
+            x[zi[dentro]] = C + r_[dentro] / nr[dentro][:, None] * (R + grosor)
+        mov = np.linalg.norm(x[zi] - co[zi], axis=1)
+        co[zi] = x[zi]; total += len(zi)
+        print("PARPADO_ALISADO", lado, len(zi), "vértices, movimiento máx", round(float(mov.max()) if len(mov) else 0, 4),
+              "medio", round(float(mov.mean()) if len(mov) else 0, 4), flush=True)
+    m.vertices.foreach_set('co', co.ravel()); m.update()
+    return total
+
+
 # ================================================================ LAS 52 SHAPE KEYS DE ARKIT (+ todo en la misma malla)
 def _dist_a(P, Q):
     """Distancia de cada punto de P al punto más cercano de Q."""
@@ -1001,9 +1047,20 @@ def _color_vertices(me, img):
     return acc / np.maximum(cnt, 1)[:, None]
 
 
-def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0042, 0.0078), r_boca=(0.0010, 0.0034)):
+def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0050, 0.0095), r_boca=(0.0010, 0.0034)):
     m = me.data; N = len(m.vertices)
     co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
+    # caras que la clasificación por color dejó como "ojos_dientes" o "pelo" junto a los ojos y la boca: son piel
+    idx_m = {mt.name: i for i, mt in enumerate(m.materials) if mt}
+    ip = idx_m.get("MAITE_piel", 0); restos = {idx_m.get("MAITE_ojos_dientes", -1), idx_m.get("MAITE_pelo", -1)}
+    Cs = [np.array(d["C"]) for d in datos_ojos.values()]; Ob = np.array(info_boca["O"])
+    cambiadas = 0
+    for p in m.polygons:
+        if p.material_index in restos:
+            c = np.array(p.center)
+            if min(np.linalg.norm(c - C) for C in Cs) < 0.022 or (np.linalg.norm(c - Ob) < 0.030 and p.material_index == idx_m.get("MAITE_ojos_dientes")):
+                p.material_index = ip; cambiadas += 1
+    print("PIEL_LISA caras pasadas a piel:", cambiadas, flush=True)
     I = _imagenes(me)
     vc = _color_vertices(me, I["color"])
     lum = vc @ np.array([0.3, 0.55, 0.15])

@@ -293,6 +293,7 @@ CM = {"__name__": "cara_maite"}; exec(open(os.path.join(PM, "cara_maite.py"), en
 OJOS_DATOS, ADELANTE = CM["construir_ojos"](ARM, ME)
 LAT = (OJOS_DATOS["L"]["C"] - OJOS_DATOS["R"]["C"]); LAT.z = 0; LAT.normalize()
 BOCA_INFO = CM["construir_boca"](ARM, ME, ADELANTE, LAT, OJOS_DATOS)
+CM["alisar_parpados"](ME, OJOS_DATOS, ADELANTE)
 PARPADOS = CM["preparar_parpados"](ARM, ME, OJOS_DATOS, ADELANTE)
 ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE)
 CM["ajustar_globos"](ME, OJOS_DATOS)
