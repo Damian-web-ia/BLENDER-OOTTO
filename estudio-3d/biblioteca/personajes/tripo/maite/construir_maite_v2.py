@@ -298,6 +298,7 @@ PARPADOS = CM["preparar_parpados"](ARM, ME, OJOS_DATOS, ADELANTE)
 ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE)
 CM["ajustar_globos"](ME, OJOS_DATOS)
 CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO)
+CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO)
 trenza = preparar_trenza(ARM, ME)
 ARM["trenza"] = ",".join(trenza)
 ARM["maite_version"] = "v2-fase1"
