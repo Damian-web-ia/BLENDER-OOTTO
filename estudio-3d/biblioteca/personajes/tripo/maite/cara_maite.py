@@ -765,11 +765,14 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
 
 # ================================================================ LAS 52 SHAPE KEYS DE ARKIT (+ todo en la misma malla)
 def _dist_a(P, Q):
-    """Distancia de cada punto de P al punto más cercano de Q (por bloques para no gastar memoria)."""
-    out = np.empty(len(P))
-    for i in range(0, len(P), 4000):
-        out[i:i + 4000] = np.min(np.linalg.norm(P[i:i + 4000, None, :] - Q[None, :, :], axis=2), axis=1)
-    return out
+    """Distancia de cada punto de P al punto más cercano de Q."""
+    Q = np.asarray(Q, np.float64)
+    if len(Q) == 0: return np.full(len(P), 1e9)
+    from mathutils.kdtree import KDTree
+    kd = KDTree(len(Q))
+    for i, q in enumerate(Q): kd.insert(q, i)
+    kd.balance()
+    return np.array([kd.find(p)[2] for p in np.asarray(P, np.float64)])
 
 
 def crear_claves(arm, me, info_ojos, info_boca, adelante):
@@ -826,14 +829,15 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
     cejas = {}
     for lado, lado_arkit in (("L", "Left"), ("R", "Right")):
         Ce = info_ojos[lado]["C"]
-        cand = piel & (lum < 0.33) & (z > Ce[2] + 0.013) & (z < Ce[2] + 0.032) & (np.abs(co[:, 0] - Ce[0]) < 0.024) & (co[:, 1] < Ce[1] - 0.004)
+        cand = piel & (lum < 0.33) & (z > Ce[2] + 0.012) & (z < Ce[2] + 0.036) & (np.abs(co[:, 0] - Ce[0]) < 0.031) & (co[:, 1] < Ce[1] + 0.006)
         idx = np.where(cand)[0]
         if len(idx) < 5:
             print("CEJA", lado, "sin vértices oscuros", flush=True); continue
         P = co[idx]; t = (P - Ce) @ X * sgn[lado_arkit]                 # + hacia fuera (sien)
         tn = (t - t.min()) / max(1e-6, t.max() - t.min())
         dist = _dist_a(co, P)
-        w = np.where(piel, 1 - _ss(0.0008, 0.0065, dist), 0.0)
+        w = np.where(piel, 1 - _ss(0.0015, 0.0110, dist), 0.0) * _ss(Ce[2] + 0.006, Ce[2] + 0.013, z)
+        Il = info_ojos[lado]; wl = np.zeros(N); wl[Il["idx"]] = Il["wsup"]; w = w * (1 - _ss(0.2, 0.6, wl))   # el borde del párpado y las pestañas, quietos
         # parámetro dentro-fuera para cada vértice (del más cercano de la ceja)
         tv = (co - Ce) @ X * sgn[lado_arkit]; tvn = np.clip((tv - t.min()) / max(1e-6, t.max() - t.min()), 0, 1)
         cejas[lado_arkit] = dict(w=w, t=tvn, interior_dir=-X * sgn[lado_arkit])
@@ -863,7 +867,7 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
         wc = w_punto(Kp, 0.016) * frente
         wc2 = w_punto(Kp, 0.010) * frente
         mejilla = w_punto(Kp + X * 0.010 * s_ + up * 0.010 - F * 0.004, 0.016)
-        k_add(f"mouthSmile{lado}", co + np.outer(wc, up) * 0.0027 + np.outer(wc, X) * 0.0017 * s_ - np.outer(wc, F) * 0.0010 + np.outer(mejilla, up) * 0.0010)
+        k_add(f"mouthSmile{lado}", co + np.outer(wc, up) * 0.0042 + np.outer(wc, X) * 0.0026 * s_ - np.outer(wc, F) * 0.0014 + np.outer(mejilla, up) * 0.0018 + np.outer(mejilla, F) * 0.0006)
         k_add(f"mouthFrown{lado}", co - np.outer(wc, up) * 0.0024 + np.outer(wc2, X) * 0.0004 * s_)
         k_add(f"mouthDimple{lado}", co - np.outer(wc2, F) * 0.0016 + np.outer(wc2, X) * 0.0008 * s_)
         k_add(f"mouthStretch{lado}", co + np.outer(wc, X) * 0.0032 * s_ - np.outer(wc, up) * 0.0008)
@@ -885,7 +889,7 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
         pc = np.maximum(pc, w_punto(cp, 0.022))
         cs_ = ojos[lado] - up * 0.016 + X * 0.004 * s_ + F * 0.004
         ws = w_punto(cs_, 0.016)
-        k_add(f"cheekSquint{lado}", co + np.outer(ws, up) * 0.0018 + np.outer(ws, F) * 0.0004)
+        k_add(f"cheekSquint{lado}", co + np.outer(ws, up) * 0.0030 + np.outer(ws, F) * 0.0007)
         ala = O + X * (0.0175 * s_) + up * 0.0165
         wn = w_punto(ala, 0.009)
         k_add(f"noseSneer{lado}", co + np.outer(wn, up) * 0.0016 + np.outer(wn, F) * 0.0003)
@@ -895,10 +899,10 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
     for lado in ("Left", "Right"):
         if lado not in cejas: continue
         c = cejas[lado]; w, t = c["w"], c["t"]
-        k_add(f"browDown{lado}", co - np.outer(w * (1.0 - 0.4 * t), up) * 0.0022 + np.outer(w * (1 - t), c["interior_dir"]) * 0.0009)
-        k_add(f"browOuterUp{lado}", co + np.outer(w * _ss(0.3, 1.0, t), up) * 0.0026)
+        k_add(f"browDown{lado}", co - np.outer(w * (1.0 - 0.4 * t), up) * 0.0046 + np.outer(w * (1 - t), c["interior_dir"]) * 0.0018 - np.outer(w * (1 - t), F) * 0.0006)
+        k_add(f"browOuterUp{lado}", co + np.outer(w * _ss(0.3, 1.0, t), up) * 0.0056)
         ci = np.maximum(ci, w * (1 - _ss(0.0, 0.7, t)))
-    k_add("browInnerUp", co + np.outer(ci, up) * 0.0028)
+    k_add("browInnerUp", co + np.outer(ci, up) * 0.0060)
     # ---------------- lengua
     k_add("tongueOut", rotar(co, piv, lat, math.radians(14) * np.where(leng, 1.0, 0.0)) + np.outer(np.where(leng, 1.0, 0.0), F) * 0.010 - np.outer(np.where(leng, 1.0, 0.0), up) * 0.001)
     # ---------------- ojos (párpados)
@@ -967,3 +971,131 @@ def ajustar_globos(me, datos, margen=0.00025):
                 o = bpy.data.objects.get(nombre)
                 if o: o.scale = (o.scale[0] * f, o.scale[1] * f, o.scale[2] * f)
         print("GLOBO_AJUSTE", lado, "R", round(R, 5), "->", round(Rn, 5), flush=True)
+
+
+# ======================================================================================
+# PIEL LISA alrededor de ojos y boca: en vez de repintar la textura por caras (se ve a bloques, la malla de Tripo
+# tiene caras de ~4 mm), se guarda en cada vértice un color de piel "limpio" (relleno armónico desde la piel sana
+# de alrededor) y una máscara suave; el material de la piel mezcla textura -> color limpio con esa máscara y apaga
+# ahí el mapa de normales y la rugosidad pintada. Sin costuras de UV, sin bloques y se mueve con la cara.
+def _srgb_a_lineal(c):
+    c = np.clip(c, 0, 1)
+    return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+
+
+def _color_vertices(me, img):
+    """Color medio de la textura en cada vértice (muestreado un poco hacia dentro de cada cara, lejos de las costuras)."""
+    m = me.data; w, h = img.size
+    px = np.empty(w * h * 4, np.float32); img.pixels.foreach_get(px); px = px.reshape(h, w, 4)
+    uvl = m.uv_layers.active.data
+    luv = np.empty(len(uvl) * 2, np.float32); uvl.foreach_get('uv', luv); luv = luv.reshape(-1, 2)
+    nf = len(m.polygons); lt = np.empty(nf, np.int32); m.polygons.foreach_get('loop_total', lt)
+    lf = np.repeat(np.arange(nf), lt)
+    fuv = np.zeros((nf, 2)); np.add.at(fuv, lf, luv); fuv /= lt[:, None]
+    lv = np.empty(len(m.loops), np.int64); m.loops.foreach_get('vertex_index', lv)
+    N = len(m.vertices); acc = np.zeros((N, 3)); cnt = np.zeros(N)
+    for t in (0.2, 0.35):
+        s_ = luv * (1 - t) + fuv[lf] * t
+        c = px[np.clip((s_[:, 1] * h).astype(int), 0, h - 1), np.clip((s_[:, 0] * w).astype(int), 0, w - 1), :3]
+        np.add.at(acc, lv, c); np.add.at(cnt, lv, 1)
+    return acc / np.maximum(cnt, 1)[:, None]
+
+
+def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0042, 0.0078), r_boca=(0.0010, 0.0034)):
+    m = me.data; N = len(m.vertices)
+    co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
+    I = _imagenes(me)
+    vc = _color_vertices(me, I["color"])
+    lum = vc @ np.array([0.3, 0.55, 0.15])
+    # vértices de caras de piel (los únicos que entran en el relleno)
+    i_piel = next((i for i, mt in enumerate(m.materials) if mt and mt.name.startswith("MAITE_piel")), 0)
+    mi = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('material_index', mi)
+    es_piel_v = np.zeros(N, bool)
+    for p in m.polygons:
+        if mi[p.index] == i_piel: es_piel_v[list(p.vertices)] = True
+    mask = np.zeros(N)
+    cejas = np.zeros(N, bool)
+    for lado, d in datos_ojos.items():
+        C = np.array(d["C"]); bucle = co[d["bucle"]]
+        dist = _dist_a(co, bucle)
+        cerca = np.linalg.norm(co - C, axis=1) < 0.045
+        w = np.where(cerca, 1 - _ss(r_ojo[0], r_ojo[1], dist), 0.0)
+        # las cejas no se tocan
+        ce = es_piel_v & cerca & (lum < 0.30) & (co[:, 2] > C[2] + 0.012)
+        cejas |= ce
+        if ce.any():
+            w *= _ss(0.0012, 0.0042, _dist_a(co, co[ce]))
+        mask = np.maximum(mask, w)
+    bl = co[info_boca["bucle"]]
+    mask = np.maximum(mask, 1 - _ss(r_boca[0], r_boca[1], _dist_a(co, bl)))
+    mask = np.where(es_piel_v, mask, 0.0)
+    # relleno armónico: incógnitas = mask > 0.02; fijos = vecinos sanos (piel clara, no ceja)
+    U = mask > 0.02
+    sano = es_piel_v & ~U & ~cejas & (lum > 0.45) & (vc[:, 0] > vc[:, 2] + 0.15)
+    ev = np.empty(len(m.edges) * 2, np.int64); m.edges.foreach_get('vertices', ev); ev = ev.reshape(-1, 2)
+    a = np.r_[ev[:, 0], ev[:, 1]]; b = np.r_[ev[:, 1], ev[:, 0]]
+    util = U[a] & (U[b] | sano[b])
+    a, b = a[util], b[util]
+    x = vc.copy()
+    ref = np.median(vc[sano & (_dist_a(co, co[U]) < 0.008)], axis=0) if U.any() else np.median(vc[sano], axis=0)
+    x[U] = ref
+    deg = np.zeros(N); np.add.at(deg, a, 1)
+    libres = U & (deg > 0)
+    for _ in range(600):
+        acc = np.zeros((N, 3)); np.add.at(acc, a, x[b])
+        x[libres] = acc[libres] / deg[libres][:, None]
+    x[U & ~libres] = ref
+    lin = _srgb_a_lineal(np.where(U[:, None], x, vc))
+    # atributos
+    for nombre in ("piel_lisa", "mascara_piel"):
+        if nombre in m.attributes: m.attributes.remove(m.attributes[nombre])
+    at = m.attributes.new("piel_lisa", 'FLOAT_COLOR', 'POINT')
+    at.data.foreach_set('color', np.c_[lin, np.ones(N)].astype(np.float32).ravel())
+    am = m.attributes.new("mascara_piel", 'FLOAT', 'POINT')
+    am.data.foreach_set('value', mask.astype(np.float32))
+    # rugosidad de piel sana (ya pasada por el Map Range del material)
+    mt = m.materials[i_piel]; Nn = mt.node_tree.nodes; Lk = mt.node_tree.links
+    rug_lisa = 0.5
+    mr = next((n for n in Nn if n.type == 'MAP_RANGE'), None)
+    if I["rugosidad"] is not None and mr is not None:
+        rv = _color_vertices(me, I["rugosidad"])[:, 0]
+        fmin, fmax, tmin, tmax = (mr.inputs[k].default_value for k in ("From Min", "From Max", "To Min", "To Max"))
+        rmap = tmin + np.clip((rv - fmin) / max(1e-6, fmax - fmin), 0, 1) * (tmax - tmin)
+        rug_lisa = float(np.median(rmap[sano & (_dist_a(co, co[U]) < 0.010)]))
+    _material_piel_lisa(mt, rug_lisa)
+    print("PIEL_LISA", int(U.sum()), "vértices rellenos,", int(libres.sum()), "libres, rugosidad", round(rug_lisa, 3), flush=True)
+
+
+def _sk(sockets, ident):
+    return next(x for x in sockets if x.identifier == ident)
+
+
+def _material_piel_lisa(mt, rug_lisa):
+    T = mt.node_tree; Nn = T.nodes; Lk = T.links
+    for n in [n for n in Nn if n.name.startswith("LISA_")]: Nn.remove(n)
+    ac = Nn.new("ShaderNodeAttribute"); ac.name = "LISA_color"; ac.attribute_type = 'GEOMETRY'; ac.attribute_name = "piel_lisa"; ac.location = (-900, 520)
+    am = Nn.new("ShaderNodeAttribute"); am.name = "LISA_mascara"; am.attribute_type = 'GEOMETRY'; am.attribute_name = "mascara_piel"; am.location = (-900, 700)
+    # color: textura -> mezcla -> (HSV)
+    hs = next((n for n in Nn if n.type == 'HUE_SAT'), None)
+    tex = next((n for n in Nn if n.type == 'TEX_IMAGE' and n.image and n.image.colorspace_settings.name == 'sRGB'), None)
+    mx = Nn.new("ShaderNodeMix"); mx.name = "LISA_mezcla"; mx.data_type = 'RGBA'; mx.location = (-650, 450)
+    Lk.new(am.outputs["Fac"], _sk(mx.inputs, "Factor_Float")); Lk.new(tex.outputs["Color"], _sk(mx.inputs, "A_Color")); Lk.new(ac.outputs["Color"], _sk(mx.inputs, "B_Color"))
+    destino = hs.inputs["Color"] if hs else next(n for n in Nn if n.type == 'BSDF_PRINCIPLED').inputs["Base Color"]
+    for l in list(destino.links): Lk.remove(l)
+    Lk.new(_sk(mx.outputs, "Result_Color"), destino)
+    # rugosidad
+    mr = next((n for n in Nn if n.type == 'MAP_RANGE'), None)
+    if mr is not None:
+        dests = [l.to_socket for l in mr.outputs["Result"].links]
+        mf = Nn.new("ShaderNodeMix"); mf.name = "LISA_rug"; mf.data_type = 'FLOAT'; mf.location = (-300, 80)
+        Lk.new(am.outputs["Fac"], _sk(mf.inputs, "Factor_Float")); Lk.new(mr.outputs["Result"], _sk(mf.inputs, "A_Float")); _sk(mf.inputs, "B_Float").default_value = rug_lisa
+        for d_ in dests:
+            for l in list(d_.links): Lk.remove(l)
+            Lk.new(_sk(mf.outputs, "Result_Float"), d_)
+    # normal: intensidad = 1 - máscara
+    nm = next((n for n in Nn if n.type == 'NORMAL_MAP'), None)
+    if nm is not None:
+        k = nm.inputs["Strength"].default_value
+        ms = Nn.new("ShaderNodeMath"); ms.name = "LISA_normal"; ms.operation = 'MULTIPLY_ADD'; ms.location = (-700, -420)
+        Lk.new(am.outputs["Fac"], ms.inputs[0]); ms.inputs[1].default_value = -k; ms.inputs[2].default_value = k
+        Lk.new(ms.outputs[0], nm.inputs["Strength"])
