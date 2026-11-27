@@ -80,3 +80,4 @@
 - 26-11, 21:55: primer vídeo en YouTube, por vidIQ (Damián conectó su cuenta de Google a vidIQ a las 21:52). "¿Por qué rascan las marchas? Así funciona una caja de cambios manual", público: https://www.youtube.com/watch?v=x5FS1ogsBQw. Se eligió un reel que no estaba en la cola de YouTube de Ootto para que no saliera repetido.
 - vidIQ (plan gratis) también sube como máximo 3 vídeos al día a YouTube; el contador vuelve a cero a medianoche de California (9:00 en España).
 - Plan: si la subida de Ootto del 27-11 a las 10:28 (frenos) no llega, YouTube pasa a vidIQ (en el mismo borrador que TikTok).
+- 27-11-2026, 10:29: Ootto SÍ subió a YouTube el reel antiguo de los frenos que tenía en cola (6ObkiRn7HP0, Short, público). Su subida a YouTube funciona; solo hay que contar con su tope de 3 al día por marca y la cola. vidIQ sigue de respaldo (3 al día).
