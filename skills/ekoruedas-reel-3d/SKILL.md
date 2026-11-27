@@ -385,3 +385,42 @@ Antes de escribir una afirmación mecánica:
 ## 13. Referencia técnica
 
 Todo el detalle técnico acumulado (bpy, cámaras, luces, render en segundo plano, montaje con ffmpeg, publicación) sigue en `historial/SKILL_2026-11-25.md` y en `estudio-3d/LEEME.md`, `estudio-3d/LECCIONES.md` y las guías de `estudio-3d/biblioteca/personajes/`. Esta skill no las sustituye: las ordena.
+
+<!-- 27-11-2026: secciones 14 y 15 añadidas por ChatGPT (entrevista del día) y revisadas por Claude -->
+## 14. Despieces 3D (plan A)
+
+Usar este flujo para convertir cualquier pieza del coche en un reel vertical de **25–40 s**. Mantener siempre las reglas fijas de la skill, la identidad de los personajes y la producción visual mediante Blender por código.
+
+1. **Elegir la pieza.** Confirmar que no se ha despieceado ya y que tiene una función explicable y un síntoma que el conductor reconoce. Priorizar preguntas prácticas sobre lo que el coche hace, nota o suena; evitar escoger una pieza solo porque el gag del robot sea gracioso. Anotar dos alternativas descartadas y el motivo.
+
+2. **Validar antes de modelar.** Consultar fuentes fiables y definir función, partes, movimiento, fallo/síntoma y consejo. Registrar qué es seguro decir y qué es incierto. No inventar cifras, intervalos, dimensiones, diagnóstico ni causalidad. Si las fuentes discrepan, omitir el dato. Hacer validar la explicación antes de cerrar guion y animación.
+
+3. **Modelar en Blender por código.**
+   - Separar la pieza en objetos identificables, con pivotes y nombres claros; conservar relación y orden de montaje.
+   - Usar dimensiones reales respaldadas por referencias. Si solo se conoce una medida, escalar el resto proporcionalmente a una referencia válida; no fingir precisión. No añadir piezas internas “de relleno”.
+   - Elegir el despiece que revele mejor la función: **corte por la mitad** para mostrar un interior; **explosión axial o por capas** para conjuntos apilados; **rayos X** para ubicar la pieza en el coche. Se pueden combinar solo si mejora comprensión.
+   - Aplicar materiales diferenciables y verosímiles. Controlar reflejos para que no oculten geometría y evitar que goma, forros u otros materiales parezcan plástico. Hacer una prueba de lectura a tamaño móvil.
+
+4. **Escribir un guion de 4–5 frases.** Orden recomendado: síntoma-pregunta; nombre y función; cómo trabaja por dentro; síntoma reconocible y recomendación prudente; consejo/CTA. Una idea principal por frase, términos técnicos nombrados y explicados en media frase. Alex es la única voz. Clod participa visualmente, nunca verbalmente.
+
+5. **Ajustar palabras al tiempo.** Usar como punto de partida unas **2,2–2,7 palabras por segundo** de voz efectiva (132–162 palabras/minuto), dejando huecos para acción, rótulos y reacción visual. Contar el texto hablado y medir una lectura real o de prueba; no “solucionar” un guion largo acelerándolo. El gancho aparece desde el primer fotograma y se entiende en el primer segundo.
+
+6. **Planificar los tiempos y la animación.** Repartir el reel entre gancho, ubicación/extracción, despiece, funcionamiento, síntoma y consejo/cierre. Animar con anticipación y asentamiento: mostrar dónde está la pieza, extraerla, separar partes, mantenerlas legibles, acercar cámara al mecanismo y volver a montar o comparar cuando corresponda. Usar fotogramas clave con 30 fps y revisar cada plano por separado.
+
+7. **Rótulos y comparación.** Nombrar cada parte cuando Alex la menciona; rótulo breve, línea clara hasta el ancla y tiempo suficiente para leerlo. Mantener textos fuera de caras y dentro de la zona segura. Si hay inserto nuevo/gastado, presentarlo como comparación visual prudente: sin espesores, cifras o desgaste extremo inventados.
+
+8. **Dar a Clod un gag sin quitar foco.** Puede observar, señalar, anticipar mal, sobresaltarse o corregir un gesto. Alex responde con calma y sin contacto agresivo. Sin voz, frases, risas ni chistes a costa del cliente. El gag no debe tapar la pieza ni competir con el síntoma o la explicación.
+
+9. **Portada.** Elegir una imagen que comunique la pieza y el problema de inmediato: elemento principal grande, texto breve (idealmente una pregunta), contraste alto y personajes secundarios a la pieza. Componer vertical y comprobar el recorte cuadrado. Respetar la prohibición de logos, nombre, teléfono y web en el vídeo; la chapa final de logo solo se usa según las reglas del canal.
+
+10. **Montar, revisar y publicar.** Renderizar en EEVEE, 1080 × 1920, 30 fps, con recursos propios. Componer voz, música y efectos, subtítulos palabra a palabra y rótulos. Revisar exactitud, legibilidad, sonido, sincronía, duración, zonas seguras y exportación antes de programar.
+
+## 15. Lecciones de los datos (actualizar cada día)
+
+- Con seis seguidores y mediana de **227 vistas por reel en Instagram**, tomar la mediana como referencia, no como garantía de rendimiento.
+- La pregunta práctica «¿Solo cambias dos neumáticos?» logró **2.426 vistas (10,7× la mediana)** y **18,7 s** de visionado medio. El reel combinó una duda reconocible, respuesta clara y fuente. Otro gancho práctico, «¿Sueltas el volante y se va hacia un lado?», obtuvo **1.621 vistas**.
+- Los despieces 3D pueden funcionar, pero varían por tema y plataforma: neumático, **1.486 vistas** en Instagram; frenos, **165 en Instagram** y **1.162 en YouTube Shorts**. No extrapolar el rendimiento de una plataforma a otra.
+- Los gags de humor puro del robot obtuvieron **146–427 vistas**: usar a Clod como apoyo visual, no como gancho principal.
+- Esta semana, las referencias de TikTok incluyen un disco de embrague girando con **772.000 vistas** en esa cuenta y una junta cardán 3D rotulada con **82.900**. Inspirarse en el movimiento o la claridad del despiece, no asumir que la tendencia garantiza resultados.
+- No se detectó un sonido de TikTok claramente dominante para mecánica: usar música electrónica original y suave.
+- Para el reel de hoy, medir **visionado medio**, porcentaje que supera los **3 s**, guardados y compartidos en cada plataforma. Comparar resultados por plataforma y con la mediana correspondiente; registrar gancho, duración y formato. Separar datos observados de hipótesis y actualizar estas lecciones tras publicar.
