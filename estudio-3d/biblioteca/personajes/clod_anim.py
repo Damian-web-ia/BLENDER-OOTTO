@@ -1,4 +1,4 @@
-# CLOD v2 · FUNCIONES DE ANIMACIÓN.  Uso:  exec(open(ruta).read());  CL = ClodAnim()   (o ClodAnim("CLOD_v2"))
+# CLOD (v3 y v2) · FUNCIONES DE ANIMACIÓN.  Uso:  exec(open(ruta).read());  CL = ClodAnim()   (o ClodAnim("CLOD_v3"))
 # Unidades de DISEÑO: Clod mide 1 (se multiplica por K = 0,32 m). Espacio del personaje: mira hacia -Y,
 # +X = su izquierda, +Z = arriba. Lado "R" = derecho (en -X), "L" = izquierdo (en +X).
 # Piezas rígidas (robot): nada se deforma. Brazos y piernas por IK; cabeza y cuerpo por rotación.
@@ -22,9 +22,11 @@ EXPR_CLOD = {   # ojos (shape keys de CLOD_Ojo_*), boca (shape keys de CLOD_Boca
 
 
 class ClodAnim:
-    def __init__(self, nombre="CLOD_v2", K=0.32):
+    def __init__(self, nombre=None, K=0.32):
+        if nombre is None:                       # desde el 27-11-2026 se usa Clod v3 si está en la escena
+            nombre = "CLOD_v3" if bpy.data.objects.get("CLOD_v3") else "CLOD_v2"
         self.arm = bpy.data.objects[nombre]; self.PB = self.arm.pose.bones; self.K = K
-        sfx = nombre[len("CLOD_v2"):]            # por si hay varias copias (CLOD_v2.001 ...)
+        sfx = nombre[len("CLOD_v2"):]            # por si hay varias copias (CLOD_v3.001 ...): mismo largo que "CLOD_v3"
         self.sfx = sfx
         self.ctrl = {o.name.replace(sfx, "") if sfx else o.name: o for o in bpy.data.objects
                      if o.name.startswith("CTRLC_") and o.parent == self.arm}

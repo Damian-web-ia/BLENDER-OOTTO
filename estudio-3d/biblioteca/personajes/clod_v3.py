@@ -223,6 +223,29 @@ def tornillo(nombre, centro, normal, mat, col, r=0.0065):
     return o
 
 
+def ranura_panel(o, col, centro, w, h, r, ancho=0.007, y0=-0.30, y1=-0.105, nombre="Panel"):
+    """Ranura de tapa (rectángulo redondeado) tallada en la carcasa con un booleano: se ve como la junta de una tapa."""
+    def contorno(w_, h_, r_, seg=10):
+        pts = []
+        for cx, cz, a0 in ((w_ / 2 - r_, h_ / 2 - r_, 0), (-w_ / 2 + r_, h_ / 2 - r_, 90), (-w_ / 2 + r_, -h_ / 2 + r_, 180), (w_ / 2 - r_, -h_ / 2 + r_, 270)):
+            for i in range(seg + 1):
+                a = R(a0 + 90 * i / seg); pts.append((cx + r_ * math.cos(a), cz + r_ * math.sin(a)))
+        return pts
+    ext, inn = contorno(w, h, r), contorno(w - 2 * ancho, h - 2 * ancho, max(0.002, r - ancho))
+    bm = bmesh.new(); n = len(ext)
+    def anillo(pts, y): return [bm.verts.new(((centro[0] + x) * K, y * K, (centro[2] + z) * K)) for x, z in pts]
+    eo0, eo1, ei0, ei1 = anillo(ext, y0), anillo(ext, y1), anillo(inn, y0), anillo(inn, y1)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((eo0[i], eo0[j], eo1[j], eo1[i])); bm.faces.new((ei0[j], ei0[i], ei1[i], ei1[j]))
+        bm.faces.new((eo0[j], eo0[i], ei0[i], ei0[j])); bm.faces.new((eo1[i], eo1[j], ei1[j], ei1[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(o.name + "_" + nombre); bm.to_mesh(me); bm.free()
+    c = bpy.data.objects.new(o.name + "_" + nombre, me); col.objects.link(c); c.display_type = 'WIRE'; c.hide_render = True
+    bo = o.modifiers.new(nombre, "BOOLEAN"); bo.operation = 'DIFFERENCE'; bo.object = c; bo.solver = 'EXACT'
+    return c
+
+
 def partir(o, col, y_corte, hueco=0.008, nombre="Corte"):
     """Parte una carcasa en dos con una junta de 'hueco' (unidades de diseño) en el plano y = y_corte (local del diseño)."""
     bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0)
@@ -319,7 +342,8 @@ def construir_clod(origen=(0, 0, 0)):
     P(esfera("CLOD_Faja", (0, 0, 0.278), (0.152, 0.122, 0.048), M["grafito"], col, 64, 20, super_=2.4), "cadera")
     P(toro("CLOD_AroFaja", (0, 0, 0.300), 0.128, 0.0055, "Z", M["acero"], col), "cadera")
     cuerpo = P(esfera("CLOD_Cuerpo", (0, 0, 0.42), (0.205, 0.165, 0.175), M["naranja"], col, 96, 48, super_=2.35), "cuerpo")
-    P(partir(cuerpo, col, -0.075, 0.009, "Junta"), "cuerpo")      # junta de la tapa frontal (se ve en los 3/4)
+    P(ranura_panel(cuerpo, col, (0, 0, 0.432), 0.255, 0.235, 0.075), "cuerpo")   # tapa del pecho (alrededor del símbolo)
+    P(partir(cuerpo, col, 0.040, 0.008, "Junta"), "cuerpo")                       # junta lateral entre la mitad delantera y la trasera
     P(esfera("CLOD_NucleoCuerpo", (0, 0, 0.42), (0.192, 0.152, 0.162), M["nucleo"], col, 64, 32, super_=2.35), "cuerpo")
     # símbolo del pecho: 6 barras redondeadas que se cruzan, pegadas a la carcasa
     for i in range(6):
