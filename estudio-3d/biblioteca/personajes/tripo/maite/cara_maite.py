@@ -86,28 +86,49 @@ def _bucle(bordes):
     return bucle
 
 
-def repintar_piel(me, caras, color=None, margen_px=3, ruido=0.006, semilla=3, colores=None):
-    """Pinta en la textura 4K las caras dadas con color de piel (quita el ojo/delineado pintados de Tripo).
-    Si no se da color, se toma la media de la piel de alrededor."""
-    m = me.data
-    img = max((n.image for mt in m.materials for n in mt.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image
-               and n.image.colorspace_settings.name == 'sRGB'), key=lambda i: i.size[0] * i.size[1])
-    w, h = img.size
+def _imagenes(me):
+    """Imágenes de la textura de Tripo: color (sRGB, la más grande), normal, rugosidad y metal."""
+    m = me.data; ims = []
+    for mt in m.materials:
+        if not mt or not mt.node_tree: continue
+        for n in mt.node_tree.nodes:
+            if n.type == 'TEX_IMAGE' and n.image and n.image not in ims: ims.append(n.image)
+    col = max((i for i in ims if i.colorspace_settings.name == 'sRGB'), key=lambda i: i.size[0] * i.size[1])
+    rug = next((i for i in ims if 'rough' in i.name.lower()), None)
+    met = next((i for i in ims if 'metal' in i.name.lower()), None)
+    nor = next((i for i in ims if i not in (col, rug, met) and i.colorspace_settings.name != 'sRGB'), None)
+    return dict(color=col, normal=nor, rugosidad=rug, metal=met)
+
+
+def _muestrear(me, img):
+    """Valor medio de una imagen en cada cara (RGB)."""
+    m = me.data; w, h = img.size
     px = np.empty(w * h * 4, np.float32); img.pixels.foreach_get(px); px = px.reshape(h, w, 4)
-    uvl = m.uv_layers.active.data; rng = np.random.default_rng(semilla)
-    if color is None: color = (0.93, 0.56, 0.42)
-    col = np.array(color, np.float32)
-    pintados = 0
+    uvl = m.uv_layers.active.data
+    luv = np.empty(len(uvl) * 2, np.float32); uvl.foreach_get('uv', luv); luv = luv.reshape(-1, 2)
+    nf = len(m.polygons); lt = np.empty(nf, np.int32); m.polygons.foreach_get('loop_total', lt)
+    lf = np.repeat(np.arange(nf), lt)
+    fuv = np.zeros((nf, 2)); np.add.at(fuv, lf, luv); fuv /= lt[:, None]
+    samp = np.r_[luv * 0.5 + fuv[lf] * 0.5, fuv]; sf = np.r_[lf, np.arange(nf)]
+    cs = px[np.clip((samp[:, 1] * h).astype(int), 0, h - 1), np.clip((samp[:, 0] * w).astype(int), 0, w - 1), :3]
+    fc = np.zeros((nf, 3)); cnt = np.zeros(nf); np.add.at(fc, sf, cs); np.add.at(cnt, sf, 1)
+    return fc / cnt[:, None]
+
+
+def _rasterizar(me, img, caras, valores, margen_px=3, ruido=0.0, semilla=3):
+    m = me.data; w, h = img.size
+    px = np.empty(w * h * 4, np.float32); img.pixels.foreach_get(px); px = px.reshape(h, w, 4)
+    uvl = m.uv_layers.active.data; rng = np.random.default_rng(semilla); pintados = 0
     for fi in caras:
         p = m.polygons[fi]
         uv = np.array([uvl[li].uv[:] for li in p.loop_indices], np.float64) * [w, h]
-        c = uv.mean(0); uv = c + (uv - c) * (1 + margen_px / max(1.0, np.linalg.norm(uv - c, axis=1).mean()))
+        c = uv.mean(0); r_ = max(1.0, np.linalg.norm(uv - c, axis=1).mean()); uv = c + (uv - c) * (1 + margen_px / r_)
         x0, y0 = np.floor(uv.min(0)).astype(int); x1, y1 = np.ceil(uv.max(0)).astype(int)
         x0, y0 = max(0, x0), max(0, y0); x1, y1 = min(w - 1, x1), min(h - 1, y1)
         if x1 < x0 or y1 < y0: continue
         gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
         dentro = np.zeros(gx.shape, bool)
-        for k in range(1, len(uv) - 1):                          # abanico de triángulos
+        for k in range(1, len(uv) - 1):
             a, b, cc = uv[0], uv[k], uv[k + 1]
             d1 = (gx - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (gy - b[1])
             d2 = (gx - cc[0]) * (b[1] - cc[1]) - (b[0] - cc[0]) * (gy - cc[1])
@@ -115,14 +136,43 @@ def repintar_piel(me, caras, color=None, margen_px=3, ruido=0.006, semilla=3, co
             neg = (d1 < 0) | (d2 < 0) | (d3 < 0); pos = (d1 > 0) | (d2 > 0) | (d3 > 0)
             dentro |= ~(neg & pos)
         if not dentro.any(): continue
-        blk = px[y0:y1 + 1, x0:x1 + 1, :3]
-        cc_ = np.array(colores[fi], np.float32) if colores is not None and fi in colores else col
-        blk[dentro] = cc_ + rng.normal(0, ruido, (int(dentro.sum()), 3)).astype(np.float32)
-        pintados += int(dentro.sum())
+        n_ = int(dentro.sum()); val = np.array(valores[fi], np.float32)
+        px[y0:y1 + 1, x0:x1 + 1, :3][dentro] = val + (rng.normal(0, ruido, (n_, 3)).astype(np.float32) if ruido else 0)
+        pintados += n_
     img.pixels.foreach_set(px.ravel()); img.update()
     try: img.pack()
     except Exception as e: print("PACK", e)
-    print("REPINTADO", len(caras), "caras,", pintados, "píxeles", flush=True)
+    return pintados
+
+
+def repintar_piel(me, caras, color=None, colores=None, cen=None, excluir=(), caras_mapas=()):
+    """Quita de la textura lo pintado por Tripo en esas caras: color de piel de alrededor, normal plana,
+    rugosidad y metal de la piel de alrededor (si no, la zona brilla como plástico y se ve el relieve viejo)."""
+    if not caras: return
+    caras = sorted(caras); I = _imagenes(me)
+    if cen is None:
+        m = me.data; cen = np.empty(len(m.polygons) * 3, np.float32); m.polygons.foreach_get('center', cen); cen = cen.reshape(-1, 3)
+    fc = _muestrear(me, I["color"])
+    ex = set(excluir) | set(caras)
+    piel = np.array([i for i in range(len(cen)) if i not in ex and _es_piel(fc[i])])
+    S = cen[piel]; vecinos = {}
+    for fi in caras:
+        d = np.linalg.norm(S - cen[fi], axis=1); j = np.argsort(d)[:10]; vecinos[fi] = (piel[j], 1 / (d[j] + 1e-4))
+    def locales(vals):
+        return {fi: tuple(float(x) for x in np.average(vals[j], axis=0, weights=wt)) for fi, (j, wt) in vecinos.items()}
+    tot = _rasterizar(me, I["color"], caras, colores or locales(fc), ruido=0.005)
+    todas = sorted(set(caras) | set(caras_mapas))
+    for fi in todas:
+        if fi not in vecinos:
+            d = np.linalg.norm(S - cen[fi], axis=1); j = np.argsort(d)[:10]; vecinos[fi] = (piel[j], 1 / (d[j] + 1e-4))
+    if I["normal"] is not None:
+        _rasterizar(me, I["normal"], todas, {fi: (0.5, 0.5, 1.0) for fi in todas}, margen_px=2)
+    for clave in ("rugosidad", "metal"):
+        if I[clave] is not None:
+            vals = _muestrear(me, I[clave])
+            lejos = {fi: tuple(float(x) for x in np.median(vals[piel[np.argsort(np.linalg.norm(S - cen[fi], axis=1))[10:40]]], axis=0)) for fi in todas}
+            _rasterizar(me, I[clave], todas, lejos, margen_px=2)
+    print("REPINTADO", len(caras), "caras,", tot, "píxeles (color, normal, rugosidad, metal)", flush=True)
 
 
 def colores_locales(cen, fc, caras, k=10, excluir=()):
@@ -256,7 +306,14 @@ def construir_ojos(arm, me, col_ojo=None):
     rep = datos.pop("_repintar", set())
     piel_media = np.mean([d["piel"] for d in datos.values()], axis=0)
     hueco = [i for d in datos.values() for i in d["caras"]]
-    repintar_piel(me, sorted(rep), tuple(float(x) for x in piel_media), colores=colores_locales(cen, fc, sorted(rep), excluir=hueco))
+    alrededor = []
+    lumf = fc @ np.array([0.3, 0.55, 0.15])
+    for lado, O in OJOS.items():
+        top = _parabola(O["sup"]); bot = _parabola(O["inf"]); xs = sorted(p[0] for p in (O["sup"][0], O["sup"][2]))
+        for i, c in enumerate(cen):
+            if xs[0] - 0.008 < c[0] < xs[1] + 0.006 and bot(c[0]) - 0.008 < c[2] < top(c[0]) + 0.0095 and c[1] < -0.02 and lumf[i] > 0.33:
+                alrededor.append(i)
+    repintar_piel(me, sorted(rep), cen=cen, excluir=hueco, caras_mapas=[i for i in alrededor if i not in set(hueco)])
     # borrar las caras de los dos ojos a la vez
     borrar = [bm.faces[i] for d in datos.values() for i in d["caras"]]
     bmesh.ops.delete(bm, geom=borrar, context='FACES')
@@ -592,7 +649,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     ssel = set(sel)
     restos = [i for i, c in enumerate(cen) if i not in ssel and x0 - 0.008 < c[0] < x1 + 0.008 and inf(c[0]) - 0.009 < c[2] < sup(c[0]) + 0.007
               and c[1] < -0.04 and not _es_piel(fc[i])]
-    if restos: repintar_piel(me, restos, colores=colores_locales(cen, fc, restos, excluir=sel))
+    if restos: repintar_piel(me, restos, cen=cen, excluir=sel)
     bmesh.ops.delete(bm, geom=[bm.faces[i] for i in sel], context='FACES')
     bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=10)
     cx = (x0 + x1) / 2; cz = (B["sup_c"][1] + B["inf_c"][1]) / 2
