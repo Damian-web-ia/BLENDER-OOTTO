@@ -348,7 +348,7 @@ def construir_motor(col, MP, BUJ=None):
             ang = 2 * math.pi * k / 72; d = abs(((ang + math.pi) % (2 * math.pi)) - math.pi)
             rr = 0.0160 + (LIFT * (0.5 + 0.5 * math.cos(d * math.pi / 1.4)) if d < 1.4 else 0.0)
             pts.append((rr * math.sin(ang), rr * math.cos(ang)))       # la punta de la leva mira a +Z local
-        bm = bmesh.new(); poligono_y(bm, pts, 0.016); anillo_y(bm, 0, 0.012, 0.26)
+        bm = bmesh.new(); poligono_y(bm, pts, 0.016); anillo_y(bm, 0, 0.012, 0.128)
         o = _obj(f"MOT_LevaPieza_{lado}", bm, [M["leva"]], col, lev, liso=True, angulo=60); _bisel(o, 0.0006)
         lev["eje"] = list(e)
 
