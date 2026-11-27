@@ -58,18 +58,31 @@ def _esfera(P, rmin=0.011):
 
 
 def _bucle(bordes):
-    """Ordena las aristas de borde en un bucle cerrado de vértices."""
+    """Bucle cerrado más grande formado por las aristas de borde dadas (ignora agujeritos sueltos)."""
     vec = {}
     for e in bordes:
         a, b = e.verts; vec.setdefault(a, []).append(b); vec.setdefault(b, []).append(a)
-    ini = next(iter(vec)); bucle = [ini]; prev = None; cur = ini
+    # componentes conexas
+    vistos = set(); comps = []
+    for v in vec:
+        if v in vistos: continue
+        pila = [v]; vistos.add(v); c = []
+        while pila:
+            x = pila.pop(); c.append(x)
+            for o in vec[x]:
+                if o not in vistos: vistos.add(o); pila.append(o)
+        comps.append(c)
+    comp = max(comps, key=len)
+    ini = min(comp, key=lambda v: len(vec[v]) != 2)        # mejor empezar en un vértice normal
+    bucle = [ini]; usados = {ini}; prev = None; cur = ini
     while True:
-        sig = [v for v in vec[cur] if v is not prev]
-        if not sig: break
-        prev, cur = cur, sig[0]
-        if cur is ini: break
-        bucle.append(cur)
-        if len(bucle) > len(vec) + 2: break
+        cand = [o for o in vec[cur] if o not in usados]
+        if not cand:
+            break
+        if prev is not None and len(cand) > 1:              # en un cruce, seguir lo más recto posible
+            d0 = (cur.co - prev.co).normalized()
+            cand.sort(key=lambda o: -(o.co - cur.co).normalized().dot(d0))
+        prev, cur = cur, cand[0]; bucle.append(cur); usados.add(cur)
     return bucle
 
 
@@ -192,6 +205,8 @@ def construir_ojos(arm, me, col_ojo=None):
     # borrar las caras de los dos ojos a la vez
     borrar = [bm.faces[i] for d in datos.values() for i in d["caras"]]
     bmesh.ops.delete(bm, geom=borrar, context='FACES')
+    # tapar los agujeritos que Tripo dejó junto a los ojos (el agujero grande del ojo no se toca)
+    bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=10)
     bm.verts.ensure_lookup_table()
     for lado, d in datos.items():
         O = OJOS[lado]; top = _parabola(O["sup"])
