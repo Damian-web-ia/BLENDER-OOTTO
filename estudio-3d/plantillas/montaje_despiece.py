@@ -97,6 +97,10 @@ def y_sub(f):
     if INS <= f < A3: return Y_SUB.get("inserto", 0.86)
     if f < CTA: return Y_SUB["alex"]
     return Y_SUB["cierre"]
+# 27-11: palabras clave en naranja (#FF8400) cuando no suenan (lista "claves" del montaje_<pieza>.json)
+NARANJA = (255, 132, 0)
+def _limpia(w): return re.sub(r"[^\wáéíóúüñ]", "", w.lower())
+CLAVES = {_limpia(x) for x in CFG.get("claves", [])}
 def subtitulo(d, f):
     t = T(f)
     for g, t0, t1 in GRUPOS:
@@ -111,7 +115,7 @@ def subtitulo(d, f):
             for li, idx in enumerate(lineas):
                 tw = sum(anchos[i] for i in idx) + esp * (len(idx) - 1); x = W / 2 - tw / 2; y = y0 + li * lh
                 for i in idx:
-                    w, a, b = g[i]; c = AMARILLO if a - 0.02 <= t < b + 0.06 else BLANCO
+                    w, a, b = g[i]; c = AMARILLO if a - 0.02 <= t < b + 0.06 else (NARANJA if _limpia(w) in CLAVES else BLANCO)
                     d.text((x + anchos[i] / 2, y), w, font=fnt(int(66 * s)), fill=c, anchor="mm", stroke_width=9, stroke_fill=NEGRO)
                     x += anchos[i] + esp
             return
