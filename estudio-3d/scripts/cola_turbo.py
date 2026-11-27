@@ -26,13 +26,13 @@ for intento in range(40):
         if os.path.getsize(f) == 0: os.remove(f)
     estado("%s render intento %d (%d png)" % (nm, intento + 1, len(glob.glob(os.path.join(out, "*.png")))))
     with open(os.path.join(d, "render4k.log"), "a") as lg:
-        subprocess.run([B, "-b", blend, "--python", REN, "--", out, "64"], stdout=lg, stderr=subprocess.STDOUT)
+        subprocess.run([B, "-b", blend, "--python", REN, "--", out, "64"], stdout=lg, stderr=subprocess.STDOUT, creationflags=0x08000000)   # sin ventana de consola
     if not os.path.exists(done): time.sleep(60)
 if os.path.exists(done):
     mp4 = os.path.join(d, nm + "_4k60.mp4")
     estado(nm + " codificando")
     with open(os.path.join(d, "encode4k.log"), "a") as lg:
-        subprocess.run([B, "-b", "--factory-startup", "--python", ENC, "--", out, mp4, "2160", "3840", "60", "PERC_LOSSLESS"], stdout=lg, stderr=subprocess.STDOUT)
+        subprocess.run([B, "-b", "--factory-startup", "--python", ENC, "--", out, mp4, "2160", "3840", "60", "PERC_LOSSLESS"], stdout=lg, stderr=subprocess.STDOUT, creationflags=0x08000000)
     estado("%s LISTO %s" % (nm, os.path.exists(mp4 + ".done")))
 else:
     estado(nm + " SIN TERMINAR tras 40 intentos")
