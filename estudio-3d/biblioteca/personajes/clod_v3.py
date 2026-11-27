@@ -342,7 +342,7 @@ def construir_clod(origen=(0, 0, 0)):
     P(esfera("CLOD_Faja", (0, 0, 0.278), (0.152, 0.122, 0.048), M["grafito"], col, 64, 20, super_=2.4), "cadera")
     P(toro("CLOD_AroFaja", (0, 0, 0.300), 0.128, 0.0055, "Z", M["acero"], col), "cadera")
     cuerpo = P(esfera("CLOD_Cuerpo", (0, 0, 0.42), (0.205, 0.165, 0.175), M["naranja"], col, 96, 48, super_=2.35), "cuerpo")
-    P(ranura_panel(cuerpo, col, (0, 0, 0.432), 0.255, 0.235, 0.075), "cuerpo")   # tapa del pecho (alrededor del símbolo)
+    P(ranura_panel(cuerpo, col, (0, 0, 0.442), 0.25, 0.215, 0.07), "cuerpo")   # tapa del pecho (alrededor del símbolo)
     P(partir(cuerpo, col, 0.040, 0.008, "Junta"), "cuerpo")                       # junta lateral entre la mitad delantera y la trasera
     P(esfera("CLOD_NucleoCuerpo", (0, 0, 0.42), (0.192, 0.152, 0.162), M["nucleo"], col, 64, 32, super_=2.35), "cuerpo")
     # símbolo del pecho: 6 barras redondeadas que se cruzan, pegadas a la carcasa
