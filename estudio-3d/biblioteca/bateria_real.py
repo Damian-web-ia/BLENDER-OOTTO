@@ -60,13 +60,13 @@ def escarcha(m, prop="frio"):
     nt.links.new(tc.outputs["Object"], nz.inputs["Vector"])
     # el frío "crece": umbral que baja con la propiedad
     rg = nt.nodes.new("ShaderNodeMapRange"); rg.clamp = True
-    nt.links.new(nz.outputs["Fac"], rg.inputs["Value"]); rg.inputs["From Min"].default_value = 0.42; rg.inputs["From Max"].default_value = 0.58
+    nt.links.new(nz.outputs["Fac"], rg.inputs["Value"]); rg.inputs["From Min"].default_value = 0.30; rg.inputs["From Max"].default_value = 0.48
     mul = nt.nodes.new("ShaderNodeMath"); mul.operation = 'MULTIPLY'; mul.use_clamp = True
     nt.links.new(rg.outputs["Result"], mul.inputs[0])
     m2 = nt.nodes.new("ShaderNodeMath"); m2.operation = 'MULTIPLY'; m2.inputs[1].default_value = 1.6
     nt.links.new(at.outputs["Fac"], m2.inputs[0]); nt.links.new(m2.outputs[0], mul.inputs[1])
     fr = nt.nodes.new("ShaderNodeBsdfPrincipled")
-    fr.inputs["Base Color"].default_value = (0.86, 0.93, 1.0, 1); fr.inputs["Roughness"].default_value = 0.5
+    fr.inputs["Base Color"].default_value = (0.74, 0.84, 0.95, 1); fr.inputs["Roughness"].default_value = 0.32
     fr.inputs["Subsurface Weight"].default_value = 0.35; fr.inputs["Specular IOR Level"].default_value = 0.8
     fr.inputs["Coat Weight"].default_value = 0.4; fr.inputs["Coat Roughness"].default_value = 0.15
     nz2 = nt.nodes.new("ShaderNodeTexNoise"); nz2.inputs["Scale"].default_value = 420.0; nz2.inputs["Detail"].default_value = 4.0
@@ -86,7 +86,8 @@ def _placa_mat(nombre, color, rugo):
     tc = nt.nodes.new("ShaderNodeTexCoord"); sp = nt.nodes.new("ShaderNodeSeparateXYZ"); cb = nt.nodes.new("ShaderNodeCombineXYZ")
     nt.links.new(tc.outputs["Object"], sp.inputs[0])
     nt.links.new(sp.outputs["Y"], cb.inputs["X"]); nt.links.new(sp.outputs["Z"], cb.inputs["Y"]); nt.links.new(sp.outputs["X"], cb.inputs["Z"])
-    br = nt.nodes.new("ShaderNodeTexBrick"); br.inputs["Scale"].default_value = 60.0; br.inputs["Mortar Size"].default_value = 0.035
+    br = nt.nodes.new("ShaderNodeTexBrick"); br.inputs["Scale"].default_value = 75.0; br.inputs["Mortar Size"].default_value = 0.022
+    br.inputs["Brick Width"].default_value = 0.5; br.inputs["Row Height"].default_value = 0.25; br.offset_frequency = 1
     br.offset = 0.0; br.squash = 1.0
     nt.links.new(cb.outputs[0], br.inputs["Vector"])
     nz = nt.nodes.new("ShaderNodeTexNoise"); nz.inputs["Scale"].default_value = 900.0; nz.inputs["Detail"].default_value = 3.0
@@ -97,7 +98,7 @@ def _placa_mat(nombre, color, rugo):
     nt.links.new(ad.outputs[0], bp.inputs["Height"]); nt.links.new(bp.outputs["Normal"], b.inputs["Normal"])
     # la rejilla (mortero) es metal más claro
     mx = nt.nodes.new("ShaderNodeMix"); mx.data_type = 'RGBA'
-    nt.links.new(br.outputs["Fac"], mx.inputs[0]); mx.inputs[6].default_value = (*color, 1); mx.inputs[7].default_value = (0.42, 0.42, 0.44, 1)
+    nt.links.new(br.outputs["Fac"], mx.inputs[0]); mx.inputs[6].default_value = (*color, 1); mx.inputs[7].default_value = (0.30, 0.30, 0.32, 1)
     nt.links.new(mx.outputs[2], b.inputs["Base Color"])
     return m
 
@@ -112,9 +113,9 @@ def materiales(MP, pref="BAT"):
     M["caja"] = escarcha(MP["pintura"](pref + "_Plastico", color=(0.03, 0.03, 0.034), rugo=0.42, barniz=0.25, piel_naranja=0.02))
     M["tapa"] = escarcha(MP["pintura"](pref + "_Tapa", color=(0.045, 0.046, 0.05), rugo=0.40, barniz=0.3, piel_naranja=0.015))
     M["plomo"] = MP["acero"](pref + "_Plomo", color=(0.40, 0.41, 0.43), rugo=(0.30, 0.48), anillos=False)
-    M["pos"] = _placa_mat(pref + "_PlacaPos", (0.20, 0.085, 0.05), 0.85)
+    M["pos"] = _placa_mat(pref + "_PlacaPos", (0.13, 0.065, 0.04), 0.85)
     M["neg"] = _placa_mat(pref + "_PlacaNeg", (0.30, 0.31, 0.33), 0.72)
-    M["sep"] = _plastico(pref + "_Separador", (0.86, 0.87, 0.84), 0.6, 0.12)
+    M["sep"] = _plastico(pref + "_Separador", (0.62, 0.64, 0.62), 0.55, 0.3)
     M["liq"] = MP["aceite"](pref + "_Electrolito", color=(0.80, 0.90, 0.96), calor=False)
     M["rojo"] = _plastico(pref + "_Rojo", (0.55, 0.02, 0.02), 0.35)
     M["negro"] = _plastico(pref + "_Negro", (0.012, 0.012, 0.014), 0.35)

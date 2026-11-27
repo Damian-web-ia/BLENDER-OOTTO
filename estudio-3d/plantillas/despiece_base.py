@@ -280,9 +280,10 @@ vis(ALEX, 1, True); vis(ALEX, B0, False); vis(ALEX, A2, True)
 
 # ================================================================ CÁMARAS DE ALEX (los planos de la pieza los pone su escena)
 EP = Vector(E_POS) + Vector((0, 0, 0.10))
-# gancho: Alex y Clod a la vez (Alex a la derecha, Clod en el capó a la izquierda)
-ck(1, (-0.25, -2.80, 1.40), (-1.05, 0.0, 1.05), 30)
-ck(max(2, XR0 - 16), (-0.33, -2.58, 1.37), (-1.10, 0.05, 1.02), 31)
+# gancho: plano medio de Alex haciendo la pregunta -> corte a Clod en el capó (su chiste) -> rayos X al capó
+F_CLOD = G.get("plano_clod", G["clod"] - 2)
+ck(1, (-0.36, -2.45, 1.50), (-0.74, -0.45, 1.36), 34); ck(F_CLOD - 1, (-0.38, -2.33, 1.50), (-0.74, -0.45, 1.36), 35)
+ck(F_CLOD, (-1.40, -1.95, 1.20), (-1.50, 0.45, 0.95), 38); ck(max(F_CLOD + 1, XR0 - 2), (-1.41, -1.86, 1.19), (-1.50, 0.45, 0.94), 39)
 if "CAMS_INTRO" in globals():
     for a_ in CAMS_INTRO: ck(*a_)
 else:
@@ -301,7 +302,7 @@ if INS < A3:
 ck(A3, (-0.40, -2.05, 1.55), (-0.66, -0.58, 1.50), 35); ck(CTA - 1, (-0.42, -1.92, 1.55), (-0.66, -0.58, 1.50), 37)
 ck(CTA, (-0.85, -3.75, 1.30), (-0.88, -0.25, 0.92), 28); ck(FIN, (-0.86, -3.50, 1.28), (-0.88, -0.25, 0.94), 28)
 
-fin_plano = {c - 1 for c in CORTES[1:]}
+fin_plano = {c - 1 for c in CORTES[1:]} | {F_CLOD - 1}
 for idb in [cam, cam.data, RAIZ, ALEX] + list(EXTRA_CONST):
     for fc in _curvas(idb):
         for k in fc.keyframe_points:

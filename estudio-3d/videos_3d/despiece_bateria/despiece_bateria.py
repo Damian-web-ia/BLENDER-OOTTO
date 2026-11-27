@@ -66,11 +66,11 @@ kluz(LF, [(1, 0), (E0 + 4, 0), (E0 + 34, 140), (A2 - 1, 140), (A2, 0)])
 COLI = col_pieza("BATERIA_INSERTO")
 DQ = Vector((-0.50, -0.26, 0.14)).normalized(); RQ = Vector((-DQ.y, DQ.x, 0)).normalized()
 ANG = math.atan2(DQ.y, DQ.x) + math.pi / 2
-INS_DIST = 0.58
+INS_DIST = 0.78
 for clave, pref, lado, gast in (("AN", "BATN", -1, False), ("AG", "BATG", 1, True)):
     o2 = BT["construir_bateria"](COLI, MP, pref, interior=False, gastada=gast)
     r_ = o2["raiz"]; r_.rotation_mode = 'XYZ'; r_.scale = (0.45, 0.45, 0.45); r_.rotation_euler = (0, 0, ANG)
-    r_.location = Q + RQ * (0.072 * lado) - Vector((0, 0, 0.046))
+    r_.location = Q + RQ * (0.066 * lado) - Vector((0, 0, 0.034))
     INSERTO[clave] = (r_, Vector((o2["XB"][1], o2["XB"][2], BT["Z_BORNE1"] + 0.01)))
 
 # ---------------------------------------------------------------- planos de la pieza (coordenadas de la batería)
@@ -89,15 +89,15 @@ PUNTOS = {"bateria": (RAIZ, (0.06, -BT["LY"] / 2, 0.15)),
 for k, c in enumerate(O["celdas"]): PUNTOS[f"c{k + 1}"] = (RAIZ, tuple(c + Vector((0, -0.06, 0.0))))
 
 # ---------------------------------------------------------------- gestos
-G = {"pregunta": FW(0, 1), "clod": FW(0, 11), "mira": FW(0, 15), "sintomas": [FW(2, 5), FW(2, 9)], "ojo": FW(3, 0), "manos": FW(3, 13)}
+G = {"pregunta": FW(0, 1), "clod": FW(0, 11), "plano_clod": FW(0, 9), "mira": FW(0, 15), "sintomas": [FW(2, 5), FW(2, 9)], "ojo": FW(3, 0), "manos": FW(3, 13)}
 def gag_clod(CL):
-    f0 = FW(0, 1) - 4                                    # tirita de frío abrazándose
+    f0 = FW(0, 9) - 6                                    # tirita de frío abrazándose (su plano empieza en "Como a Clod")
     CL.cara(f0, "triste")
     for l in ("R", "L"):
         CL.mano_en(l, f0, (-SX(l) * 0.12, -0.22, 0.55)); CL.codo_hacia(l, f0, (SX(l) * 0.45, -0.05, 0.50))
-    for k in range(22): CL.cuerpo(f0 + k * 2, 0, (3 if k % 2 == 0 else -3), 0)
-    CL.cuerpo(f0 + 46, 0, 0, 0)
-    fcl = FW(0, 11)                                      # "como a Clod por las mañanas": se estira medio dormido
+    for k in range(16): CL.cuerpo(f0 + k * 2, 0, (3 if k % 2 == 0 else -3), 0)
+    CL.cuerpo(f0 + 34, 0, 0, 0)
+    fcl = FW(0, 13)                                      # "por las mañanas": se estira medio dormido
     CL.cara(fcl, "duda"); CL.cabeza(fcl, 20, 6, 10); CL.aplastar(fcl, 1.0); CL.aplastar(fcl + 8, 0.93)
     for l in ("R", "L"):
         CL.mano_en(l, fcl + 6, (SX(l) * 0.28, -0.02, 0.88)); CL.codo_hacia(l, fcl + 6, (SX(l) * 0.55, 0.05, 0.62))

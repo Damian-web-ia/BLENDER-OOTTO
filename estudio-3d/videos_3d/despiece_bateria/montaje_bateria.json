@@ -1,0 +1,201 @@
+{
+ "gancho": [
+  [
+   "¿A TU COCHE LE CUESTA",
+   "blanco"
+  ],
+  [
+   "ARRANCAR CON FRÍO?",
+   "amarillo"
+  ]
+ ],
+ "gancho_hasta": "XR0",
+ "piezas": [
+  {
+   "ancla": "bateria",
+   "desde": [
+    1,
+    1
+   ],
+   "hasta": "F_ABRE+8",
+   "titulo": "BATERÍA",
+   "sub": "12 voltios",
+   "color": "amarillo"
+  },
+  {
+   "ancla": "c3",
+   "desde": "F_ABRE+12",
+   "hasta": "C0-1",
+   "titulo": "6 CELDAS",
+   "sub": "2 voltios cada una",
+   "color": "azul"
+  },
+  {
+   "ancla": "placas",
+   "desde": [
+    1,
+    8
+   ],
+   "hasta": [
+    1,
+    11,
+    -1
+   ],
+   "titulo": "PLACAS DE PLOMO",
+   "sub": "positivas y negativas",
+   "color": "naranja"
+  },
+  {
+   "ancla": "acido",
+   "desde": [
+    1,
+    11
+   ],
+   "hasta": "D0-1",
+   "titulo": "ÁCIDO",
+   "sub": "ácido sulfúrico y agua",
+   "color": "verde"
+  },
+  {
+   "ancla": "electricidad",
+   "desde": [
+    1,
+    16
+   ],
+   "hasta": [
+    1,
+    18,
+    -1
+   ],
+   "titulo": "ELECTRICIDAD",
+   "sub": "sale de la reacción química",
+   "color": "amarillo"
+  },
+  {
+   "ancla": "voltios",
+   "desde": [
+    1,
+    18
+   ],
+   "hasta": "E0-1",
+   "titulo": "12 VOLTIOS",
+   "sub": "para el motor de arranque",
+   "color": "amarillo"
+  },
+  {
+   "ancla": "frio",
+   "desde": [
+    1,
+    24
+   ],
+   "hasta": "A2-1",
+   "titulo": "FRÍO",
+   "sub": "la reacción va más lenta",
+   "color": "azul"
+  }
+ ],
+ "numeros": {
+  "desde": [
+   1,
+   4
+  ],
+  "hasta": "C0-1",
+  "anclas": [
+   "c1",
+   "c2",
+   "c3",
+   "c4",
+   "c5",
+   "c6"
+  ],
+  "cada": 4,
+  "color": "amarillo"
+ },
+ "grafico": {
+  "tipo": "barras",
+  "desde": [
+   1,
+   26
+  ],
+  "hasta": "A2-1",
+  "y": 0.6,
+  "titulo": "FUERZA DE ARRANQUE",
+  "barras": [
+   [
+    "A 25 ºC",
+    1.0,
+    "verde",
+    "100 %"
+   ],
+   [
+    "A 0 ºC",
+    0.75,
+    "rojo",
+    "−20/30 %"
+   ]
+  ],
+  "nota": "a 0 ºC, entre un 20 y un 30 % menos · Fuente: km77"
+ },
+ "avisos": [
+  {
+   "desde": "A2",
+   "hasta": [
+    2,
+    5,
+    -1
+   ],
+   "texto": "AVISA ANTES DE MORIR",
+   "color": "blanco"
+  },
+  {
+   "desde": [
+    2,
+    5
+   ],
+   "hasta": [
+    2,
+    9,
+    -1
+   ],
+   "texto": "¿ARRANCA CON DESGANA?",
+   "sub": "SÍNTOMA 1 DE 3",
+   "color": "amarillo"
+  },
+  {
+   "desde": [
+    2,
+    9
+   ],
+   "hasta": "INS-1",
+   "texto": "¿LUCES FLOJAS?",
+   "sub": "SÍNTOMA 2 DE 3",
+   "color": "naranja"
+  }
+ ],
+ "inserto": {
+  "titulo": "¿POLVO BLANCO EN LOS BORNES?",
+  "sub": "SÍNTOMA 3 DE 3",
+  "AN": [
+   "NUEVA",
+   "bornes limpios",
+   "verde"
+  ],
+  "AG": [
+   "GASTADA",
+   "sulfato en los bornes",
+   "rojo"
+  ],
+  "y": 0.7
+ },
+ "dato": {
+  "desde": [
+   3,
+   1
+  ],
+  "hasta": "CTA",
+  "grande": "DE 3 A 5 AÑOS",
+  "medio": "LO QUE DURA UNA BATERÍA",
+  "fuente": "Fuente: RACE",
+  "color": "naranja"
+ }
+}
