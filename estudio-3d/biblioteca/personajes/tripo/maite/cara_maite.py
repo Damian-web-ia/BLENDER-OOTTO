@@ -86,7 +86,7 @@ def _bucle(bordes):
     return bucle
 
 
-def repintar_piel(me, caras, color=None, margen_px=3, ruido=0.012, semilla=3):
+def repintar_piel(me, caras, color=None, margen_px=3, ruido=0.006, semilla=3, colores=None):
     """Pinta en la textura 4K las caras dadas con color de piel (quita el ojo/delineado pintados de Tripo).
     Si no se da color, se toma la media de la piel de alrededor."""
     m = me.data
@@ -116,12 +116,24 @@ def repintar_piel(me, caras, color=None, margen_px=3, ruido=0.012, semilla=3):
             dentro |= ~(neg & pos)
         if not dentro.any(): continue
         blk = px[y0:y1 + 1, x0:x1 + 1, :3]
-        blk[dentro] = col + rng.normal(0, ruido, (int(dentro.sum()), 3)).astype(np.float32)
+        cc_ = np.array(colores[fi], np.float32) if colores is not None and fi in colores else col
+        blk[dentro] = cc_ + rng.normal(0, ruido, (int(dentro.sum()), 3)).astype(np.float32)
         pintados += int(dentro.sum())
     img.pixels.foreach_set(px.ravel()); img.update()
     try: img.pack()
     except Exception as e: print("PACK", e)
     print("REPINTADO", len(caras), "caras,", pintados, "píxeles", flush=True)
+
+
+def colores_locales(cen, fc, caras, k=10, excluir=()):
+    """Para cada cara a repintar, la media del color de las k caras de piel más cercanas (así no se nota el parche)."""
+    ex = set(excluir) | set(caras)
+    piel = np.array([i for i in range(len(cen)) if i not in ex and _es_piel(fc[i])])
+    S = cen[piel]; out = {}
+    for fi in caras:
+        d = np.linalg.norm(S - cen[fi], axis=1); j = np.argsort(d)[:k]
+        out[fi] = tuple(float(x) for x in np.average(fc[piel[j]], axis=0, weights=1 / (d[j] + 1e-4)))
+    return out
 
 
 def material_ojo(nombre, iris_rgb, theta_iris, theta_pupila):
@@ -205,7 +217,7 @@ def construir_ojos(arm, me, col_ojo=None):
     cen = np.empty(len(m.polygons) * 3, np.float32); m.polygons.foreach_get('center', cen); cen = cen.reshape(-1, 3)
     datos = {}
     bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table(); bm.verts.ensure_lookup_table()
-    mat_borde = material_simple("MAITE_parpado_borde", (0.80, 0.44, 0.33), rug=0.45, sss=0.25, coat=0.10)
+    mat_borde = material_simple("MAITE_parpado_borde", (0.70, 0.36, 0.30), rug=0.5, sss=0.25, coat=0.05)
     m.materials.append(mat_borde); i_borde = len(m.materials) - 1
     mat_cuenca = material_simple("MAITE_cuenca", (0.16, 0.06, 0.05), rug=0.4, coat=0.5)
     m.materials.append(mat_cuenca); i_cuenca = len(m.materials) - 1
@@ -219,7 +231,7 @@ def construir_ojos(arm, me, col_ojo=None):
             if not (x0 < c[0] < x1 and z0 < c[2] < z1 and c[1] < -0.02): continue
             if xs[0] < c[0] < xs[1] and bot(c[0]) < c[2] < top(c[0]):
                 sel.add(i)                                  # dentro de la abertura del ojo: fuera (globo detrás)
-            elif not _es_piel(fc[i]) and xs[0] - 0.006 < c[0] < xs[1] + 0.004 and bot(c[0]) - 0.006 < c[2] < top(c[0]) + 0.010:
+            elif not _es_piel(fc[i]) and xs[0] - 0.007 < c[0] < xs[1] + 0.005 and bot(c[0]) - 0.007 < c[2] < top(c[0]) + 0.0105:
                 lin.add(i)                                  # delineado, pestañas y restos de blanco pintados: a piel
         datos_lin = datos.setdefault("_repintar", set()); datos_lin |= lin
         # mayor componente conexa
@@ -244,7 +256,8 @@ def construir_ojos(arm, me, col_ojo=None):
         print("OJO", lado, len(g), "caras", flush=True)
     rep = datos.pop("_repintar", set())
     piel_media = np.mean([d["piel"] for d in datos.values()], axis=0)
-    repintar_piel(me, sorted(rep), tuple(float(x) for x in piel_media))
+    hueco = [i for d in datos.values() for i in d["caras"]]
+    repintar_piel(me, sorted(rep), tuple(float(x) for x in piel_media), colores=colores_locales(cen, fc, sorted(rep), excluir=hueco))
     # borrar las caras de los dos ojos a la vez
     borrar = [bm.faces[i] for d in datos.values() for i in d["caras"]]
     bmesh.ops.delete(bm, geom=borrar, context='FACES')
@@ -576,6 +589,10 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
                                          ("MAITE_dientes", (0.86, 0.84, 0.78), 0.28, 0.15, 0.35), ("MAITE_encias", (0.70, 0.27, 0.29), 0.35, 0.3, 0.4),
                                          ("MAITE_lengua", (0.66, 0.26, 0.27), 0.45, 0.35, 0.25)):
         m.materials.append(material_simple(nombre, col, rug=rug, sss=sss, coat=coat)); mats[nombre] = len(m.materials) - 1
+    fc = _color_caras(me)
+    restos = [i for i, c in enumerate(cen) if i not in set(sel) and x0 - 0.006 < c[0] < x1 + 0.006 and inf(c[0]) - 0.005 < c[2] < sup(c[0]) + 0.004
+              and c[1] < -0.04 and not _es_piel(fc[i])]
+    if restos: repintar_piel(me, restos, colores=colores_locales(cen, fc, restos, excluir=sel))
     bmesh.ops.delete(bm, geom=[bm.faces[i] for i in sel], context='FACES')
     bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=10)
     cx = (x0 + x1) / 2; cz = (B["sup_c"][1] + B["inf_c"][1]) / 2
@@ -610,6 +627,9 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     # ---- piezas de dentro (en el marco de la boca: X lateral, F hacia delante, up)
     bm.verts.index_update(); bm.verts.ensure_lookup_table()
     idx_bucle = [v.index for v in bucle]; idx_v1 = [v.index for v in v1]; idx_v2 = [v.index for v in v2]
+    from mathutils.bvhtree import BVHTree
+    bvh_piel = BVHTree.FromBMesh(bm)
+    abertura = [((v.co - O).dot(X), (v.co - O).dot(up)) for v in bucle]
     partes = {"dientes_sup": [], "dientes_inf": [], "encia_sup": [], "encia_inf": [], "lengua": [], "saco": []}   # tramos de índices
     anchos = [0.0043, 0.0037, 0.0035, 0.0032, 0.0031, 0.0030]
     altos_s = [0.0050, 0.0044, 0.0047, 0.0041, 0.0038, 0.0035]
@@ -636,9 +656,27 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
         c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0004 if signo < 0 else 0))
         partes[clave_].append(_elipsoide(bm, c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12))
     partes["lengua"].append(_elipsoide(bm, O - F * 0.0185 + up * (z_borde_sup - O.z - 0.0050), X, F, up, 0.0105, 0.0120, 0.0034, mats["MAITE_lengua"], 28, 14))
-    partes["saco"].append(_elipsoide(bm, O - F * 0.0215 + up * (-0.0012), X, F, up, 0.031, 0.0170, 0.0125, mats["MAITE_boca_int"], 36, 20))
-    bm.verts.index_update()
+    partes["saco"].append(_elipsoide(bm, O - F * 0.0235 + up * (-0.0012), X, F, up, 0.026, 0.0180, 0.0125, mats["MAITE_boca_int"], 36, 20))
+    bm.verts.index_update(); bm.verts.ensure_lookup_table()
     info = {k: [i for (a_, b_) in tramos for i in range(a_, b_)] for k, tramos in partes.items()}
+    # nada de dentro puede asomar por la piel: si un vértice está delante de la piel (y no detrás de la abertura), se mete
+    def en_abertura(px_, pz_):
+        dentro = False; n = len(abertura)
+        for k in range(n):
+            (ax, az), (bx, bz) = abertura[k - 1], abertura[k]
+            if (az > pz_) != (bz > pz_) and px_ < (bx - ax) * (pz_ - az) / (bz - az + 1e-12) + ax: dentro = not dentro
+        return dentro
+    metidos = 0
+    for k in ("saco", "lengua", "encia_sup", "encia_inf", "dientes_sup", "dientes_inf"):
+        for i in info[k]:
+            v = bm.verts[i]; p = v.co
+            if en_abertura((p - O).dot(X) * 0.92, (p - O).dot(up) * 0.92): continue
+            hit_f = bvh_piel.ray_cast(p, F, 0.08)[0]
+            if hit_f is not None: continue                    # hay piel delante: está dentro de la cabeza
+            hit_b, _n, _i, dist = bvh_piel.ray_cast(p, -F, 0.05)
+            if hit_b is not None:
+                v.co = p - F * (dist + 0.0015); metidos += 1
+    print("BOCA vértices metidos dentro de la cara:", metidos, flush=True)
     info["bucle"] = idx_bucle; info["labio_int"] = idx_v1; info["boca_int"] = idx_v2
     info.update(O=tuple(O), F=tuple(F), X=tuple(X))
     bm.normal_update(); bm.to_mesh(m); bm.free(); m.update()
