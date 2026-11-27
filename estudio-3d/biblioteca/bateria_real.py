@@ -55,11 +55,12 @@ def escarcha(m, prop="frio"):
     nt = m.node_tree; out = _salida(nt); src = out.inputs["Surface"].links[0].from_socket
     at = nt.nodes.new("ShaderNodeAttribute"); at.attribute_type = 'VIEW_LAYER'; at.attribute_name = prop
     tc = nt.nodes.new("ShaderNodeTexCoord")
-    nz = nt.nodes.new("ShaderNodeTexNoise"); nz.inputs["Scale"].default_value = 60.0; nz.inputs["Detail"].default_value = 8.0
+    nz = nt.nodes.new("ShaderNodeTexNoise"); nz.inputs["Scale"].default_value = 170.0; nz.inputs["Detail"].default_value = 12.0
+    nz.inputs["Roughness"].default_value = 0.68
     nt.links.new(tc.outputs["Object"], nz.inputs["Vector"])
     # el frío "crece": umbral que baja con la propiedad
     rg = nt.nodes.new("ShaderNodeMapRange"); rg.clamp = True
-    nt.links.new(nz.outputs["Fac"], rg.inputs["Value"]); rg.inputs["From Min"].default_value = 0.35; rg.inputs["From Max"].default_value = 0.62
+    nt.links.new(nz.outputs["Fac"], rg.inputs["Value"]); rg.inputs["From Min"].default_value = 0.42; rg.inputs["From Max"].default_value = 0.58
     mul = nt.nodes.new("ShaderNodeMath"); mul.operation = 'MULTIPLY'; mul.use_clamp = True
     nt.links.new(rg.outputs["Result"], mul.inputs[0])
     m2 = nt.nodes.new("ShaderNodeMath"); m2.operation = 'MULTIPLY'; m2.inputs[1].default_value = 1.6
@@ -96,7 +97,7 @@ def _placa_mat(nombre, color, rugo):
     nt.links.new(ad.outputs[0], bp.inputs["Height"]); nt.links.new(bp.outputs["Normal"], b.inputs["Normal"])
     # la rejilla (mortero) es metal más claro
     mx = nt.nodes.new("ShaderNodeMix"); mx.data_type = 'RGBA'
-    nt.links.new(br.outputs["Fac"], mx.inputs[0]); mx.inputs[6].default_value = (0.5, 0.5, 0.52, 1); mx.inputs[7].default_value = (*color, 1)
+    nt.links.new(br.outputs["Fac"], mx.inputs[0]); mx.inputs[6].default_value = (*color, 1); mx.inputs[7].default_value = (0.42, 0.42, 0.44, 1)
     nt.links.new(mx.outputs[2], b.inputs["Base Color"])
     return m
 
@@ -126,7 +127,7 @@ def materiales(MP, pref="BAT"):
     M["sulfato"] = m
     m = bpy.data.materials.new(pref + "_Chispa"); m.use_nodes = True; b = m.node_tree.nodes["Principled BSDF"]
     b.inputs["Base Color"].default_value = (0.6, 0.9, 1.0, 1); b.inputs["Emission Color"].default_value = (0.55, 0.85, 1.0, 1)
-    b.inputs["Emission Strength"].default_value = 30.0
+    b.inputs["Emission Strength"].default_value = 45.0
     M["chispa"] = m
     M["burbuja"] = MP["burbuja"](pref + "_Burbuja")
     return M
@@ -288,7 +289,7 @@ def corriente(col, padre, M, pts, f0, f1, f_frio, lento=0.3, n=22, vueltas=34, p
         return pts[-1]
     obs = []
     for i in range(n):
-        bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=6, radius=0.0021)
+        bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=6, radius=0.0027)
         o = _obj(f"{pref}_Corriente{i}", bm, [M["chispa"]], col, padre, liso=True)
         f = f0
         while f <= f1 + 2:

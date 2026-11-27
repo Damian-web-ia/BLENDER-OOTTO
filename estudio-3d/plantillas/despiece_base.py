@@ -117,6 +117,7 @@ def vuelo(raiz, f_sale, f_llega, esc_coche=1.0, rot_coche=(0, 0, 0), alto_salida
 
 # ==== PARTE 2 ====
 # ================================================================ LUCES
+if "F_OSCURO" not in globals(): F_OSCURO = EST - 2        # el taller se oscurece cuando la pieza va al estudio
 LUZ_PERS = {"Key_Pers": ((1.0, -3.2, 2.7), 360, 1.8), "Rim_Pers": ((-2.2, 2.0, 2.8), 420, 1.5), "Fill_Pers": ((-3.4, -2.6, 1.7), 120, 2.0)}
 for n, (loc, e_, size) in LUZ_PERS.items():
     o = bpy.data.objects.get(n)
@@ -127,11 +128,11 @@ for n, (loc, e_, size) in LUZ_PERS.items():
 for o in [x for x in bpy.data.objects if x.type == 'LIGHT' and not x.name.startswith("D_Luz")]:
     if o.data.animation_data: o.data.animation_data_clear()
     e0 = o.data.energy
-    kluz(o, [(1, e0), (EST - 24, e0), (EST - 2, e0 * 0.07), (A2 - 1, e0 * 0.07), (A2, e0)])
+    kluz(o, [(1, e0), (F_OSCURO - 22, e0), (F_OSCURO, e0 * 0.07), (A2 - 1, e0 * 0.07), (A2, e0)])
     o.data.energy = e0
 LED = M["led"].node_tree.nodes["Principled BSDF"].inputs["Emission Strength"]
 if LED.is_linked is False:
-    for f_, v in ((1, 6.0), (EST - 24, 6.0), (EST - 2, 0.25), (A2 - 1, 0.25), (A2, 6.0)):
+    for f_, v in ((1, 6.0), (F_OSCURO - 22, 6.0), (F_OSCURO, 0.25), (A2 - 1, 0.25), (A2, 6.0)):
         LED.default_value = v; LED.keyframe_insert("default_value", frame=f_)
 PC = P + Vector((0, 0, ALTO * ESC_P * 0.5))
 L1 = luz("D_LuzClave", 'SPOT', PC + Vector((0.9, -1.2, 1.0)), PC, (1.0, 0.95, 0.88)); L1.data.spot_size = math.radians(38); L1.data.spot_blend = 0.45
@@ -279,14 +280,18 @@ vis(ALEX, 1, True); vis(ALEX, B0, False); vis(ALEX, A2, True)
 
 # ================================================================ CÁMARAS DE ALEX (los planos de la pieza los pone su escena)
 EP = Vector(E_POS) + Vector((0, 0, 0.10))
-ck(1, (-1.40, -1.95, 1.20), (-1.48, 0.40, 0.92), 36)
-ck(max(2, XR0 - 16), (-1.42, -1.85, 1.18), (-1.50, 0.45, 0.92), 38)
-ck(XR0 + 8, (-1.30, -1.42, 1.16), tuple(EP), 40)
-ck(EST - 1, (-1.29, -1.30, 1.12), tuple(EP), 42)
-for k, (dx, dz) in enumerate(((0.012, -0.008), (-0.010, 0.010), (0.007, -0.005), (-0.004, 0.003))):
-    ck(EST + 1 + k * 2, (-1.29 + dx, -1.32, 1.13 + dz), tuple(EP + Vector((0, 0, 0.12))), 40)
-ck(EST + 14, (-1.25, -1.70, 1.25), tuple(EP + Vector((0, -0.1, 0.40))), 34)
-ck(B0 - 1, tuple(MPm() @ Vector((0.0, -ALTO * 4.2, ALTO * 1.6))), tuple(PC), 34)
+# gancho: Alex y Clod a la vez (Alex a la derecha, Clod en el capó a la izquierda)
+ck(1, (-0.25, -2.80, 1.40), (-1.05, 0.0, 1.05), 30)
+ck(max(2, XR0 - 16), (-0.33, -2.58, 1.37), (-1.10, 0.05, 1.02), 31)
+if "CAMS_INTRO" in globals():
+    for a_ in CAMS_INTRO: ck(*a_)
+else:
+    ck(XR0 + 8, (-1.30, -1.42, 1.16), tuple(EP), 40)
+    ck(EST - 1, (-1.29, -1.30, 1.12), tuple(EP), 42)
+    for k, (dx, dz) in enumerate(((0.012, -0.008), (-0.010, 0.010), (0.007, -0.005), (-0.004, 0.003))):
+        ck(EST + 1 + k * 2, (-1.29 + dx, -1.32, 1.13 + dz), tuple(EP + Vector((0, 0, 0.12))), 40)
+    ck(EST + 14, (-1.25, -1.70, 1.25), tuple(EP + Vector((0, -0.1, 0.40))), 34)
+    ck(B0 - 1, tuple(MPm() @ Vector((0.0, -ALTO * 4.2, ALTO * 1.6))), tuple(PC), 34)
 if A2 < INS:
     ck(A2, (-0.30, -2.35, 1.45), (-0.95, -0.05, 1.15), 28); ck(INS - 1, (-0.31, -2.25, 1.45), (-0.95, -0.05, 1.15), 28)
 if INS < A3:

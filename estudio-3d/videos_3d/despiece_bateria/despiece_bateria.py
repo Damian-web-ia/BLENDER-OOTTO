@@ -33,7 +33,7 @@ BT = {"__name__": "bt"}; exec(open(D_ + r"\bateria_real.py", encoding="utf-8").r
 CP = col_pieza("BATERIA")
 O = BT["construir_bateria"](CP, MP, "BAT", interior=True, gastada=False)
 RAIZ = O["raiz"]; RAIZ.rotation_mode = 'XYZ'
-E_POS = Vector((-1.55, 0.42, 0.60)); ALTO = 0.21; ESC_P = 1.0
+E_POS = Vector((-1.55, 0.42, 0.45)); ALTO = 0.21; ESC_P = 1.0
 P = Vector((-1.30, -1.05, 0.66)); ROTP = (0, 0, R(-24))
 for o in list(CD.all_objects): pass
 vuelo(RAIZ, EST, B0 - 2, esc_coche=1.0, rot_coche=(0, 0, 0), alto_salida=0.42)
@@ -56,7 +56,7 @@ for i, pl in enumerate(O["placas_e1"]):
 F_FRIO = E0 + 10
 BUR = BT["burbujas"](CP, RAIZ, O["M"], D0, A2 - 1, F_FRIO, lento=0.3, n=70)
 CORR = BT["corriente"](CP, RAIZ, O["M"], BT["camino_corriente"](O), D0 + 4, A2 - 1, F_FRIO, lento=0.3, n=24, vueltas=36)
-ke(O["M"]["chispa"], 1, 30.0); ke(O["M"]["chispa"], F_FRIO, 30.0); ke(O["M"]["chispa"], F_FRIO + 30, 7.0)
+ke(O["M"]["chispa"], 1, 45.0); ke(O["M"]["chispa"], F_FRIO, 45.0); ke(O["M"]["chispa"], F_FRIO + 30, 7.0)
 kp("frio", 1, 0.0); kp("frio", E0 + 4, 0.0); kp("frio", E0 + 44, 1.0); kp("frio", A2 - 1, 1.0); kp("frio", A2, 0.0)
 PCb = P + Vector((0, 0, 0.10))
 LF = luz("D_LuzFrio", 'AREA', PCb + Vector((-0.55, -0.55, 0.35)), PCb, (0.45, 0.70, 1.0), 0.8)
@@ -66,18 +66,18 @@ kluz(LF, [(1, 0), (E0 + 4, 0), (E0 + 34, 140), (A2 - 1, 140), (A2, 0)])
 COLI = col_pieza("BATERIA_INSERTO")
 DQ = Vector((-0.50, -0.26, 0.14)).normalized(); RQ = Vector((-DQ.y, DQ.x, 0)).normalized()
 ANG = math.atan2(DQ.y, DQ.x) + math.pi / 2
-INS_DIST = 0.86
+INS_DIST = 0.58
 for clave, pref, lado, gast in (("AN", "BATN", -1, False), ("AG", "BATG", 1, True)):
     o2 = BT["construir_bateria"](COLI, MP, pref, interior=False, gastada=gast)
     r_ = o2["raiz"]; r_.rotation_mode = 'XYZ'; r_.scale = (0.45, 0.45, 0.45); r_.rotation_euler = (0, 0, ANG)
-    r_.location = Q + RQ * (0.075 * lado) - Vector((0, 0, 0.065))
+    r_.location = Q + RQ * (0.072 * lado) - Vector((0, 0, 0.046))
     INSERTO[clave] = (r_, Vector((o2["XB"][1], o2["XB"][2], BT["Z_BORNE1"] + 0.01)))
 
 # ---------------------------------------------------------------- planos de la pieza (coordenadas de la batería)
-cl(B0, (0.34, -0.52, 0.30), (0.0, 0.0, 0.10), 40); cl(C0 - 1, (0.27, -0.50, 0.31), (0.0, 0.0, 0.10), 41)
+cl(B0, (0.44, -0.66, 0.36), (0.0, 0.0, 0.10), 38); cl(C0 - 1, (0.36, -0.62, 0.36), (0.0, 0.0, 0.10), 39)
 cl(C0, (-0.38, -0.36, 0.36), (-0.10, 0.0, 0.21), 40); cl(F_BANA - 2, (-0.35, -0.35, 0.33), (-0.10, 0.0, 0.19), 41)
 cl(D0 - 1, (-0.33, -0.34, 0.26), (-0.09, 0.0, 0.13), 43)
-cl(D0, (0.05, -0.42, 0.25), (0.0, 0.0, 0.12), 40); cl(E0 - 1, (0.10, -0.37, 0.25), (0.03, 0.0, 0.13), 42)
+cl(D0, (0.12, -0.44, 0.33), (0.03, 0.0, 0.13), 36); cl(E0 - 1, (0.16, -0.40, 0.32), (0.05, 0.0, 0.13), 38)
 cl(E0, (0.31, -0.47, 0.24), (0.0, 0.0, 0.09), 38); cl(A2 - 1, (0.27, -0.43, 0.23), (0.0, 0.0, 0.09), 39)
 XBN, XBP, YB = O["XB"]
 PUNTOS = {"bateria": (RAIZ, (0.06, -BT["LY"] / 2, 0.15)),
