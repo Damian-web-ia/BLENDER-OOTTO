@@ -6,14 +6,15 @@ import bpy, os, sys, math
 from mathutils import Vector, Matrix, Quaternion
 argv = sys.argv[sys.argv.index("--") + 1:]
 EST, OUT = argv[0], argv[1]; MUESTRAS = int(argv[2]) if len(argv) > 2 else 128
+BLEND = argv[3] if len(argv) > 3 else "maite_tripo.blend"
 os.makedirs(OUT, exist_ok=True)
 PM = os.path.join(EST, "biblioteca", "personajes", "tripo", "maite")
-bpy.ops.wm.open_mainfile(filepath=os.path.join(PM, "maite_tripo.blend"))
+bpy.ops.wm.open_mainfile(filepath=os.path.join(PM, BLEND))
 sc = bpy.context.scene
 ARM = [o for o in bpy.data.objects if o.type == 'ARMATURE'][0]
 CUERPO = [o for o in bpy.data.objects if o.type == 'MESH'][0]
 for img in bpy.data.images:
-    if img.source == 'FILE':
+    if img.source == 'FILE' and not img.packed_file:
         n = os.path.basename(bpy.path.abspath(img.filepath))
         for r_, _d, fs in os.walk(PM):
             if n in fs:
