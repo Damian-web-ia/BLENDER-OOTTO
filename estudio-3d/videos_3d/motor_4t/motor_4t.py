@@ -353,7 +353,7 @@ CL.mirar(L4_CLOD + 4, 0.25, 0.1); CL.cabeza(L4_CLOD + 6, asiente=-4, gira=-18)
 CL.cara(L4_CLOD + 18, "triste"); CL.cuerpo(L4_CLOD + 22, adelante=0); CL.cabeza(L4_TOCA + 4, asiente=6, gira=-10)
 CL.cara(L5_TIRONES, "contento"); CL.mirar(L5_TIRONES, 0.0, 0.0); CL.cabeza(L5_TIRONES, 0, 0, 20)
 f_ = CL.saludo("L", L5_QUE, ciclos=2); CL.cara(L5_QUE, "feliz")
-CL.parpadeos(1, FIN, evitar=(L4_CLOD,)); CL.suavizar()
+CL.parpadeos(1, FIN, evitar=((L4_CLOD - 2, L4_CLOD + 20),)); CL.suavizar()
 
 # ================================================================ CÁMARAS
 cd = bpy.data.cameras.new("CAM"); cam = bpy.data.objects.new("CAM", cd); col.objects.link(cam); sc.camera = cam
