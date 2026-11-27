@@ -276,7 +276,7 @@ if ad and ad.action:
             if k.interpolation != 'CONSTANT': k.interpolation = 'BEZIER'
         fc.update()
 _m["brillo_led"](sc, umbral=6.0)
-vis(ALEX, 1, True); vis(ALEX, B0, False); vis(ALEX, A2, True)
+vis(ALEX, 1, True); vis(ALEX, min(B0, EST + 12), False); vis(ALEX, A2, True)       # fuera en cuanto la pieza sale (si no, se cuela en el plano)
 
 # ================================================================ CÁMARAS DE ALEX (los planos de la pieza los pone su escena)
 EP = Vector(E_POS) + Vector((0, 0, 0.10))

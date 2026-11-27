@@ -43,7 +43,7 @@ FRENTE = bpy.data.objects.new("FIL_Frente", None); CP.objects.link(FRENTE); FREN
 partir([O[k] for k in ("lata", "reborde", "placa", "cuello", "junta", "tapas", "papel", "tubo", "agujeros", "aceite_sucio", "aceite_limpio")],
        FRENTE, solo_fondo=("FIL_AceiteSucio", "FIL_AceiteLimpio", "FIL_Agujeros"), sin_tapa=("FIL_AceiteSucio", "FIL_AceiteLimpio", "FIL_Papel", "FIL_Agujeros"))
 kl(FRENTE, 1, (0, 0, 0), (0, 0, 0)); kl(FRENTE, F_CORTE, (0, 0, 0), (0, 0, 0))
-kl(FRENTE, F_CORTE + 16, (0.03, -0.11, -0.03), (R(-30), R(12), R(25)))
+kl(FRENTE, F_CORTE + 16, (-0.10, -0.04, -0.05), (R(-30), R(12), R(-35)))
 vis(FRENTE, 1, True); vis(FRENTE, F_CORTE + 17, False)
 # antirretorno: se levanta con el aceite entrando y se cierra al parar el motor
 kb = bpy.data.objects["FIL_Antirretorno"].data.shape_keys.key_blocks["abierta"]
@@ -60,7 +60,7 @@ BY = O["bypass"]
 kl(BY, 1, (0, 0, 0)); kl(BY, H0 - 2, (0, 0, 0)); kl(BY, H0 + 7, (0, 0, -0.0042))
 CH = FA["chorro_bypass"](CP, RAIZ, O["M"], H0 + 6, A2, n=40)
 ROJA = luz("D_LuzAlarma", 'POINT', MPm() @ Vector((0, -0.01, -0.02)), MPm() @ Vector((0, 0, 0)), (1.0, 0.15, 0.06))
-kluz(ROJA, [(1, 0), (FW(2, 15) - 2, 0), (FW(2, 15) + 6, 60), (A2 - 1, 60), (A2, 0)])
+kluz(ROJA, [(1, 0), (FW(2, 15) - 2, 0), (FW(2, 15) + 6, 22), (A2 - 1, 22), (A2, 0)])
 ke(O["M"]["alarma"], 1, 6.0)
 
 # ---------------------------------------------------------------- inserto: papel nuevo frente a atascado
@@ -83,7 +83,7 @@ cl(E0, (0.040, -0.140, 0.050), (0.0, 0.004, 0.030), 40); cl(F0 - 1, (0.036, -0.1
 cl(F0, (0.050, -0.110, 0.035), (0.0, 0.014, 0.006), 40); cl(G0 - 1, (0.046, -0.102, 0.032), (0.0, 0.014, 0.006), 41)
 cl(G0, (0.20, -0.29, 0.14), (0.0, 0.0, 0.045), 40); cl(H0 - 1, (0.18, -0.27, 0.135), (0.0, 0.0, 0.048), 41)
 cl(H0, (0.040, -0.115, 0.110), (0.0, 0.003, 0.074), 40); cl(I0 - 1, (0.036, -0.106, 0.104), (0.0, 0.003, 0.070), 41)
-cl(I0, (0.080, -0.170, -0.010), (0.0, 0.004, 0.004), 40); cl(A2 - 1, (0.072, -0.158, -0.008), (0.0, 0.004, 0.004), 41)
+cl(I0, (0.090, -0.160, 0.030), (0.0, 0.004, 0.010), 40); cl(A2 - 1, (0.082, -0.150, 0.026), (0.0, 0.004, 0.008), 41)
 PUNTOS = {"filtro": (RAIZ, (0.0, -FA["R_LATA"], 0.060)),
           "agujeros": (RAIZ, (0.0, 0.022, 0.0046)),
           "papel": (RAIZ, (0.012, 0.028, 0.050)),

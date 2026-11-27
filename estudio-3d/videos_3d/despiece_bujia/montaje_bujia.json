@@ -1,0 +1,167 @@
+{
+ "gancho": [
+  [
+   "¿TU COCHE TIEMBLA",
+   "blanco"
+  ],
+  [
+   "EN EL SEMÁFORO?",
+   "amarillo"
+  ]
+ ],
+ "gancho_hasta": "XR0",
+ "piezas": [
+  {
+   "ancla": "bujia",
+   "desde": "B0",
+   "hasta": [
+    1,
+    13,
+    -1
+   ],
+   "titulo": "BUJÍA",
+   "sub": "en los motores de gasolina",
+   "color": "amarillo"
+  },
+  {
+   "ancla": "electrodo",
+   "desde": [
+    1,
+    16
+   ],
+   "hasta": [
+    1,
+    20,
+    -1
+   ],
+   "titulo": "ELECTRODO CENTRAL",
+   "sub": "por aquí baja la corriente",
+   "color": "naranja"
+  },
+  {
+   "ancla": "ceramica",
+   "desde": [
+    1,
+    20
+   ],
+   "hasta": "D0-1",
+   "titulo": "CERÁMICA",
+   "sub": "aísla la corriente",
+   "color": "azul"
+  },
+  {
+   "ancla": "electrodos",
+   "desde": [
+    1,
+    24
+   ],
+   "hasta": "E0-1",
+   "titulo": "ELECTRODOS",
+   "sub": "aquí salta la chispa",
+   "color": "azul"
+  },
+  {
+   "ancla": "chispa",
+   "desde": [
+    1,
+    30
+   ],
+   "hasta": "F0-1",
+   "titulo": "CHISPA",
+   "sub": "enciende la gasolina",
+   "color": "naranja"
+  },
+  {
+   "ancla": "gastado",
+   "desde": [
+    2,
+    4
+   ],
+   "hasta": "A2-1",
+   "titulo": "ELECTRODO GASTADO",
+   "sub": "más hueco, chispa débil",
+   "color": "rojo"
+  }
+ ],
+ "grafico": {
+  "tipo": "contador",
+  "desde": [
+   1,
+   1
+  ],
+  "hasta": "C0-1",
+  "sube_desde": [
+   1,
+   9
+  ],
+  "sube_hasta": [
+   1,
+   12,
+   "fin"
+  ],
+  "de": 12,
+  "a": 40000,
+  "sufijo": " V",
+  "titulo": "LA BOBINA SUBE LA TENSIÓN",
+  "nota": "de 12 hasta 40.000 voltios · Fuente: coches.com",
+  "color": "azul",
+  "y": 0.62
+ },
+ "avisos": [
+  {
+   "desde": "F_ZAP",
+   "hasta": "F_ZAP+16",
+   "texto": "¡ZAS!",
+   "color": "azul",
+   "y": 0.3
+  },
+  {
+   "desde": [
+    2,
+    12
+   ],
+   "hasta": [
+    2,
+    13,
+    -1
+   ],
+   "texto": "¿TIRONES?",
+   "sub": "SÍNTOMA 1 DE 3",
+   "color": "amarillo"
+  },
+  {
+   "desde": [
+    2,
+    13
+   ],
+   "hasta": [
+    2,
+    16,
+    -1
+   ],
+   "texto": "¿RALENTÍ INESTABLE?",
+   "sub": "SÍNTOMA 2 DE 3",
+   "color": "naranja"
+  },
+  {
+   "desde": [
+    2,
+    16
+   ],
+   "hasta": "A3-1",
+   "texto": "¿GASTA MÁS?",
+   "sub": "SÍNTOMA 3 DE 3",
+   "color": "rojo"
+  }
+ ],
+ "dato": {
+  "desde": [
+   3,
+   3
+  ],
+  "hasta": "CTA",
+  "grande": "DIÉSEL: SIN BUJÍAS",
+  "medio": "LLEVA CALENTADORES",
+  "color": "azul"
+ }
+}

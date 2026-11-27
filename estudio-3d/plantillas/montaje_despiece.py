@@ -189,17 +189,17 @@ def grafico(img, f):
     img.alpha_composite(capa)
 
 # ---------------------------------------------------------------- avisos (uno a la vez, arriba)
-AVISOS = [(RF(a["desde"]), RF(a["hasta"]), a["texto"], col(a.get("color", "amarillo")), a.get("sub", "")) for a in CFG.get("avisos", [])]
+AVISOS = [(RF(a["desde"]), RF(a["hasta"]), a["texto"], col(a.get("color", "amarillo")), a.get("sub", ""), a.get("y", CFG.get("y_avisos", 0.075))) for a in CFG.get("avisos", [])]
 def avisos(img, f):
     act = [a for a in AVISOS if a[0] <= f <= a[1]]
     if not act: return
-    f0, f1, txt, c, sub = act[-1]
+    f0, f1, txt, c, sub, ya = act[-1]
     capa = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dd = ImageDraw.Draw(capa)
     alfa = 255 if f < f1 - 4 else int(255 * max(0.0, (f1 - f) / 4))
     base = 80
     while fnt(base, "Black").getlength(txt) > W - 90 and base > 40: base -= 2
     p = ease_back((f - f0) / 7.0); sz = int(base * (0.6 + 0.4 * p))
-    yy = CFG.get("y_avisos", 0.075) * H
+    yy = ya * H
     dd.text((W / 2, yy), txt, font=fnt(sz, "Black"), fill=c + (alfa,), anchor="mm", stroke_width=11, stroke_fill=(0, 0, 0, alfa))
     if sub: dd.text((W / 2, yy + 70), sub, font=fnt(30, "Black"), fill=(235, 235, 235, alfa), anchor="mm", stroke_width=6, stroke_fill=(0, 0, 0, alfa))
     img.alpha_composite(capa)
