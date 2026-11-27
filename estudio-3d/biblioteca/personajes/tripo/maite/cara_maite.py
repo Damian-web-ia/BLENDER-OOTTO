@@ -762,16 +762,16 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
             if (az > pz_) != (bz > pz_) and px_ < (bx - ax) * (pz_ - az) / (bz - az + 1e-12) + ax: dentro = not dentro
         return dentro
     metidos = 0
-    for k in ("saco", "lengua", "encia_sup", "encia_inf", "dientes_sup", "dientes_inf"):
+    for k in ("saco",):
         for i in info[k]:
             v = bm.verts[i]; p = v.co
             if en_abertura((p - O).dot(X) * 0.92, (p - O).dot(up) * 0.92): continue
             loc, nrm_p, _i, dist = bvh_piel.find_nearest(p, 0.012)
             if loc is None: continue
             if nrm_p.dot(F) < 0.2: continue                             # sólo piel que mira hacia delante (la cara)
-            fuera = (p - loc).dot(nrm_p) > -0.0012                 # delante de la piel (o a menos de 1,2 mm por dentro)
+            fuera = (p - loc).dot(nrm_p) > -0.0003                 # delante de la piel (o rozándola)
             if fuera:
-                v.co = loc - nrm_p * 0.0016; metidos += 1
+                v.co = loc - nrm_p * 0.0012; metidos += 1
     print("BOCA vértices metidos dentro de la cara:", metidos, flush=True)
     info["bucle"] = idx_bucle; info["labio_int"] = idx_v1; info["boca_int"] = idx_v2
     info.update(O=tuple(O), F=tuple(F), X=tuple(X))
@@ -931,8 +931,10 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
     cierre = np.outer(w_cierre * hueco * np.where(abajo, 1.0, -1.0) * 1.04, up)
     k_add("mouthClose", co + cierre - np.outer(w_lab, F) * 0.0003)
     Xf = co + np.outer(w_lab, F) * 0.0022 - np.outer(w_lab * dx * 0.28, X) + np.outer(w_lab_sup, up) * 0.0009 - np.outer(w_lab_inf, up) * 0.0012
-    k_add("mouthFunnel", Xf)
-    Xp = co + np.outer(w_lab, F) * 0.0030 - np.outer(w_lab * dx * 0.48, X) - np.outer(w_lab * (z - lm) * 0.40, up)
+    k_add("mouthFunnel", Xf + cierre * 0.25)
+    # el morro: labios hacia delante y hacia el centro, y casi juntos (la boca de reposo está abierta)
+    w_mor = np.maximum(w_lab, np.where(rim, w_rim * (1 - _ss(0.018, 0.031, np.abs(dx))), 0.0))
+    Xp = co + np.outer(w_mor, F) * 0.0030 - np.outer(w_mor * dx * 0.48, X) - np.outer(w_lab * (z - lm) * 0.40, up) + cierre * 0.75
     k_add("mouthPucker", Xp)
     for s_, nombre in ((1, "mouthLeft"), (-1, "mouthRight")):
         k_add(nombre, co + np.outer(zona_boca, X) * 0.0040 * s_)
@@ -1088,14 +1090,15 @@ def _lum_min_caras(me, img):
     fuv = np.zeros((nf, 2)); np.add.at(fuv, lf, luv); fuv /= lt[:, None]
     sig = np.r_[1:len(luv)]; sig = np.append(sig, 0)
     fin = ls + lt - 1; nxt = np.arange(len(luv)) + 1; nxt[fin] = ls        # siguiente loop de la misma cara
-    out = np.full(nf, 9.0)
+    out = np.full(nf, 9.0); blanco = np.zeros(nf)
+    min_img = px[:, :, :3].min(axis=2)
     for t in (0.15, 0.45, 0.75, 0.95):
         for q in (0.0, 0.5):
             a_ = luv * (1 - q) + luv[nxt] * q
             s_ = fuv[lf] * (1 - t) + a_ * t
-            v = lum_img[np.clip((s_[:, 1] * h).astype(int), 0, h - 1), np.clip((s_[:, 0] * w).astype(int), 0, w - 1)]
-            np.minimum.at(out, lf, v)
-    return out
+            yy = np.clip((s_[:, 1] * h).astype(int), 0, h - 1); xx = np.clip((s_[:, 0] * w).astype(int), 0, w - 1)
+            np.minimum.at(out, lf, lum_img[yy, xx]); np.maximum.at(blanco, lf, min_img[yy, xx])
+    return out, blanco
 
 
 def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010, 0.0034)):
@@ -1123,10 +1126,10 @@ def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010,
         if mi[p.index] == i_piel: es_piel_v[list(p.vertices)] = True
     mask = np.zeros(N)
     cejas = np.zeros(N, bool)
-    lmc = _lum_min_caras(me, I["color"]); lum_min_v = np.full(N, 9.0)
+    lmc, blc = _lum_min_caras(me, I["color"]); lum_min_v = np.full(N, 9.0); blanco_v = np.zeros(N)
     lt_ = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('loop_total', lt_)
     lv_ = np.empty(len(m.loops), np.int64); m.loops.foreach_get('vertex_index', lv_)
-    np.minimum.at(lum_min_v, lv_, np.repeat(lmc, lt_))
+    np.minimum.at(lum_min_v, lv_, np.repeat(lmc, lt_)); np.maximum.at(blanco_v, lv_, np.repeat(blc, lt_))
     for lado, d in datos_ojos.items():
         C = np.array(d["C"]); bucle = co[d["bucle"]]
         dist = _dist_a(co, bucle)
@@ -1145,7 +1148,12 @@ def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010,
             w = np.maximum(w, 1 - _ss(0.0012, 0.0034, _dist_a(co, co[manchas])))
         mask = np.maximum(mask, w)
     bl = co[info_boca["bucle"]]
-    mask = np.maximum(mask, 1 - _ss(r_boca[0], r_boca[1], _dist_a(co, bl)))
+    dbo = _dist_a(co, bl)
+    mask = np.maximum(mask, 1 - _ss(r_boca[0], r_boca[1], dbo))
+    blancas = es_piel_v & (dbo < 0.010) & (blanco_v > 0.62)          # restos de dientes pintados junto a los labios
+    if blancas.any():
+        mask = np.maximum(mask, 1 - _ss(0.0012, 0.0032, _dist_a(co, co[blancas])))
+    print("PIEL_LISA manchas blancas junto a la boca:", int(blancas.sum()), flush=True)
     mask = np.where(es_piel_v, mask, 0.0)
     # relleno armónico: incógnitas = mask > 0.02; fijos = vecinos sanos (piel clara, no ceja)
     U = mask > 0.02
