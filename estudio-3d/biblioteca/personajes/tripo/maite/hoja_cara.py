@@ -31,7 +31,11 @@ C = Vector((H.x, mn.y, H.z - ALTO * 0.08))  # centro de la cara (por delante)
 OJ = [ARM.matrix_world @ ARM.pose.bones[n].head for n in ("Ojo_L", "Ojo_R") if n in ARM.pose.bones]
 E = sum(OJ, Vector()) / len(OJ) if OJ else Vector((H.x, mn.y + 0.03, H.z))
 H.x = E.x                                        # la trenza cae a un lado: el centro de la caja no es el de la cara
-B = Vector(eval(ARM["boca"])) if "boca" in ARM else Vector((E.x, E.y, E.z - 0.040))
+if "boca" in ARM:                                # centro de la boca en reposo -> con la postura de la cabeza
+    pbh_ = ARM.pose.bones["mixamorig:Head"]
+    Mh_ = ARM.matrix_world @ pbh_.matrix @ pbh_.bone.matrix_local.inverted() @ ARM.matrix_world.inverted()
+    B = Mh_ @ (ME.matrix_world @ Vector(eval(ARM["boca"])))
+else: B = Vector((E.x, E.y, E.z - 0.040))
 print("OJOS", tuple(round(v, 4) for v in E), "BOCA", tuple(round(v, 4) for v in B), flush=True)
 print("CABEZA", tuple(round(v, 4) for v in H), "alto", round(ALTO, 4), "frente_y", round(mn.y, 4), flush=True)
 def luz(n, loc, e, tam, col):
