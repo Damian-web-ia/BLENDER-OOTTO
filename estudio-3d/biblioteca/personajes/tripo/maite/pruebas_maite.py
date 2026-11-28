@@ -80,6 +80,15 @@ def hornear_y_video(f0, f1, nombre):
     for ob in bpy.data.objects:
         for md in ob.modifiers:
             if md.type == 'CLOTH': md.point_cache.frame_start = f0; md.point_cache.frame_end = f1
+    if os.environ.get("MAITE_DIAG_TRENZA"):
+        for f in (f0, f0 + 4, f0 + 30):
+            sc.frame_set(f); P_ = ARM.pose.bones
+            pts = [ARM.matrix_world @ P_[n].tail for n in A.trenza]
+            print("DIAG_TRENZA f", f, [tuple(round(x, 3) for x in p_) for p_ in pts], flush=True)
+        for ob in sc.objects:
+            if ob.type in ('MESH', 'CURVES') and ob.visible_get():
+                dg = bpy.context.evaluated_depsgraph_get(); bb = [ob.evaluated_get(dg).matrix_world @ Vector(c) for c in ob.evaluated_get(dg).bound_box]
+                print("DIAG_BB", ob.name, "z", round(min(v.z for v in bb), 3), round(max(v.z for v in bb), 3), "y", round(min(v.y for v in bb), 3), round(max(v.y for v in bb), 3), flush=True)
     fotos = os.environ.get("MAITE_FOTOS")
     if fotos:                                    # fotos de control (sin tela) en los segundos pedidos, en vez del vídeo
         for ob in bpy.data.objects:
