@@ -933,65 +933,64 @@ def alisar_parpados(me, datos, adelante, iteraciones=160, grosor=0.0014):
     print("PARPADO_PLIEGUES antes", antes, "después", {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}, flush=True)
     fijos = set(np.where(otro)[0].tolist())
     for d in datos.values(): fijos |= set(int(i) for i in d["bucle"]) | set(int(i) for i in d["borde_int"])
-    _desplegar_piel(me, datos, fijos)
+    _desplegar_piel(me, datos, fijos, adelante)
     return total
 
 
-def _desplegar_piel(me, datos, fijos, radio=0.030, rondas=10, holgura=0.0010):
-    """Quita los pliegues que quedan alrededor del ojo (caras dadas la vuelta: en 4K se ven como rayitas o pelos
-    sueltos en el párpado). Busca aristas cuyas dos caras miran en sentidos opuestos, coge esos vértices y unos
-    anillos alrededor y los suaviza poco a poco (media de los vecinos) sin meterlos en el globo."""
+def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, anillos=3):
+    """Quita los pliegues que quedan alrededor del ojo. Tras relajar el párpado quedaban tiras de caras dadas la
+    vuelta y aplastadas (área casi cero): en 4K se ven como rayitas o 'pelos' sueltos en el párpado.
+    Para cada zona mala se coge un parche (las caras malas y unos anillos alrededor, con su borde fijo), se coloca
+    en el plano de la cara como una membrana (Tutte: cada vértice en la media de sus vecinos; con el borde fijo no
+    puede plegarse) y la profundidad se rellena igual de suave, sin meterse en el globo."""
     m = me.data
     fam = {i for i, mt in enumerate(m.materials) if mt and mt.name in ("MAITE_piel", "MAITE_ojos_dientes", "MAITE_pelo")}
-    centros = [(Vector(tuple(d["C"])), float(d["R"])) for d in datos.values()]
-    hechos = 0
-    for r in range(rondas):
-        bm = bmesh.new(); bm.from_mesh(m); bm.normal_update(); bm.verts.ensure_lookup_table()
-        malos = set()
-        for e in bm.edges:
-            if len(e.link_faces) != 2: continue
-            f1, f2 = e.link_faces
-            if f1.material_index not in fam or f2.material_index not in fam: continue
-            c = (e.verts[0].co + e.verts[1].co) / 2
-            if min((c - C).length for C, _ in centros) > radio: continue
-            if f1.normal.dot(f2.normal) < 0.0: malos.update((e.verts[0].index, e.verts[1].index))
-        if r == 0: print("PIEL_PLIEGUES alrededor de los ojos:", len(malos), "vértices", flush=True)
-        if not malos: bm.free(); break
-        sel = set(malos)
-        for _ in range(2 + r // 2):
-            borde = set()
-            for vi in sel:
-                v = bm.verts[vi]
-                for e in v.link_edges: borde.add(e.other_vert(v).index)
-            sel |= borde
-        sel = [vi for vi in sel if vi not in fijos and all(f.material_index in fam for f in bm.verts[vi].link_faces)]
-        if not sel: bm.free(); break
+    F = np.array(adelante if adelante is not None else (0.203, -0.979, 0.0), np.float64); F /= np.linalg.norm(F)
+    Xd = np.cross(F, [0, 0, 1.0]); Xd /= np.linalg.norm(Xd); U = np.cross(Xd, F)
+    centros = [(np.array(d["C"], np.float64), float(d["R"])) for d in datos.values()]
+    total = 0
+    for intento in range(intentos):
+        bm = bmesh.new(); bm.from_mesh(m); bm.normal_update(); bm.verts.ensure_lookup_table(); bm.faces.ensure_lookup_table()
         co = np.array([v.co[:] for v in bm.verts], np.float64)
-        idx = np.array(sel); vec = [[e.other_vert(bm.verts[i]).index for e in bm.verts[i].link_edges] for i in sel]
+        malas = {k: [] for k in range(len(centros))}
+        for f in bm.faces:
+            if f.material_index not in fam: continue
+            c = np.array(f.calc_center_median()[:])
+            dc = [np.linalg.norm(c - C) for C, _ in centros]; k = int(np.argmin(dc))
+            if dc[k] > radio or dc[k] < centros[k][1] + 0.0025: continue
+            if f.normal.dot(Vector(tuple(F))) < -0.2 or f.calc_area() < 2e-8: malas[k].append(f)
+        n_malas = sum(len(v) for v in malas.values())
+        if intento == 0: print("PIEL_PLIEGUES caras malas alrededor de los ojos:", n_malas, flush=True)
+        if not n_malas: bm.free(); break
+        parches = []
+        for k, fs in malas.items():
+            if not fs: continue
+            sel = set(v.index for f in fs for v in f.verts)
+            for _ in range(anillos + intento):
+                sel |= {e.other_vert(bm.verts[vi]).index for vi in list(sel) for e in bm.verts[vi].link_edges}
+            Ck, Rk = centros[k]
+            movibles = [vi for vi in sel if vi not in fijos and all(f.material_index in fam for f in bm.verts[vi].link_faces)
+                        and np.linalg.norm(co[vi] - Ck) > Rk + 0.0025]
+            vec = [[e.other_vert(bm.verts[vi]).index for e in bm.verts[vi].link_edges] for vi in movibles]
+            parches.append((k, np.array(movibles, np.int64), vec))
         bm.free()
-        for it in range(25):
-            media = np.array([co[nb].mean(0) for nb in vec])
-            co[idx] += (media - co[idx]) * 0.5
-            for C, R in centros:
-                q = co[idx] - np.array(C); nq = np.linalg.norm(q, axis=1)
-                dentro = nq < R + holgura
-                if dentro.any():
-                    co[idx[dentro]] = np.array(C) + q[dentro] / nq[dentro][:, None] * (R + holgura)
-        for k, vi in enumerate(idx): m.vertices[int(vi)].co = co[vi]
-        m.update(); hechos += len(idx)
-    print("PIEL_PLIEGUES suavizados", hechos, "vértices; quedan", {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}, flush=True)
-
-
-# ================================================================ LAS 52 SHAPE KEYS DE ARKIT (+ todo en la misma malla)
-def _dist_a(P, Q):
-    """Distancia de cada punto de P al punto más cercano de Q."""
-    Q = np.asarray(Q, np.float64)
-    if len(Q) == 0: return np.full(len(P), 1e9)
-    from mathutils.kdtree import KDTree
-    kd = KDTree(len(Q))
-    for i, q in enumerate(Q): kd.insert(q, i)
-    kd.balance()
-    return np.array([kd.find(p)[2] for p in np.asarray(P, np.float64)])
+        for k, idx, vec in parches:
+            if not len(idx): continue
+            C0, R0 = centros[k]
+            rel = co - C0; x = np.c_[rel @ Xd, rel @ U, rel @ F]
+            for it in range(600):
+                media = np.array([x[nb].mean(0) for nb in vec])
+                if it < 400: x[idx, :2] = media[:, :2]
+                else: x[idx, 2] = media[:, 2]
+            r2 = x[idx, 0] ** 2 + x[idx, 1] ** 2
+            frente = np.sqrt(np.maximum((R0 + 0.0014) ** 2 - r2, 0.0))
+            x[idx, 2] = np.where(r2 < (R0 + 0.0014) ** 2, np.maximum(x[idx, 2], frente), x[idx, 2])
+            nuevo = C0 + np.outer(x[idx, 0], Xd) + np.outer(x[idx, 1], U) + np.outer(x[idx, 2], F)
+            co[idx] = nuevo
+            for j, vi in enumerate(idx): m.vertices[int(vi)].co = nuevo[j]
+            total += len(idx)
+        m.update()
+    print("PIEL_PLIEGUES parche de", total, "vértices; quedan", {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}, flush=True)
 
 
 def crear_claves(arm, me, info_ojos, info_boca, adelante):
@@ -1530,18 +1529,20 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
     mt = bpy.data.materials["MAITE_parpado_borde"]; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
     a = atributo(N, -700, 200)
     mx = N.new("ShaderNodeMix"); mx.data_type = 'RGBA'; mx.location = (-400, 200)
-    _sk(mx.inputs, "A_Color").default_value = (0.76, 0.46, 0.42, 1); _sk(mx.inputs, "B_Color").default_value = (0.085, 0.045, 0.040, 1)
+    _sk(mx.inputs, "A_Color").default_value = (0.55, 0.30, 0.27, 1); _sk(mx.inputs, "B_Color").default_value = (0.085, 0.045, 0.040, 1)
     L.new(a.outputs["Fac"], _sk(mx.inputs, "Factor_Float")); L.new(_sk(mx.outputs, "Result_Color"), bs.inputs["Base Color"])
     rg = N.new("ShaderNodeMapRange"); rg.location = (-400, -100); rg.inputs["To Min"].default_value = 0.30; rg.inputs["To Max"].default_value = 0.55
     L.new(a.outputs["Fac"], rg.inputs["Value"]); L.new(rg.outputs["Result"], bs.inputs["Roughness"])
-    cw = N.new("ShaderNodeMapRange"); cw.location = (-400, -350); cw.inputs["To Min"].default_value = 0.35; cw.inputs["To Max"].default_value = 0.0
-    L.new(a.outputs["Fac"], cw.inputs["Value"]); L.new(cw.outputs["Result"], bs.inputs["Coat Weight"])
-    bs.inputs["Coat Roughness"].default_value = 0.08
+    # brillo: visto de canto, el borde del párpado reflejaba el entorno como un espejo (el aro lila); sólo un
+    # poquito abajo (línea de agua húmeda) y nada arriba; sin barniz (también refleja de canto)
+    cw = N.new("ShaderNodeMapRange"); cw.location = (-400, -350); cw.inputs["To Min"].default_value = 0.12; cw.inputs["To Max"].default_value = 0.0
+    L.new(a.outputs["Fac"], cw.inputs["Value"]); L.new(cw.outputs["Result"], bs.inputs["Specular IOR Level"])
+    bs.inputs["Coat Weight"].default_value = 0.0; bs.inputs["Subsurface Weight"].default_value = 0.10
 
     # fondo de la cuenca: blanco del ojo en sombra; arriba, más oscuro (debajo de las pestañas)
     mt = bpy.data.materials["MAITE_cuenca"]; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
     mx0 = next(n for n in N if n.type == 'MIX' and n.data_type == 'RGBA')
-    _sk(mx0.inputs, "A_Color").default_value = (0.10, 0.045, 0.042, 1); _sk(mx0.inputs, "B_Color").default_value = (0.60, 0.50, 0.47, 1)
+    _sk(mx0.inputs, "A_Color").default_value = (0.10, 0.045, 0.042, 1); _sk(mx0.inputs, "B_Color").default_value = (0.42, 0.30, 0.28, 1)
     a = atributo(N, -500, 300)
     k = N.new("ShaderNodeMapRange"); k.location = (-300, 300); k.inputs["To Min"].default_value = 1.0; k.inputs["To Max"].default_value = 0.30
     L.new(a.outputs["Fac"], k.inputs["Value"])
@@ -1551,7 +1552,7 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
     _sk(mu.inputs, "Factor_Float").default_value = 1.0
     L.new(_sk(mx0.outputs, "Result_Color"), _sk(mu.inputs, "A_Color")); L.new(cc.outputs["Color"], _sk(mu.inputs, "B_Color"))
     L.new(_sk(mu.outputs, "Result_Color"), bs.inputs["Base Color"])
-    bs.inputs["Roughness"].default_value = 0.38
+    bs.inputs["Roughness"].default_value = 0.45; bs.inputs["Specular IOR Level"].default_value = 0.04
 
     # sombra de contacto en cada globo
     for lado in datos_ojos:
