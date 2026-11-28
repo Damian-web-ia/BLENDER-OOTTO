@@ -1347,6 +1347,21 @@ def _pixeles_3d(me, caras, w, h):
     return np.concatenate(ys), np.concatenate(xs), np.concatenate(P)
 
 
+def _sangrado(px, ys, xs, pasos=8):
+    """Extiende cada isla de UV unos píxeles hacia fuera (el filtrado de la textura en el borde de una isla mezcla
+    con los píxeles vecinos: si están vacíos, la costura se ve como una línea)."""
+    h, w = px.shape[:2]
+    lleno = np.zeros((h, w), bool); lleno[ys, xs] = True
+    for _ in range(pasos):
+        suma = np.zeros((h, w, 3), np.float32); cuenta = np.zeros((h, w), np.float32)
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)):
+            ll = np.roll(np.roll(lleno, dy, 0), dx, 1); vv = np.roll(np.roll(px[:, :, :3], dy, 0), dx, 1)
+            suma += vv * ll[:, :, None]; cuenta += ll
+        nuevo = (~lleno) & (cuenta > 0)
+        px[nuevo, :3] = suma[nuevo] / cuenta[nuevo][:, None]
+        lleno |= nuevo
+
+
 def maquillaje(me, datos_ojos, info_boca, tam=2048):
     m = me.data
     O = np.array(info_boca["O"]); F = np.array(info_boca["F"]); X = np.array(info_boca["X"])
@@ -1393,6 +1408,7 @@ def maquillaje(me, datos_ojos, info_boca, tam=2048):
     np.maximum.at(px[:, :, 0], (ys, xs), labios.astype(np.float32))
     np.maximum.at(px[:, :, 1], (ys, xs), rubor.astype(np.float32))
     np.maximum.at(px[:, :, 2], (ys, xs), nariz.astype(np.float32))
+    _sangrado(px, ys, xs, pasos=8)                      # sin esto, las costuras de UV salen como grietas claras en los labios
     img.pixels.foreach_set(px.ravel()); img.update(); img.pack()
     _material_maquillaje(m.materials[ip], img)
     print("MAQUILLAJE", len(caras), "caras,", len(P), "píxeles; labios", int((labios > 0.5).sum()), "rubor", int((rubor > 0.5).sum()),
@@ -1419,3 +1435,95 @@ def _material_maquillaje(mt, img, tinte_labios=(0.82, 0.44, 0.47), tinte_rubor=(
     for d_ in destino:
         for l in list(d_.links): Lk.remove(l)
         Lk.new(prev, d_)
+
+
+def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, sombra_inf=0.78):
+    """Lo que en 4K hace que el ojo 'esté dentro' de la cara y no pegado encima:
+    - el borde del párpado de arriba es la línea de las pestañas (oscura) y el de abajo, la línea de agua (rosada y húmeda);
+      se distinguen con el atributo 'borde_sup', calculado en reposo, así acompaña al parpadeo;
+    - el fondo de la cuenca, del color del blanco del ojo en sombra (antes salía un aro gris lila alrededor);
+    - sombra de contacto en el globo: se oscurece cerca del párpado (más debajo del de arriba). La distancia al
+      párpado se mide en cada fotograma con nodos de geometría, así la sombra sigue a los parpadeos y gestos."""
+    m = me.data
+    co = np.empty(len(m.vertices) * 3); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
+    Cs = np.array([d["C"] for d in datos_ojos.values()])
+    cerca = np.argmin(np.linalg.norm(co[:, None, :] - Cs[None], axis=2), axis=1)
+    sup = _ss(-0.0012, 0.0022, co[:, 2] - Cs[cerca, 2]).astype(np.float32)
+    at = m.attributes.get("borde_sup") or m.attributes.new("borde_sup", 'FLOAT', 'POINT')
+    at.data.foreach_set('value', sup)
+
+    def atributo(N, x, y):
+        a = N.new("ShaderNodeAttribute"); a.attribute_type = 'GEOMETRY'; a.attribute_name = "borde_sup"; a.location = (x, y); return a
+
+    # borde del párpado
+    mt = bpy.data.materials["MAITE_parpado_borde"]; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
+    a = atributo(N, -700, 200)
+    mx = N.new("ShaderNodeMix"); mx.data_type = 'RGBA'; mx.location = (-400, 200)
+    _sk(mx.inputs, "A_Color").default_value = (0.76, 0.46, 0.42, 1); _sk(mx.inputs, "B_Color").default_value = (0.085, 0.045, 0.040, 1)
+    L.new(a.outputs["Fac"], _sk(mx.inputs, "Factor_Float")); L.new(_sk(mx.outputs, "Result_Color"), bs.inputs["Base Color"])
+    rg = N.new("ShaderNodeMapRange"); rg.location = (-400, -100); rg.inputs["To Min"].default_value = 0.30; rg.inputs["To Max"].default_value = 0.55
+    L.new(a.outputs["Fac"], rg.inputs["Value"]); L.new(rg.outputs["Result"], bs.inputs["Roughness"])
+    cw = N.new("ShaderNodeMapRange"); cw.location = (-400, -350); cw.inputs["To Min"].default_value = 0.35; cw.inputs["To Max"].default_value = 0.0
+    L.new(a.outputs["Fac"], cw.inputs["Value"]); L.new(cw.outputs["Result"], bs.inputs["Coat Weight"])
+    bs.inputs["Coat Roughness"].default_value = 0.08
+
+    # fondo de la cuenca: blanco del ojo en sombra; arriba, más oscuro (debajo de las pestañas)
+    mt = bpy.data.materials["MAITE_cuenca"]; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
+    mx0 = next(n for n in N if n.type == 'MIX' and n.data_type == 'RGBA')
+    _sk(mx0.inputs, "A_Color").default_value = (0.10, 0.045, 0.042, 1); _sk(mx0.inputs, "B_Color").default_value = (0.60, 0.50, 0.47, 1)
+    a = atributo(N, -500, 300)
+    k = N.new("ShaderNodeMapRange"); k.location = (-300, 300); k.inputs["To Min"].default_value = 1.0; k.inputs["To Max"].default_value = 0.30
+    L.new(a.outputs["Fac"], k.inputs["Value"])
+    cc = N.new("ShaderNodeCombineColor"); cc.location = (-100, 300)
+    for c_ in ("Red", "Green", "Blue"): L.new(k.outputs["Result"], cc.inputs[c_])
+    mu = N.new("ShaderNodeMix"); mu.data_type = 'RGBA'; mu.blend_type = 'MULTIPLY'; mu.location = (100, 100)
+    _sk(mu.inputs, "Factor_Float").default_value = 1.0
+    L.new(_sk(mx0.outputs, "Result_Color"), _sk(mu.inputs, "A_Color")); L.new(cc.outputs["Color"], _sk(mu.inputs, "B_Color"))
+    L.new(_sk(mu.outputs, "Result_Color"), bs.inputs["Base Color"])
+    bs.inputs["Roughness"].default_value = 0.38
+
+    # sombra de contacto en cada globo
+    for lado in datos_ojos:
+        g = bpy.data.objects.get(f"MAITE_globo_{lado}")
+        if g is None: continue
+        nombre = f"MAITE_sombra_parpado_{lado}"
+        ng = bpy.data.node_groups.get(nombre)
+        if ng: bpy.data.node_groups.remove(ng)
+        ng = bpy.data.node_groups.new(nombre, 'GeometryNodeTree')
+        ng.interface.new_socket("Geometry", in_out='INPUT', socket_type='NodeSocketGeometry')
+        ng.interface.new_socket("Geometry", in_out='OUTPUT', socket_type='NodeSocketGeometry')
+        G = ng.nodes; GL = ng.links
+        gi = G.new("NodeGroupInput"); go = G.new("NodeGroupOutput")
+        oi = G.new("GeometryNodeObjectInfo"); oi.transform_space = 'RELATIVE'; oi.inputs["Object"].default_value = me
+        px = G.new("GeometryNodeProximity"); px.target_element = 'FACES'
+        GL.new(oi.outputs["Geometry"], next(s for s in px.inputs if s.type == 'GEOMETRY'))
+        ps = G.new("GeometryNodeInputPosition"); GL.new(ps.outputs[0], px.inputs["Source Position"])
+        mr = G.new("ShaderNodeMapRange"); mr.interpolation_type = 'SMOOTHSTEP'
+        mr.inputs["From Min"].default_value = d_min; mr.inputs["From Max"].default_value = d_max
+        GL.new(px.outputs["Distance"], mr.inputs["Value"])
+        st = G.new("GeometryNodeStoreNamedAttribute"); st.data_type = 'FLOAT'; st.domain = 'POINT'
+        st.inputs["Name"].default_value = "lejos_parpado"
+        GL.new(gi.outputs[0], st.inputs["Geometry"]); GL.new(mr.outputs["Result"], st.inputs["Value"]); GL.new(st.outputs["Geometry"], go.inputs[0])
+        for md in [md for md in g.modifiers if md.name == "SombraParpado"]: g.modifiers.remove(md)
+        md = g.modifiers.new("SombraParpado", 'NODES'); md.node_group = ng
+        mt = g.active_material; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
+        if N.get("SOMBRA_mult"): continue
+        prev = bs.inputs["Base Color"].links[0].from_socket if bs.inputs["Base Color"].is_linked else None
+        at_ = N.new("ShaderNodeAttribute"); at_.attribute_type = 'GEOMETRY'; at_.attribute_name = "lejos_parpado"; at_.location = (100, 500)
+        geo = N.new("ShaderNodeNewGeometry"); geo.location = (100, 700)
+        sz = N.new("ShaderNodeSeparateXYZ"); sz.location = (300, 700); L.new(geo.outputs["Normal"], sz.inputs[0])
+        arriba = N.new("ShaderNodeMapRange"); arriba.interpolation_type = 'SMOOTHSTEP'; arriba.location = (450, 700)
+        arriba.inputs["From Min"].default_value = -0.35; arriba.inputs["From Max"].default_value = 0.35
+        arriba.inputs["To Min"].default_value = sombra_inf; arriba.inputs["To Max"].default_value = sombra_sup
+        L.new(sz.outputs["Z"], arriba.inputs["Value"])
+        f = N.new("ShaderNodeMix"); f.data_type = 'FLOAT'; f.location = (600, 550)          # lejos -> 1, cerca -> sombra
+        L.new(at_.outputs["Fac"], _sk(f.inputs, "Factor_Float")); L.new(arriba.outputs["Result"], _sk(f.inputs, "A_Float"))
+        _sk(f.inputs, "B_Float").default_value = 1.0
+        cc = N.new("ShaderNodeCombineColor"); cc.location = (750, 550)
+        for c_ in ("Red", "Green", "Blue"): L.new(_sk(f.outputs, "Result_Float"), cc.inputs[c_])
+        mu = N.new("ShaderNodeMix"); mu.name = "SOMBRA_mult"; mu.data_type = 'RGBA'; mu.blend_type = 'MULTIPLY'; mu.location = (900, 400)
+        _sk(mu.inputs, "Factor_Float").default_value = 1.0
+        if prev is not None: L.new(prev, _sk(mu.inputs, "A_Color"))
+        else: _sk(mu.inputs, "A_Color").default_value = bs.inputs["Base Color"].default_value
+        L.new(cc.outputs["Color"], _sk(mu.inputs, "B_Color")); L.new(_sk(mu.outputs, "Result_Color"), bs.inputs["Base Color"])
+    print("BORDES_OJOS borde_sup:", int((sup > 0.5).sum()), "vértices arriba", flush=True)

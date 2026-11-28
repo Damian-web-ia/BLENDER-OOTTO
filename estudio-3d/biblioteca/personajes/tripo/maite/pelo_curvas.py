@@ -212,7 +212,21 @@ def _caras_cejas(me, ojos):
     for C in ojos:
         d = cen - np.array(C)
         es |= (mi == ipiel) & (oscuro < 0.36) & (d[:, 2] > 0.014) & (d[:, 2] < 0.038) & (np.abs(d[:, 0]) < 0.034) & (d[:, 1] < 0.006)
-    print("CEJAS caras con ceja pintada:", int(es.sum()), flush=True)
+    # sólo las manchas grandes (la ceja); un punto oscuro suelto de la textura daría un pelo perdido en la frente
+    ids = np.where(es)[0]; padre = {}
+    def raiz(a):
+        while padre.setdefault(a, a) != a:
+            padre[a] = padre[padre[a]]; a = padre[a]
+        return a
+    for fi in ids:
+        vs = list(m.polygons[fi].vertices)
+        for v in vs[1:]: padre[raiz(vs[0])] = raiz(v)
+    comp = np.array([raiz(m.polygons[fi].vertices[0]) for fi in ids])
+    tam = {c: int((comp == c).sum()) for c in set(comp.tolist())}
+    grande = max(tam.values()) if tam else 0
+    for fi, c in zip(ids, comp):
+        if tam[c] < max(6, 0.12 * grande): es[fi] = False
+    print("CEJAS caras con ceja pintada:", int(es.sum()), "(manchas:", sorted(tam.values(), reverse=True)[:6], ")", flush=True)
     return es
 
 

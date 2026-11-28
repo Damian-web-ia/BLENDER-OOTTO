@@ -150,3 +150,86 @@ def pelo_aaa(me, fuerza_pintura=0.30, vetas=170.0, ojos=()):
     bs.inputs["Coat Weight"].default_value = 0.0
     print("PELO_AAA color medio", np.round(med, 3).tolist(), "luminancia p10/50/90", np.round(pct, 3).tolist(),
           "coronilla", np.round(cabeza, 3).tolist(), flush=True)
+
+
+def piel_aaa(me, poro=0.00055, fuerza_poro=0.16, rug_labios=0.30):
+    """Piel para primer plano (va después del maquillaje). Sin esto, en 4K la cara parece de cera:
+    - poro fino pegado a la piel (coordenadas de reposo: no 'nada' cuando se mueve), menos en los labios;
+    - rugosidad con variación suave y labios algo más brillantes;
+    - un moteado de color muy leve, como la piel de verdad."""
+    m = me.data
+    mt = next(mt for mt in m.materials if mt and mt.name == "MAITE_piel")
+    T = mt.node_tree; Nn = T.nodes; Lk = T.links
+    for n in [n for n in Nn if n.name.startswith("PIEL_")]: Nn.remove(n)
+    bs = next(n for n in Nn if n.type == 'BSDF_PRINCIPLED')
+    bump = next(n for n in Nn if n.type == 'BUMP')
+    ruido = next(n for n in Nn if n.type == 'TEX_NOISE')
+    vm = next(n for n in Nn if n.type == 'VECT_MATH' and n.operation == 'MULTIPLY')      # Generated × medidas = metros
+    pos = vm.outputs["Vector"]
+    labios = Nn["MAQ_sep"].outputs["Red"] if "MAQ_sep" in Nn else None
+
+    def nodo(tipo, nombre, x, y, **kw):
+        n = Nn.new(tipo); n.name = "PIEL_" + nombre; n.label = n.name; n.location = (x, y)
+        for k, v in kw.items(): setattr(n, k, v)
+        return n
+
+    def mate(nombre, op, a, b, x, y, c=None):
+        n = nodo("ShaderNodeMath", nombre, x, y, operation=op)
+        for i, v in enumerate((a, b, c)):
+            if v is None: continue
+            if isinstance(v, (int, float)): n.inputs[i].default_value = v
+            else: Lk.new(v, n.inputs[i])
+        return n.outputs[0]
+
+    # --- poro: celdas de Voronoi de medio milímetro; el fondo de cada celda es un hoyito
+    vo = nodo("ShaderNodeTexVoronoi", "poro", -1500, -700, feature='F1', distance='EUCLIDEAN')
+    vo.inputs["Scale"].default_value = 1.0 / poro; vo.inputs["Randomness"].default_value = 1.0
+    Lk.new(pos, vo.inputs["Vector"])
+    mr = nodo("ShaderNodeMapRange", "poro_forma", -1300, -700, interpolation_type='SMOOTHSTEP')
+    mr.inputs["From Min"].default_value = 0.0; mr.inputs["From Max"].default_value = 0.32
+    Lk.new(vo.outputs["Distance"], mr.inputs["Value"])
+    alto = mate("alto", 'MULTIPLY_ADD', mr.outputs["Result"], 0.65, -1100, -700, c=None)
+    # alto = poro*0.65 + ruido*0.35
+    ru = mate("ruido_k", 'MULTIPLY', ruido.outputs["Fac"], 0.35, -1100, -850)
+    Lk.new(ru, Nn["PIEL_alto"].inputs[2])
+    for l in list(bump.inputs["Height"].links): Lk.remove(l)
+    Lk.new(alto, bump.inputs["Height"])
+    bump.inputs["Distance"].default_value = 0.00018
+    # fuerza: menos en los labios (son lisos)
+    if labios is not None:
+        menos = mate("fuerza", 'MULTIPLY_ADD', labios, -0.85 * fuerza_poro, -900, -560, c=fuerza_poro)
+        Lk.new(menos, bump.inputs["Strength"])
+    else:
+        bump.inputs["Strength"].default_value = fuerza_poro
+
+    # --- rugosidad: variación lenta (zonas algo más grasas y más secas) y labios más brillantes
+    rs = bs.inputs["Roughness"]; ant = rs.links[0].from_socket if rs.is_linked else None
+    lento = nodo("ShaderNodeTexNoise", "lento", -1500, -250); lento.inputs["Scale"].default_value = 1.0 / 0.018
+    lento.inputs["Detail"].default_value = 3.0; Lk.new(pos, lento.inputs["Vector"])
+    var = mate("var", 'MULTIPLY_ADD', lento.outputs["Fac"], 0.30, -1300, -250, c=0.85)          # 0,85 .. 1,15
+    r1 = mate("rug_var", 'MULTIPLY', ant if ant is not None else rs.default_value, var, -1100, -250)
+    if labios is not None:
+        mezcla = nodo("ShaderNodeMix", "rug_labios", -900, -250, data_type='FLOAT')
+        fl = mate("labios_k", 'MULTIPLY', labios, 0.85, -1100, -120)
+        Lk.new(fl, _sk(mezcla.inputs, "Factor_Float")); Lk.new(r1, _sk(mezcla.inputs, "A_Float"))
+        _sk(mezcla.inputs, "B_Float").default_value = rug_labios
+        r1 = _sk(mezcla.outputs, "Result_Float")
+    for l in list(rs.links): Lk.remove(l)
+    Lk.new(r1, rs)
+
+    # --- moteado de color muy leve (sólo oscurece un 0-3 %)
+    bc = bs.inputs["Base Color"]
+    if bc.is_linked:
+        prev = bc.links[0].from_socket
+        mo = nodo("ShaderNodeTexNoise", "moteado", -1500, 200); mo.inputs["Scale"].default_value = 1.0 / 0.009
+        mo.inputs["Detail"].default_value = 4.0; Lk.new(pos, mo.inputs["Vector"])
+        cr = nodo("ShaderNodeValToRGB", "moteado_rampa", -1300, 200)
+        cr.color_ramp.elements[0].position = 0.35; cr.color_ramp.elements[0].color = (0.955, 0.925, 0.925, 1)
+        cr.color_ramp.elements[1].position = 0.65; cr.color_ramp.elements[1].color = (1, 1, 1, 1)
+        Lk.new(mo.outputs["Fac"], cr.inputs["Fac"])
+        mx = nodo("ShaderNodeMix", "moteado_mezcla", -300, 300, data_type='RGBA', blend_type='MULTIPLY')
+        _sk(mx.inputs, "Factor_Float").default_value = 0.8
+        Lk.new(prev, _sk(mx.inputs, "A_Color")); Lk.new(cr.outputs["Color"], _sk(mx.inputs, "B_Color"))
+        for l in list(bc.links): Lk.remove(l)
+        Lk.new(_sk(mx.outputs, "Result_Color"), bc)
+    print("PIEL_AAA poro", poro, "fuerza", fuerza_poro, flush=True)
