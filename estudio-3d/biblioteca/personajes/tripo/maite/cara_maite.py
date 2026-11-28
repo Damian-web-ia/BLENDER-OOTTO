@@ -962,8 +962,8 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
         fijos = set(np.unique(lv[~np.isin(mi, list(fam))[lf]]).tolist())
         for d in datos.values(): fijos |= set(int(i) for i in d["bucle"]) | set(int(i) for i in d["borde_int"])
     # 1) solapas: tiras de caras de la malla de Tripo sueltas por un lado (aristas con una sola cara) y dobladas
-    #    sobre la piel. No hay membrana que las estire (su borde está libre): se quitan las caras (los vértices se
-    #    quedan, así no cambia ningún índice) y si queda algún agujero pequeño se tapa.
+    #    sobre la piel (debajo la piel está entera). No hay membrana que las estire (su borde está libre): se les pone
+    #    un material invisible. Borrarlas no vale: bmesh.to_mesh reordena los vértices y rompe los índices guardados.
     bm = bmesh.new(); bm.from_mesh(m); bm.normal_update()
     Fv = Vector(tuple(F))
     def cerca_ojo(p_): return min(np.linalg.norm(np.array(p_[:]) - C) for C, _ in centros) < radio
@@ -976,21 +976,21 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
         for e in f.edges:
             for g in e.link_faces:
                 if g not in solapa and mala(g): solapa.add(g); cola.append(g)
-    n_sol = len(solapa); n_tapas = 0
-    if solapa:
-        bmesh.ops.delete(bm, geom=list(solapa), context='FACES_ONLY')
-        sueltas_e = [e for e in bm.edges if not e.link_faces]
-        if sueltas_e: bmesh.ops.delete(bm, geom=sueltas_e, context='EDGES')
-        bordes = [e for e in bm.edges if len(e.link_faces) == 1 and cerca_ojo((e.verts[0].co + e.verts[1].co) / 2)]
-        if bordes:
-            r_ = bmesh.ops.holes_fill(bm, edges=bordes, sides=12)
-            for f in r_["faces"]:
-                vecina = next((g for e in f.edges for g in e.link_faces if g is not f), None)
-                if vecina is not None: f.material_index = vecina.material_index
-                f.smooth = True; n_tapas += 1
-        bm.to_mesh(m); m.update()
+    n_sol = len(solapa); ids = [f.index for f in solapa]
     bm.free()
-    print("PIEL_PLIEGUES solapas quitadas:", n_sol, "caras; agujeros tapados:", n_tapas, flush=True)
+    if ids:
+        # NO se borran (bmesh.to_mesh reordena vértices y rompe todos los índices guardados): se vuelven invisibles
+        mt = bpy.data.materials.get("MAITE_oculto")
+        if mt is None:
+            mt = bpy.data.materials.new("MAITE_oculto"); mt.use_nodes = True; N_ = mt.node_tree.nodes
+            for n_ in list(N_): N_.remove(n_)
+            tr = N_.new("ShaderNodeBsdfTransparent"); ou = N_.new("ShaderNodeOutputMaterial")
+            mt.node_tree.links.new(tr.outputs[0], ou.inputs["Surface"])
+        if mt.name not in [x.name for x in m.materials if x]: m.materials.append(mt)
+        io = next(i for i, x in enumerate(m.materials) if x and x.name == "MAITE_oculto")
+        for fi in ids: m.polygons[fi].material_index = io
+        m.update()
+    print("PIEL_PLIEGUES solapas (caras sueltas dobladas) ocultas:", n_sol, flush=True)
     total = 0; n_malas = 0
     for intento in range(intentos + 1):
         bm = bmesh.new(); bm.from_mesh(m); bm.normal_update(); bm.verts.ensure_lookup_table(); bm.faces.ensure_lookup_table()
