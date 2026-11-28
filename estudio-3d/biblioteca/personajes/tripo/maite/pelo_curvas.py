@@ -21,11 +21,37 @@ def _triangulos(me, mat_index):
     return tv[sel], tl[sel], tp[sel]
 
 
-def pelo_curvas(arm, me, densidad=1.6e6, puntos=6, semilla=21, largo=(0.010, 0.026)):
+def _uv_pelo(me, ip):
+    """UV propio para pegar las hebras: el atlas de Tripo se solapa (40 % de hebras sin sitio). Proyección inteligente
+    sólo del pelo; el resto de caras se manda fuera (5, 5) para que no haya ambigüedad. El render sigue usando el de Tripo."""
+    m = me.data
+    render = next(l for l in m.uv_layers if l.active_render)
+    uvp = m.uv_layers.get("uv_pelo") or m.uv_layers.new(name="uv_pelo")
+    for l in m.uv_layers: l.active_render = (l.name == render.name)
+    m.uv_layers.active = uvp
+    for p in m.polygons: p.select = (p.material_index == ip)
+    bpy.context.view_layer.objects.active = me
+    for o in bpy.context.selected_objects: o.select_set(False)
+    me.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_mode(type='FACE')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.002, scale_to_bounds=False)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    mi = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('material_index', mi)
+    lt = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('loop_total', lt)
+    lf = np.repeat(np.arange(len(m.polygons)), lt)
+    uv = np.empty(len(m.loops) * 2, np.float32); uvp.data.foreach_get('uv', uv); uv = uv.reshape(-1, 2)
+    uv[mi[lf] != ip] = (5.0, 5.0)
+    uvp.data.foreach_set('uv', uv.ravel())
+    m.uv_layers.active = render
+    print("PELO_HEBRAS uv propio del pelo listo; render con", render.name, flush=True)
+    return uvp
+
+
+def pelo_curvas(arm, me, densidad=1.6e6, puntos=6, semilla=21, largo=(0.014, 0.034)):
     m = me.data; rng = np.random.default_rng(semilla)
     ip = next(i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_pelo")
     co = np.empty(len(m.vertices) * 3); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
-    uvl = m.uv_layers.active; uv_nombre = uvl.name
+    uvl = _uv_pelo(me, ip); uv_nombre = uvl.name
     luv = np.empty(len(uvl.data) * 2); uvl.data.foreach_get('uv', luv); luv = luv.reshape(-1, 2)
     tv, tl, tp = _triangulos(me, ip)
     A, B, C = co[tv[:, 0]], co[tv[:, 1]], co[tv[:, 2]]
@@ -68,7 +94,7 @@ def pelo_curvas(arm, me, densidad=1.6e6, puntos=6, semilla=21, largo=(0.010, 0.0
             d = Vector(np.array(p) - coronilla); d = d - nor * d.dot(nor)
             if d.length < 1e-6: d = Vector((0, 0, -1))
             d.normalize(); d = (d + Vector((0, 0, -0.35))).normalized()
-        d = (d + Vector(rng.normal(0, 0.12, 3))).normalized()
+        d = (d + Vector(rng.normal(0, 0.05, 3))).normalized()
         paso = L[i] / (puntos - 1)
         for k in range(puntos):
             t = k / (puntos - 1)
@@ -91,6 +117,7 @@ def pelo_curvas(arm, me, densidad=1.6e6, puntos=6, semilla=21, largo=(0.010, 0.0
     au = c.attributes.get("surface_uv_coordinate") or c.attributes.new("surface_uv_coordinate", 'FLOAT2', 'CURVE')
     au.data.foreach_set('vector', uv.reshape(-1).astype(np.float32))
     c.surface = me; c.surface_uv_map = uv_nombre
+    me.add_rest_position_attribute = True            # el nodo de pegar necesita "rest_position" en la superficie
     ob = bpy.data.objects.get("MAITE_pelo_hebras")
     if ob: bpy.data.objects.remove(ob)
     ob = bpy.data.objects.new("MAITE_pelo_hebras", c)
@@ -111,7 +138,7 @@ def pelo_curvas(arm, me, densidad=1.6e6, puntos=6, semilla=21, largo=(0.010, 0.0
     N = mt.node_tree.nodes; Lk = mt.node_tree.links; N.clear()
     out = N.new("ShaderNodeOutputMaterial"); hb = N.new("ShaderNodeBsdfHairPrincipled")
     hb.parametrization = 'MELANIN'
-    hb.inputs["Melanin"].default_value = 0.62; hb.inputs["Melanin Redness"].default_value = 0.62
+    hb.inputs["Melanin"].default_value = 0.80; hb.inputs["Melanin Redness"].default_value = 0.50
     hb.inputs["Roughness"].default_value = 0.32; hb.inputs["Radial Roughness"].default_value = 0.45
     hb.inputs["Random Color"].default_value = 0.12; hb.inputs["Random Roughness"].default_value = 0.15
     Lk.new(hb.outputs[0], out.inputs["Surface"])
