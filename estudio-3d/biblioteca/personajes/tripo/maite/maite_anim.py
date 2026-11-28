@@ -292,8 +292,9 @@ class MaiteAnim:
         cabeza (arriba) con la del pecho (abajo). Encima, un muelle amortiguado con algo de gravedad; unas esferas
         en el pecho y el hombro izquierdo impiden que se meta en el cuerpo."""
         arm = self.arm; sc = self.sc; PB = self.pb
-        r_ = 24.0 / max(1, sc.render.fps)                  # muelle ajustado a 24 fps: a otros fps, mismo movimiento por segundo
-        rigidez *= r_ * r_; gravedad *= r_ * r_; amort = amort ** r_; previo = int(previo / r_)
+        # el muelle está ajustado a pasos de 1/24 s: a otros fps se simula igual a 24 pasos por segundo y las claves van
+        # en fotogramas fraccionarios (a 60 fps, cada 2,5); escalar rigidez y amortiguación por fps hacía saltar la punta
+        paso_f = max(1, sc.render.fps) / 24.0
         pbs = [PB[n] for n in self.trenza]
         g = arm.matrix_world.inverted().to_3x3() @ Vector((0, 0, -gravedad))
         for b in pbs: b.rotation_quaternion = Quaternion()
@@ -314,7 +315,7 @@ class MaiteAnim:
         pos = [x.copy() for x in J]; ant = [x.copy() for x in J]
 
         def paso(f, guardar):
-            sc.frame_set(f)
+            fi = int(math.floor(f)); sc.frame_set(fi, subframe=f - fi)
             for b in pbs: b.rotation_quaternion = Quaternion()
             bpy.context.view_layer.update()
             Hm = PB["mixamorig:Head"].matrix; Sm = PB["mixamorig:Spine2"].matrix
@@ -340,7 +341,8 @@ class MaiteAnim:
                 bpy.context.view_layer.update(); b.keyframe_insert("rotation_quaternion", frame=f)
 
         for _ in range(previo): paso(f0, False)
-        for f in range(f0, f1 + 1): paso(f, True)
+        n_p = int(math.ceil((f1 - f0) / paso_f))
+        for i in range(n_p + 1): paso(f0 + i * paso_f, True)
         print("TRENZA_HORNEADA", f0, f1, "esferas", [(e[0], round(e[2], 3)) for e in esf], flush=True)
 
 
