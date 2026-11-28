@@ -74,6 +74,7 @@ def ciclorama():
     suelo.hide_render = True
 
 def hornear_y_video(f0, f1, nombre):
+    if os.environ.get("MAITE_MAX_CUADROS"): f1 = min(f1, f0 + int(os.environ["MAITE_MAX_CUADROS"]) - 1)   # pruebas cortas
     sc.frame_start, sc.frame_end = f0, f1
     A.finalizar(f0, f1)
     for ob in bpy.data.objects:
