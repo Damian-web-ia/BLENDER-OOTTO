@@ -295,6 +295,7 @@ LAT = (OJOS_DATOS["L"]["C"] - OJOS_DATOS["R"]["C"]); LAT.z = 0; LAT.normalize()
 BOCA_INFO = CM["construir_boca"](ARM, ME, ADELANTE, LAT, OJOS_DATOS)
 CM["alisar_parpados"](ME, OJOS_DATOS, ADELANTE)
 PARPADOS = CM["preparar_parpados"](ARM, ME, OJOS_DATOS, ADELANTE)
+CM["_desplegar_piel"](ME, OJOS_DATOS, None, ADELANTE, cerca_globo=0.0016)      # otra pasada: pliegues que deja preparar_parpados
 ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE)
 CM["ajustar_globos"](ME, OJOS_DATOS)
 CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO)

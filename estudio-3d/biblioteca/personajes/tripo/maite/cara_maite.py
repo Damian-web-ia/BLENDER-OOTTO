@@ -721,10 +721,12 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     sel = [i for i, c in enumerate(cen) if x0 + 0.0008 < c[0] < x1 - 0.0008 and inf(c[0]) < c[2] < sup(c[0]) and c[1] < -0.04]
     bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table()
     mats = {}
-    for nombre, col, rug, sss, coat in (("MAITE_labio_int", (0.62, 0.24, 0.24), 0.3, 0.3, 0.5), ("MAITE_boca_int", (0.075, 0.016, 0.018), 0.6, 0.0, 0.0),
+    for nombre, col, rug, sss, coat in (("MAITE_labio_int", (0.56, 0.22, 0.22), 0.38, 0.0, 0.0), ("MAITE_boca_int", (0.075, 0.016, 0.018), 0.6, 0.0, 0.0),
                                          ("MAITE_dientes", (0.86, 0.84, 0.78), 0.28, 0.15, 0.35), ("MAITE_encias", (0.70, 0.27, 0.29), 0.35, 0.3, 0.4),
                                          ("MAITE_lengua", (0.66, 0.26, 0.27), 0.45, 0.35, 0.25)):
         mt_ = material_simple(nombre, col, rug=rug, sss=sss, coat=coat)
+        if nombre == "MAITE_labio_int":       # se ve de canto: con barniz/subsurface salía una franja blanca en el labio
+            mt_.node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.25
         if nombre in ("MAITE_boca_int", "MAITE_lengua", "MAITE_encias"): _oscurecer_por_oclusion(mt_, 0.010, 2.5 if nombre == "MAITE_boca_int" else 1.4)
         m.materials.append(mt_); mats[nombre] = len(m.materials) - 1
     fc = _color_caras(me)
@@ -937,7 +939,7 @@ def alisar_parpados(me, datos, adelante, iteraciones=160, grosor=0.0014):
     return total
 
 
-def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, anillos=3):
+def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, anillos=3, cerca_globo=0.0025):
     """Quita los pliegues que quedan alrededor del ojo. Tras relajar el párpado quedaban tiras de caras dadas la
     vuelta y aplastadas (área casi cero): en 4K se ven como rayitas o 'pelos' sueltos en el párpado.
     Para cada zona mala se coge un parche (las caras malas y unos anillos alrededor, con su borde fijo), se coloca
@@ -948,8 +950,15 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
     F = np.array(adelante if adelante is not None else (0.203, -0.979, 0.0), np.float64); F /= np.linalg.norm(F)
     Xd = np.cross(F, [0, 0, 1.0]); Xd /= np.linalg.norm(Xd); U = np.cross(Xd, F)
     centros = [(np.array(d["C"], np.float64), float(d["R"])) for d in datos.values()]
-    total = 0
-    for intento in range(intentos):
+    if fijos is None:                       # llamada suelta: fijos = bordes del ojo y vértices que tocan otras piezas
+        mi = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('material_index', mi)
+        lt = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('loop_total', lt)
+        lv = np.empty(len(m.loops), np.int64); m.loops.foreach_get('vertex_index', lv)
+        lf = np.repeat(np.arange(len(m.polygons)), lt)
+        fijos = set(np.unique(lv[~np.isin(mi, list(fam))[lf]]).tolist())
+        for d in datos.values(): fijos |= set(int(i) for i in d["bucle"]) | set(int(i) for i in d["borde_int"])
+    total = 0; n_malas = 0
+    for intento in range(intentos + 1):
         bm = bmesh.new(); bm.from_mesh(m); bm.normal_update(); bm.verts.ensure_lookup_table(); bm.faces.ensure_lookup_table()
         co = np.array([v.co[:] for v in bm.verts], np.float64)
         malas = {k: [] for k in range(len(centros))}
@@ -957,11 +966,16 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
             if f.material_index not in fam: continue
             c = np.array(f.calc_center_median()[:])
             dc = [np.linalg.norm(c - C) for C, _ in centros]; k = int(np.argmin(dc))
-            if dc[k] > radio or dc[k] < centros[k][1] + 0.0025: continue
+            if dc[k] > radio or dc[k] < centros[k][1] + cerca_globo: continue
             if f.normal.dot(Vector(tuple(F))) < -0.2 or f.calc_area() < 2e-8: malas[k].append(f)
         n_malas = sum(len(v) for v in malas.values())
         if intento == 0: print("PIEL_PLIEGUES caras malas alrededor de los ojos:", n_malas, flush=True)
-        if not n_malas: bm.free(); break
+        if not n_malas or intento == intentos:
+            for k, fs in malas.items():
+                for f in fs[:4]:
+                    print("PIEL_PLIEGUES queda cara", f.index, "respecto al ojo", [round(x, 4) for x in (np.array(f.calc_center_median()[:]) - centros[k][0])],
+                          "normal·F", round(f.normal.dot(Vector(tuple(F))), 2), "área mm²", round(f.calc_area() * 1e6, 3), flush=True)
+            bm.free(); break
         parches = []
         for k, fs in malas.items():
             if not fs: continue
@@ -970,7 +984,7 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
                 sel |= {e.other_vert(bm.verts[vi]).index for vi in list(sel) for e in bm.verts[vi].link_edges}
             Ck, Rk = centros[k]
             movibles = [vi for vi in sel if vi not in fijos and all(f.material_index in fam for f in bm.verts[vi].link_faces)
-                        and np.linalg.norm(co[vi] - Ck) > Rk + 0.0025]
+                        and np.linalg.norm(co[vi] - Ck) > Rk + cerca_globo]
             vec = [[e.other_vert(bm.verts[vi]).index for e in bm.verts[vi].link_edges] for vi in movibles]
             parches.append((k, np.array(movibles, np.int64), vec))
         bm.free()
@@ -990,7 +1004,7 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
             for j, vi in enumerate(idx): m.vertices[int(vi)].co = nuevo[j]
             total += len(idx)
         m.update()
-    print("PIEL_PLIEGUES parche de", total, "vértices; quedan", {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}, flush=True)
+    print("PIEL_PLIEGUES parche de", total, "vértices; caras malas que quedan:", n_malas, flush=True)
 
 
 def _dist_a(P, Q):
@@ -1313,6 +1327,20 @@ def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010,
     if blancas.any():
         mask = np.maximum(mask, 1 - _ss(0.0012, 0.0032, _dist_a(co, co[blancas])))
     print("PIEL_LISA manchas blancas junto a la boca:", int(blancas.sum()), flush=True)
+    # motas claras sueltas en el resto de la cara (en 4K se ven como granos blancos): más blancas que la piel de alrededor
+    from mathutils.kdtree import KDTree
+    centro = (sum(np.array(d["C"]) for d in datos_ojos.values()) / len(datos_ojos) + np.array(info_boca["O"])) / 2
+    zona_c = es_piel_v & (np.linalg.norm(co - centro, axis=1) < 0.065) & ~cejas
+    ip_ = np.where(es_piel_v)[0]; kd = KDTree(len(ip_))
+    for k_, vi in enumerate(ip_): kd.insert(co[vi], int(vi))
+    kd.balance()
+    motas = np.zeros(N, bool)
+    for vi in np.where(zona_c & (blanco_v > 0.50))[0]:
+        vec_ = [j for _, j, _ in kd.find_range(co[vi], 0.006)]
+        if len(vec_) > 6 and blanco_v[vi] - np.median(blanco_v[vec_]) > 0.08: motas[vi] = True
+    if motas.any():
+        mask = np.maximum(mask, 1 - _ss(0.0012, 0.0032, _dist_a(co, co[motas])))
+    print("PIEL_LISA motas claras en la cara:", int(motas.sum()), flush=True)
     mask = np.where(es_piel_v, mask, 0.0)
     # relleno armónico: incógnitas = mask > 0.02; fijos = vecinos sanos (piel clara, no ceja)
     U = mask > 0.02

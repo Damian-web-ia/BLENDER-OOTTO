@@ -152,7 +152,7 @@ def pelo_aaa(me, fuerza_pintura=0.30, vetas=170.0, ojos=()):
           "coronilla", np.round(cabeza, 3).tolist(), flush=True)
 
 
-def piel_aaa(me, poro=0.00055, fuerza_poro=0.16, rug_labios=0.30):
+def piel_aaa(me, poro=0.00055, fuerza_poro=0.16, rug_labios=0.36):
     """Piel para primer plano (va después del maquillaje). Sin esto, en 4K la cara parece de cera:
     - poro fino pegado a la piel (coordenadas de reposo: no 'nada' cuando se mueve), menos en los labios;
     - rugosidad con variación suave y labios algo más brillantes;
