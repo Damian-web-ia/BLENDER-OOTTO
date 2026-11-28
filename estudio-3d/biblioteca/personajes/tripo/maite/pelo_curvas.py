@@ -216,7 +216,7 @@ def _caras_cejas(me, ojos):
     return es
 
 
-def _cejas_curvas(me, cejas, ojos, luv, uv_nombre, densidad=1.4e7, puntos=4, semilla=5):
+def _cejas_curvas(me, cejas, ojos, luv, uv_nombre, densidad=0.75e7, puntos=4, semilla=5):
     """Pelos de las cejas: cortos, tumbados, del lado de la nariz hacia fuera; los del principio, de pie."""
     m = me.data; rng = np.random.default_rng(semilla)
     co = np.empty(len(m.vertices) * 3); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
@@ -255,7 +255,7 @@ def _cejas_curvas(me, cejas, ojos, luv, uv_nombre, densidad=1.4e7, puntos=4, sem
         if (a @ (cq - cara_x)) < 0: a = -a                     # hacia fuera (la sien)
         tq = (Q - cq) @ a
         ejes[k] = (Cj, cq, a, tq.min(), tq.max())
-    L = rng.uniform(0.0030, 0.0058, n)
+    L = rng.uniform(0.0025, 0.0046, n)
     for i in range(n):
         p0 = raiz[i]; kk = min(ejes, key=lambda k_: np.linalg.norm(p0 - ejes[k_][0]))
         Cj, cq, a, t0, t1 = ejes[kk]
@@ -268,9 +268,9 @@ def _cejas_curvas(me, cejas, ojos, luv, uv_nombre, densidad=1.4e7, puntos=4, sem
             if loc is None: loc, nor = p, Vector((0, -1, 0))
             nor = Vector(nor)
             q = Vector(loc) + nor * (0.00012 + 0.00035 * tt)
-            pos[i, k] = q; rad[i, k] = 0.000055 * (1 - 0.7 * tt)
+            pos[i, k] = q; rad[i, k] = 0.000045 * (1 - 0.7 * tt)
             d = d - nor * d.dot(nor)
             if d.length < 1e-6: d = Vector((0, 0, 1))
             d.normalize(); p = q + d * paso
-    _objeto_hebras("MAITE_cejas_hebras", "MAITE_cejas", me, pos, rad, uv, uv_nombre, 0.88, 0.35, 0.38)
+    _objeto_hebras("MAITE_cejas_hebras", "MAITE_cejas", me, pos, rad, uv, uv_nombre, 0.74, 0.50, 0.36)
     print("CEJAS", n, "pelos", flush=True)
