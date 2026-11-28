@@ -271,9 +271,20 @@ class MaiteAnim:
             fc.update()
 
     def finalizar(self, f0, f1, trenza=True, **kw):
+        import time
+        t0 = time.time()
         self.suavizar()
-        self._capas()
-        if trenza and self.trenza: self.hornear_trenza(f0, f1, **kw)
+        # las capas y la trenza sólo leen el esqueleto: mientras tanto el resto de objetos no se evalúa
+        # (con el pelo y la malla, cada cambio de fotograma tardaba ~1 s; así, centésimas)
+        ocultos = [ob for ob in self.sc.objects if ob != self.arm and not ob.hide_viewport]
+        for ob in ocultos: ob.hide_viewport = True
+        try:
+            self._capas()
+            if trenza and self.trenza: self.hornear_trenza(f0, f1, **kw)
+        finally:
+            for ob in ocultos: ob.hide_viewport = False
+            bpy.context.view_layer.update()
+        print("FINALIZAR %d fotogramas en %.0f s" % (f1 - f0 + 1, time.time() - t0), flush=True)
 
     # -------------------------------------------------------------- trenza (muelle con choques)
     def hornear_trenza(self, f0, f1, rigidez=0.10, amort=0.88, gravedad=0.0006, previo=30, choques=True):
