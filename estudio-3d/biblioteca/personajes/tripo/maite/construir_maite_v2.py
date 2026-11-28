@@ -309,6 +309,10 @@ ARM["trenza"] = ",".join(trenza)
 RIG = {}
 exec(compile(open(os.path.join(PM, "rig_maite.py"), encoding="utf-8").read(), "rig_maite", "exec"), RIG)
 RIG["montar_rig"](ARM, ME)
+# ---- fase 5: mangas de la camiseta con simulación de tela
+ROPA = {}
+exec(compile(open(os.path.join(PM, "ropa_maite.py"), encoding="utf-8").read(), "ropa_maite", "exec"), ROPA)
+ROPA["mangas_tela"](ARM, ME)
 # ---- fase 4: hebras de pelo sobre la masa de pelo
 PCV = {}
 exec(compile(open(os.path.join(PM, "pelo_curvas.py"), encoding="utf-8").read(), "pelo_curvas", "exec"), PCV)
