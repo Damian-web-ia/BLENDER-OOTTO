@@ -302,7 +302,7 @@ CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO)
 # ---- fase 6: materiales AAA (pelo)
 MA = {}
 exec(compile(open(os.path.join(PM, "materiales_aaa.py"), encoding="utf-8").read(), "materiales_aaa", "exec"), MA)
-MA["pelo_aaa"](ME)
+MA["pelo_aaa"](ME, ojos=[tuple(d["C"]) for d in OJOS_DATOS.values()])
 trenza = preparar_trenza(ARM, ME)
 ARM["trenza"] = ",".join(trenza)
 ARM["maite_version"] = "v2-fase1"

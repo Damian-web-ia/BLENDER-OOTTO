@@ -30,9 +30,44 @@ def _color_medio(me, mat_index, img):
     return np.median(c, axis=0), np.percentile(c @ np.array([0.3, 0.55, 0.15]), [10, 50, 90])
 
 
-def pelo_aaa(me, fuerza_pintura=0.45, vetas=170.0):
+def _caras_pelo_en_piel(me, ip_pelo, ojos):
+    """Caras con material de piel pero pintadas de pelo (nacimiento del pelo, patillas): pasan a pelo.
+    Las cejas no (están junto a los ojos)."""
+    m = me.data
+    ip_piel = next(i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_piel")
+    tex = next(n for n in m.materials[ip_piel].node_tree.nodes if n.type == 'TEX_IMAGE' and n.image and n.image.colorspace_settings.name == 'sRGB').image
+    w, h = tex.size; px = np.empty(w * h * 4, np.float32); tex.pixels.foreach_get(px); px = px.reshape(h, w, 4)
+    uvl = m.uv_layers.active.data
+    luv = np.empty(len(uvl) * 2, np.float32); uvl.foreach_get('uv', luv); luv = luv.reshape(-1, 2)
+    nf = len(m.polygons); lt = np.empty(nf, np.int32); m.polygons.foreach_get('loop_total', lt)
+    lf = np.repeat(np.arange(nf), lt)
+    fuv = np.zeros((nf, 2)); np.add.at(fuv, lf, luv); fuv /= lt[:, None]
+    c = px[np.clip((fuv[:, 1] * h).astype(int), 0, h - 1), np.clip((fuv[:, 0] * w).astype(int), 0, w - 1), :3]
+    lum = c @ np.array([0.3, 0.55, 0.15]); rojo = c[:, 0] - c[:, 2]
+    mi = np.empty(nf, np.int32); m.polygons.foreach_get('material_index', mi)
+    cen = np.empty(nf * 3, np.float64); m.polygons.foreach_get('center', cen); cen = cen.reshape(-1, 3)
+    cerca_ojo = np.zeros(nf, bool)
+    for C in ojos:
+        d = cen - np.array(C); cerca_ojo |= (np.abs(d[:, 0]) < 0.034) & (d[:, 2] > -0.02) & (d[:, 2] < 0.040) & (np.linalg.norm(d, axis=1) < 0.05)
+    cand = (mi == ip_piel) & (lum < 0.40) & (rojo < 0.22) & ~cerca_ojo & (cen[:, 2] > 0.80)
+    # sólo las que tocan pelo (o tocan otras candidatas que tocan pelo): crecer desde el pelo
+    vpelo = np.zeros(len(m.vertices), bool)
+    lv = np.empty(len(m.loops), np.int64); m.loops.foreach_get('vertex_index', lv)
+    vpelo[lv[mi[lf] == ip_pelo]] = True
+    cambia = np.zeros(nf, bool)
+    for _ in range(6):
+        toca = np.zeros(nf, bool); np.logical_or.at(toca, lf, vpelo[lv])
+        nuevas = cand & toca & ~cambia
+        if not nuevas.any(): break
+        cambia |= nuevas; vpelo[lv[cambia[lf]]] = True
+    mi[cambia] = ip_pelo; m.polygons.foreach_set('material_index', mi); m.update()
+    print("PELO_AAA caras de piel pintadas de pelo -> pelo:", int(cambia.sum()), flush=True)
+
+
+def pelo_aaa(me, fuerza_pintura=0.45, vetas=170.0, ojos=()):
     m = me.data
     ip = next(i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_pelo")
+    if ojos: _caras_pelo_en_piel(me, ip, ojos)
     mt = m.materials[ip]; T = mt.node_tree; N = T.nodes; L = T.links
     for n in [n for n in N if n.name.startswith("PELO_")]: N.remove(n)
     bs = next(n for n in N if n.type == 'BSDF_PRINCIPLED')

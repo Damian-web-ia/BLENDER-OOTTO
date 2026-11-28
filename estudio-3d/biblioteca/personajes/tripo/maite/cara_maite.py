@@ -295,7 +295,7 @@ def construir_ojos(arm, me, col_ojo=None):
     cen = np.empty(len(m.polygons) * 3, np.float32); m.polygons.foreach_get('center', cen); cen = cen.reshape(-1, 3)
     datos = {}
     bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table(); bm.verts.ensure_lookup_table()
-    mat_borde = material_simple("MAITE_parpado_borde", (0.70, 0.36, 0.30), rug=0.5, sss=0.25, coat=0.05)
+    mat_borde = material_simple("MAITE_parpado_borde", (0.60, 0.38, 0.34), rug=0.45, sss=0.25, coat=0.05)
     m.materials.append(mat_borde); i_borde = len(m.materials) - 1
     mat_cuenca = material_cuenca()
     m.materials.append(mat_cuenca); i_cuenca = len(m.materials) - 1
