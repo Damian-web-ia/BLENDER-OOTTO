@@ -59,6 +59,7 @@ with bpy.context.temp_override(scene=sc):
     bpy.ops.ptcache.bake_all(bake=True)
 print("TELA_HORNEADA", flush=True)
 if VIDEO:
+    if hasattr(sc.render.image_settings, 'media_type'): sc.render.image_settings.media_type = 'VIDEO'
     sc.render.image_settings.file_format = 'FFMPEG'; sc.render.ffmpeg.format = 'MPEG4'; sc.render.ffmpeg.codec = 'H264'
     sc.render.ffmpeg.constant_rate_factor = 'HIGH'; sc.render.ffmpeg.ffmpeg_preset = 'REALTIME'
     sc.render.resolution_x, sc.render.resolution_y = 720, 900

@@ -52,7 +52,9 @@ def hornear_y_video(f0, f1, nombre):
             if md.type == 'CLOTH': md.point_cache.frame_start = f0; md.point_cache.frame_end = f1
     sc.frame_set(f0)
     with bpy.context.temp_override(scene=sc): bpy.ops.ptcache.bake_all(bake=True)
-    sc.render.image_settings.file_format = 'FFMPEG'; sc.render.ffmpeg.format = 'MPEG4'; sc.render.ffmpeg.codec = 'H264'
+    ims = sc.render.image_settings
+    if hasattr(ims, "media_type"): ims.media_type = 'VIDEO'          # Blender 5: el vídeo es un "tipo de medio" aparte
+    ims.file_format = 'FFMPEG'; sc.render.ffmpeg.format = 'MPEG4'; sc.render.ffmpeg.codec = 'H264'
     sc.render.ffmpeg.constant_rate_factor = 'HIGH'; sc.render.ffmpeg.ffmpeg_preset = 'REALTIME'
     sc.render.filepath = os.path.join(OUT, nombre + ".mp4")
     bpy.ops.render.render(animation=True)
