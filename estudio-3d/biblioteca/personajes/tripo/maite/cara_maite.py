@@ -1612,7 +1612,7 @@ def maquillaje(me, datos_ojos, info_boca, tam=2048):
           "nariz", int((nariz > 0.5).sum()), flush=True)
 
 
-def _material_maquillaje(mt, img, tinte_labios=(0.82, 0.44, 0.47), tinte_rubor=(0.98, 0.74, 0.72), k_labios=0.90, k_rubor=0.30):
+def _material_maquillaje(mt, img, tinte_labios=(0.80, 0.40, 0.45), tinte_rubor=(0.98, 0.74, 0.72), k_labios=1.0, k_rubor=0.42):
     T = mt.node_tree; Nn = T.nodes; Lk = T.links
     for n in [n for n in Nn if n.name.startswith("MAQ_")]: Nn.remove(n)
     uvn = next(n for n in Nn if n.type == 'UVMAP')
@@ -1743,7 +1743,7 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
     print("BORDES_OJOS borde_sup:", int((sup > 0.5).sum()), "vértices arriba", flush=True)
 
 
-def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, estrechar=0.15, r_plano=0.018, r_fin=0.040, agrandar=0.0):
+def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, estrechar=0.15, r_plano=0.018, r_fin=0.040, agrandar=0.0, mandibula=0.0):
     """Proporciones de una cara guapa (Damián, 28-11: "los ojos dan miedo, están muy separados, y la boca igual").
     El modelo de Tripo tiene los ojos a 58 mm (escala del modelo) y una boca de 47 mm: se acercan los ojos hacia el
     centro y se estrecha la boca, con un campo de desplazamiento suave:
@@ -1771,6 +1771,12 @@ def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, es
     e = np.sqrt((dx / 0.027) ** 2 + (dz / 0.015) ** 2 + (dy / 0.032) ** 2)
     wm = 1 - _ss(0.75, 1.5, e)
     D += np.outer(-dx * estrechar * wm, X)
+    # mandíbula y mejillas bajas algo más finas (cara en V suave): se estrecha hacia la línea media por debajo de la boca
+    if mandibula:
+        xm = (medio - O) @ X                                      # línea media de la cara (en el eje lateral de la boca)
+        dxm = dx - xm
+        wj = _ss(0.012, -0.020, dz) * (1 - _ss(-0.050, -0.075, dz)) * (1 - _ss(-0.045, -0.070, dy)) * (1 - _ss(0.07, 0.09, np.abs(dxm)))
+        D += np.outer(-dxm * mandibula * wj, X)
     # malla y shape keys
     m.vertices.foreach_set('co', (co + D).ravel())
     if m.shape_keys:

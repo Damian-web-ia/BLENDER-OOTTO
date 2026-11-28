@@ -299,10 +299,10 @@ CM["_desplegar_piel"](ME, OJOS_DATOS, None, ADELANTE, cerca_globo=0.0016)      #
 ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE, cerrar_reposo=0.92, labios_volumen=0.0006,
                          reposo={"eyeWideLeft": 0.55, "eyeWideRight": 0.55, "browOuterUpLeft": 0.25, "browOuterUpRight": 0.25, "browInnerUp": 0.15})
 CM["ajustar_globos"](ME, OJOS_DATOS)
-CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO, afinar_cejas=0.0014)
+CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO, afinar_cejas=0.0026)
 CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO)
 CM["bordes_ojos"](ME, OJOS_DATOS)
-OJOS_DATOS = CM["retoque_belleza"](ARM, ME, OJOS_DATOS, BOCA_INFO, ADELANTE, agrandar=0.07)   # ojos más juntos y boca más estrecha (28-11)
+OJOS_DATOS = CM["retoque_belleza"](ARM, ME, OJOS_DATOS, BOCA_INFO, ADELANTE, agrandar=0.07, mandibula=0.07)   # ojos más juntos y boca más estrecha (28-11)
 # ---- fase 6: materiales AAA (pelo)
 MA = {}
 exec(compile(open(os.path.join(PM, "materiales_aaa.py"), encoding="utf-8").read(), "materiales_aaa", "exec"), MA)
