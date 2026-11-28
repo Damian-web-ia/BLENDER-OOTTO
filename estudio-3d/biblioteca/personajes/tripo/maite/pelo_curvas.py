@@ -22,28 +22,34 @@ def _triangulos(me, mat_index):
 
 
 def _uv_pelo(me, ip):
-    """UV propio para pegar las hebras: el atlas de Tripo se solapa (40 % de hebras sin sitio). Proyección inteligente
-    sólo del pelo; el resto de caras se manda fuera (5, 5) para que no haya ambigüedad. El render sigue usando el de Tripo."""
+    """UV propio para pegar las hebras (el atlas de Tripo se solapa: el 40 % de las hebras no encontraba su sitio).
+    Cada cara de pelo recibe su propia casilla en una rejilla (sin operadores, sin solapes); el resto de caras va a
+    (5, 5). El nodo sólo necesita que cada punto UV caiga en una única cara. El render sigue con el UV de Tripo."""
     m = me.data
     render = next(l for l in m.uv_layers if l.active_render)
     uvp = m.uv_layers.get("uv_pelo") or m.uv_layers.new(name="uv_pelo")
     for l in m.uv_layers: l.active_render = (l.name == render.name)
-    m.uv_layers.active = uvp
-    for p in m.polygons: p.select = (p.material_index == ip)
-    bpy.context.view_layer.objects.active = me
-    for o in bpy.context.view_layer.objects: o.select_set(False)
-    me.select_set(True)
-    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_mode(type='FACE')
-    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.002, scale_to_bounds=False)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    mi = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('material_index', mi)
-    lt = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('loop_total', lt)
-    lf = np.repeat(np.arange(len(m.polygons)), lt)
-    uv = np.empty(len(m.loops) * 2, np.float32); uvp.data.foreach_get('uv', uv); uv = uv.reshape(-1, 2)
-    uv[mi[lf] != ip] = (5.0, 5.0)
+    nf = len(m.polygons)
+    mi = np.empty(nf, np.int32); m.polygons.foreach_get('material_index', mi)
+    lt = np.empty(nf, np.int32); m.polygons.foreach_get('loop_total', lt)
+    ls = np.empty(nf, np.int32); m.polygons.foreach_get('loop_start', ls)
+    uv = np.full((len(m.loops), 2), 5.0, np.float32)
+    caras = np.where(mi == ip)[0]
+    G = int(math.ceil(math.sqrt(len(caras)))); celda = 1.0 / G; mg = celda * 0.12
+    for k, f in enumerate(caras):
+        cx, cy = (k % G) * celda, (k // G) * celda
+        n = lt[f]
+        if n == 4:
+            esq = [(0, 0), (1, 0), (1, 1), (0, 1)]
+        elif n == 3:
+            esq = [(0, 0), (1, 0), (0.5, 1)]
+        else:
+            esq = [(0.5 + 0.5 * math.cos(2 * math.pi * q / n), 0.5 + 0.5 * math.sin(2 * math.pi * q / n)) for q in range(n)]
+        for q, (a, b) in enumerate(esq):
+            uv[ls[f] + q] = (cx + mg + a * (celda - 2 * mg), cy + mg + b * (celda - 2 * mg))
     uvp.data.foreach_set('uv', uv.ravel())
     m.uv_layers.active = render
-    print("PELO_HEBRAS uv propio del pelo listo; render con", render.name, flush=True)
+    print("PELO_HEBRAS uv propio:", len(caras), "caras de pelo en una rejilla de", G, "x", G, flush=True)
     return uvp
 
 
