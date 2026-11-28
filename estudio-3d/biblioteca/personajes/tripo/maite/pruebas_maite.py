@@ -1,6 +1,6 @@
 # PRUEBAS OBLIGATORIAS DE MAITE (skill AAA, punto 19) · EKORUEDAS · 28-11-2026
 # Uso: blender -b --factory-startup --python pruebas_maite.py -- <carpeta_estudio> <carpeta_salida> <prueba> [muestras] [ancho]
-#   prueba: expresiones | dialogo <carpeta_voz> | pelo | ropa | objeto | giro | primer_plano
+#   prueba: expresiones | dialogo <carpeta_voz> | pelo | ropa | objeto | cine [carpeta_voz] | giro | primer_plano
 # Cada prueba anima con la biblioteca de Maite (maite_anim.py), hornea trenza y tela, y saca un MP4 (o una foto 4K).
 import bpy, os, sys, math, random
 from mathutils import Vector, Matrix, Quaternion
@@ -140,6 +140,66 @@ elif PRUEBA == "dialogo":
     if voz: sonido(voz, f_hab)
     camara((0.12, -0.80, 0.88), (0.02, 0.0, 0.80), 70)
     hornear_y_video(f0, f1, "prueba2_dialogo")
+elif PRUEBA == "cine":
+    # 7 — Secuencia cinematográfica vertical 9:16: llega andando con la llave de cruz, se para, sonríe a cámara, enseña
+    #     la llave, la mira, (habla si se da la carpeta de la voz) y guiña; cámara que la acompaña y se acerca, con
+    #     desenfoque de fondo enfocado a la cara. Estudio: ciclorama oscuro, clave cálida, contra fría (estética EKORUEDAS).
+    import json, glob
+    UT = {}; exec(compile(open(os.path.join(PM, "utileria_maite.py"), encoding="utf-8").read(), "utileria", "exec"), UT)
+    CARP = argv[5] if len(argv) > 5 else None
+    pal = json.load(open(os.path.join(CARP, "palabras.json"), encoding="utf-8")) if CARP else []
+    voz = (glob.glob(os.path.join(CARP, "voz.*")) or [None])[0] if CARP else None
+    sc.render.resolution_x = ANCHO; sc.render.resolution_y = int(ANCHO * 16 / 9)
+    # ciclorama (suelo que sube en curva hacia el fondo)
+    import bmesh
+    bm = bmesh.new(); R_, ancho_, n_ = 1.2, 6.0, 16
+    perfil = [(-4.0, 0.0), (1.0, 0.0)] + [(1.0 + R_ * math.sin(a), R_ - R_ * math.cos(a)) for a in [math.pi / 2 * (i + 1) / n_ for i in range(n_)]] + [(1.0 + R_, 4.0)]
+    filas = []
+    for x_ in (-ancho_ / 2, ancho_ / 2):
+        filas.append([bm.verts.new((x_, y_, z_)) for y_, z_ in perfil])
+    for i in range(len(perfil) - 1):
+        bm.faces.new((filas[0][i], filas[1][i], filas[1][i + 1], filas[0][i + 1]))
+    mc = bpy.data.meshes.new("Ciclorama"); bm.to_mesh(mc); bm.free()
+    for p_ in mc.polygons: p_.use_smooth = True
+    cic = bpy.data.objects.new("Ciclorama", mc); sc.collection.objects.link(cic); cic.location = (0, 0.6, 0)
+    mcm = bpy.data.materials.new("Ciclorama"); mcm.use_nodes = True
+    mcm.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.045, 0.05, 0.06, 1)
+    mcm.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.55; mc.materials.append(mcm)
+    suelo.hide_render = True
+    luz("Contra_fria", (-1.2, 1.6, 1.9), 420, 1.2, (0.62, 0.78, 1.0), mira=(0, 0, 0.8))
+    # la llave, en la mano derecha desde el principio
+    A.brazo(1, "R", "agarra"); A.mano(1, "R", "empuna"); sc.frame_set(1)
+    llave = UT["llave_cruz"](); UT["agarrar"](ARM, llave, "R")
+    f0 = 1
+    fw = A.caminar(1, pasos=5, zancada=0.27, frames_paso=14, inicio=(0.0, 1.08, 0.0), brazos=("L",))
+    for f in (1, fw): A.brazo(f, "R", "agarra"); A.mano(f, "R", "empuna")
+    A.expresion(1, "sonrisa_natural"); A.expresion(fw + 6, "alegria"); A.cabeza(fw + 6, arriba=2, ladeo=-3)
+    A.brazo(fw + 24, "R", "presenta"); A.mano(fw + 24, "R", "empuna", muneca=(0, 0, -10)); A.expresion(fw + 28, "entusiasmo")
+    A.brazo(fw + 56, "R", "agarra"); A.cabeza(fw + 56, arriba=-10, giro=-12); A.mirar(fw + 56, -0.05, -0.10)
+    A.expresion(fw + 56, "curiosidad"); A.mano(fw + 76, "R", "empuna", muneca=(0, 40, 0))
+    A.cabeza(fw + 96); A.mirar(fw + 96, 0, 0); A.mano(fw + 96, "R", "empuna")
+    f_hab = fw + 100
+    if pal:
+        dur = max(w["end"] for w in pal); A.expresion(f_hab - 4, "sonrisa_natural")
+        A.hablar(pal, f_inicio=f_hab)
+        for i, w in enumerate(pal):
+            if i % 5 == 0: A.cabeza(f_hab + int(w["start"] * 24), arriba=2 if i % 10 == 0 else -2, giro=3 if i % 10 == 0 else -3, ladeo=2)
+        f_fin = f_hab + int(dur * 24) + 6
+        if voz: sonido(voz, f_hab)
+    else:
+        A.expresion(f_hab, "sonrisa_natural"); f_fin = f_hab + 24
+    A.expresion(f_fin, "guino"); A.expresion(f_fin + 18, "sonrisa_natural"); f1 = f_fin + 36
+    A.parpadeos_auto(f0, f1, evitar=[(f_fin - 4, f_fin + 20)]); A.mirada_viva(fw, f1, amplitud=0.018)
+    # cámara: acompaña la llegada y se acerca; enfoque a la cara
+    foco = bpy.data.objects.new("Foco", None); sc.collection.objects.link(foco)
+    cl_ = foco.constraints.new('COPY_LOCATION'); cl_.target = ARM; cl_.subtarget = "mixamorig:Head"
+    cd.dof.use_dof = True; cd.dof.focus_object = foco; cd.dof.aperture_fstop = 2.8
+    for f, loc, mira, lente in ((1, (0.30, -2.9, 0.50), (0.0, 0.9, 0.55), 38), (fw - 10, (0.18, -2.05, 0.68), (0.0, 0.15, 0.62), 48),
+                               (fw + 40, (0.12, -1.55, 0.80), (0.0, 0.0, 0.72), 58), (f_hab, (0.08, -1.18, 0.86), (0.0, 0.0, 0.80), 66),
+                               (f1, (0.05, -1.02, 0.88), (0.0, 0.0, 0.83), 72)):
+        camara(loc, mira, lente, f)
+        cd.keyframe_insert("lens", frame=f)
+    hornear_y_video(f0, f1, "prueba7_cine")
 elif PRUEBA == "giro":
     # 8 — Turntable: la cámara da una vuelta completa alrededor de Maite en reposo (8 s)
     f0, f1 = 1, 192; base(f0, f1); A.expresion(1, "sonrisa_natural"); A.parpadeos_auto(f0, f1)

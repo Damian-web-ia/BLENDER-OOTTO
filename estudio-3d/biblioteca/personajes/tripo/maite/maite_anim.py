@@ -175,6 +175,7 @@ class MaiteAnim:
                     a = 0.0 if fin_ else 16.0 * (1 - 2 * t)
                     db, da = self.POSES_BRAZO["reposo"]
                     for lb, sg in ((l, 1.0), (o, -1.0)):
+                        if brazos is not True and lb[0] not in brazos: continue      # brazos=("L",): el otro lleva algo
                         self.brazo(f, lb, "reposo", d_brazo=self._gira_x(db, -a * sg), d_ante=self._gira_x(da, -a * sg * 1.4 - 8 * (a != 0)))
             b["roll"] = 0.0; b.keyframe_insert('["roll"]', frame=fk + T + 3)
             pos[l] = destino
