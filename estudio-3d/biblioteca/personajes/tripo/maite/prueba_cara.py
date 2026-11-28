@@ -18,6 +18,17 @@ if "arcilla" in DIAG:
     for i in range(len(ME.data.materials)):
         if ME.data.materials[i] and not any(k in ME.data.materials[i].name for k in ("pestan", "delineado", "dientes")):
             ME.data.materials[i] = gris
+if "colores" in DIAG:                                   # cada pieza de un color plano, para saber qué es cada cosa
+    COL = {"pestanas": (0, 1, 0), "delineado": (0, 0.3, 1), "parpado_borde": (1, 0, 0), "cuenca": (1, 1, 0), "pelo": (1, 0, 1),
+           "ojos_dientes": (0, 1, 1)}
+    for i in range(len(ME.data.materials)):
+        mt_ = ME.data.materials[i]
+        for k_, c_ in COL.items():
+            if mt_ and mt_.name == "MAITE_" + k_:
+                em = bpy.data.materials.new("DIAG_" + k_); em.use_nodes = True
+                bs_ = em.node_tree.nodes["Principled BSDF"]; bs_.inputs["Base Color"].default_value = (*c_, 1)
+                bs_.inputs["Emission Color"].default_value = (*c_, 1); bs_.inputs["Emission Strength"].default_value = 1.0
+                ME.data.materials[i] = em
 for o in bpy.data.objects:
     if ("sin_cornea" in DIAG and "cornea" in o.name.lower()) or ("sin_globo" in DIAG and "globo" in o.name.lower()):
         o.hide_render = True

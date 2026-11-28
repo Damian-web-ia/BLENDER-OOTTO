@@ -276,7 +276,7 @@ def material_cuenca():
     L.new(pw.outputs[0], _sk(mx.inputs, "Factor_Float"))
     _sk(mx.inputs, "A_Color").default_value = (0.08, 0.035, 0.035, 1); _sk(mx.inputs, "B_Color").default_value = (0.34, 0.24, 0.23, 1)
     L.new(_sk(mx.outputs, "Result_Color"), bs.inputs["Base Color"])
-    bs.inputs["Roughness"].default_value = 0.35; bs.inputs["Coat Weight"].default_value = 0.4; bs.inputs["Coat Roughness"].default_value = 0.08
+    bs.inputs["Roughness"].default_value = 0.5; bs.inputs["Specular IOR Level"].default_value = 0.25   # sin barniz: miraba a la luz y salía gris claro
     return mt
 
 
