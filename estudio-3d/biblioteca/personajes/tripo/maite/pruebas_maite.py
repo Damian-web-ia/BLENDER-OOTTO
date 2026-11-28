@@ -319,6 +319,15 @@ elif PRUEBA == "demo_cara":
     for i, w in enumerate(pal):
         f = F(T_HAB + w["start"])
         if i % 4 == 0: A.cabeza(f, arriba=2 if i % 8 == 0 else -1.5, giro=3 if i % 8 == 0 else -2.5, ladeo=1.5)
+    # la cara acompaña lo que dice (prompt de la cara, punto 8): cejas que suben en las palabras con intención
+    ENFASIS = {"hola": 0.45, "maitane": 0.30, "ekoruedas": 0.30, "desgaste": 0.40, "neumáticos": 0.30}
+    for w in pal:
+        k_ = ENFASIS.get("".join(c for c in w["text"].lower() if c.isalpha() or c in "áéíóú"))
+        if not k_: continue
+        for lado in ("Left", "Right"):
+            A._key(f"browOuterUp{lado}", F(T_HAB + w["start"] - 0.12), 0.20)
+            A._key(f"browOuterUp{lado}", F(T_HAB + (w["start"] + w["end"]) / 2), 0.20 + k_)
+            A._key(f"browOuterUp{lado}", F(T_HAB + w["end"] + 0.15), 0.20)
     if voz: sonido(voz, F(T_HAB))
     ex(T_HAB + DUR_HAB + 0.2, "sonrisa_espontanea", 0.8)
     # 10 — giros de cabeza: la trenza reacciona

@@ -783,10 +783,10 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     for v in bm.verts: v[capa] = 0
     for clave_, lista_ in (("bucle", idx_bucle), ("labio_int", idx_v1), ("boca_int", idx_v2)):
         for i_ in lista_: bm.verts[i_][capa] = PARTES[clave_]
-    anchos = [0.0050, 0.0042, 0.0038, 0.0034, 0.0031, 0.0030]       # incisivos más anchos (estilo de animación, 28-11)
-    altos_s = [0.0058, 0.0052, 0.0052, 0.0045, 0.0040, 0.0036]
+    anchos = [0.0050, 0.0042, 0.0038, 0.0034, 0.0031]       # incisivos anchos; 5 por lado: los de atrás asomaban por las comisuras en la o/u
+    altos_s = [0.0058, 0.0052, 0.0052, 0.0045, 0.0040]
     z_borde_sup = O.z - 0.0013                     # filo de los dientes de arriba (algo más bajo: se ven al sonreír y reír)
-    for fila, (r_arco, prof, esc, signo) in enumerate(((0.0205, 0.0026, 1.0, 1), (0.0184, 0.0040, 0.88, -1))):
+    for fila, (r_arco, prof, esc, signo) in enumerate(((0.0185, 0.0026, 1.0, 1), (0.0168, 0.0040, 0.88, -1))):   # arco más cerrado: los de atrás, hacia dentro
         s_acum = 0.0
         for k, (w_, h_) in enumerate(zip(anchos, altos_s)):
             w_ *= esc; h_ *= esc * (0.85 if signo < 0 else 1.0)
@@ -803,7 +803,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
                               c_, tang, nrm_, up, w_ * 0.56, 0.0012, h_ / 2, mats["MAITE_dientes"], segs=3, pot=7.0)   # se solapan: fila continua con surcos suaves, sin rayas negras
             s_acum += w_
     # encías: anillos aplastados que siguen el arco de los dientes
-    for signo, clave_, r_a, prof in ((1, "encia_sup", 0.0210, 0.0026), (-1, "encia_inf", 0.0189, 0.0040)):
+    for signo, clave_, r_a, prof in ((1, "encia_sup", 0.0190, 0.0026), (-1, "encia_inf", 0.0172, 0.0040)):   # siguen el arco de los dientes
         cprof = prof + r_a - 0.0006
         c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0016 if signo < 0 else 0))
         _elipsoide(bm, capa, PARTES[clave_], c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12)

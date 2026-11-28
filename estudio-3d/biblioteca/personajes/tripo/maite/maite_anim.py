@@ -408,11 +408,11 @@ EXPRESIONES = {
 
 # visemas del español (solo boca y mandíbula)
 VISEMAS = {
-    "a": {"jawOpen": 0.66, "mouthStretchLeft": 0.10, "mouthStretchRight": 0.10, "mouthUpperUpLeft": 0.30, "mouthUpperUpRight": 0.30, "mouthLowerDownLeft": 0.35, "mouthLowerDownRight": 0.35},
-    "e": {"jawOpen": 0.42, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15, "mouthUpperUpLeft": 0.25, "mouthUpperUpRight": 0.25, "mouthLowerDownLeft": 0.25, "mouthLowerDownRight": 0.25},
+    "a": {"jawOpen": 0.56, "mouthStretchLeft": 0.08, "mouthStretchRight": 0.08, "mouthUpperUpLeft": 0.15, "mouthUpperUpRight": 0.15, "mouthLowerDownLeft": 0.12, "mouthLowerDownRight": 0.12},
+    "e": {"jawOpen": 0.30, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15, "mouthUpperUpLeft": 0.15, "mouthUpperUpRight": 0.15, "mouthLowerDownLeft": 0.10, "mouthLowerDownRight": 0.10},
     "i": {"jawOpen": 0.20, "mouthStretchLeft": 0.50, "mouthStretchRight": 0.50, "mouthSmileLeft": 0.25, "mouthSmileRight": 0.25, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
-    "o": {"jawOpen": 0.48, "mouthFunnel": 0.90, "mouthPucker": 0.25, "mouthLowerDownLeft": 0.20, "mouthLowerDownRight": 0.20},
-    "u": {"jawOpen": 0.18, "mouthPucker": 0.95, "mouthFunnel": 0.30},
+    "o": {"jawOpen": 0.42, "mouthFunnel": 0.75, "mouthPucker": 0.12},
+    "u": {"jawOpen": 0.16, "mouthPucker": 0.85, "mouthFunnel": 0.20},
     "mbp": {"jawOpen": 0.0, "mouthClose": 0.95, "mouthPressLeft": 0.25, "mouthPressRight": 0.25, "mouthRollLower": 0.15},
     "fv": {"jawOpen": 0.08, "mouthRollLower": 0.6, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
     "dental": {"jawOpen": 0.18, "mouthStretchLeft": 0.15, "mouthStretchRight": 0.15},
