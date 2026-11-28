@@ -280,13 +280,28 @@ def ropa_aaa(me, ancho_borde=(0.42, 0.58), detalle=0.55):
         if pasadas:
             m.polygons.foreach_set('material_index', mi); m.update()
         print("ROPA_AAA caras de piel pintadas de camiseta -> camiseta:", pasadas, flush=True)
+    # tirantes: caras con la sombra del tirante pintada que la clasificación tomó por la funda de cuero (la funda va
+    # en la cadera): pasan al peto
+    ifun = next((i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_funda"), None)
+    imono = next((i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_mono"), None)
+    if ifun is not None and imono is not None:
+        cen_ = np.empty(nf * 3); m.polygons.foreach_get('center', cen_); cen_ = cen_.reshape(-1, 3)
+        alta = (mi == ifun) & (cen_[:, 2] > 0.62)
+        if alta.any():
+            mi[alta] = imono; m.polygons.foreach_set('material_index', mi); m.update()
+        print("ROPA_AAA caras de 'funda' en los tirantes -> peto:", int(alta.sum()), flush=True)
     en = np.isin(mi[lf], idx)
     vc = np.zeros((N, 3)); cnt = np.zeros(N)
     np.add.at(vc, lv[en], c[en]); np.add.at(cnt, lv[en], 1)
     tela = cnt > 0; vc[tela] /= cnt[tela][:, None]
     r, g, b = vc.T; lum = vc @ np.array([0.3, 0.55, 0.15])
     azul = np.clip((b - (r + g) / 2) / (lum + 0.05), 0, 3)
-    vaq = np.where(tela, (azul > 0.45).astype(float), 0.0)
+    vaq_tex = (azul > 0.45).astype(float)
+    # voto de las caras (la clasificación ya miró la vecindad): fracción de caras de peto alrededor de cada vértice
+    vm_ = np.zeros(N); vt_ = np.zeros(N)
+    np.add.at(vm_, lv[en], (mi[lf][en] == imono).astype(float) if imono is not None else 0.0); np.add.at(vt_, lv[en], 1.0)
+    vaq_car = np.where(vt_ > 0, vm_ / np.maximum(vt_, 1), 0.0)
+    vaq = np.where(tela, 0.5 * vaq_tex + 0.5 * vaq_car, 0.0)
     # vecinos por aristas, sólo dentro de la tela
     ev = np.empty(len(m.edges) * 2, np.int64); m.edges.foreach_get('vertices', ev); ev = ev.reshape(-1, 2)
     a = np.r_[ev[:, 0], ev[:, 1]]; bb = np.r_[ev[:, 1], ev[:, 0]]
