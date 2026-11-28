@@ -78,3 +78,11 @@ El vídeo de 30 h queda en espera hasta que Maite esté terminada.
   - Pupilas que se dilatan (propiedad `pupila` del esqueleto, `A.pupila(f, valor)`).
   - Biblioteca de expresiones ampliada a 47 (sonrisa profesional/espontánea, risa suave, carcajada, seguridad, determinación, orgullo, complicidad, sorpresa leve/intensa, impaciencia, decepción, desaprobación, sospecha, explicando, pensamiento profundo, una sola ceja…).
   - `hoja_cara.py`: hoja de referencia facial (vistas, primeros planos, expresiones, visemas). Copia de la cara de Tripo: `maite_v2_cara_tripo.blend`.
+- 28-11 08:50–09:50 · Hoja de referencia facial (`hoja_cara.py`) y lo que destapó:
+  - **Cabeza girada 12° y ladeada ~3°** (modelo de Tripo): por eso de frente "miraba de lado" y un ojo quedaba más alto. `MaiteAnim` la calibra al empezar con la línea de los ojos (`CABEZA_CALIBRADA giro -12.2 ladeo 2.4`) y la corrige en `cabeza()` y en `pose_reposo()`.
+  - **Rayitas oscuras en las comisuras** (sombra pintada de la boca abierta de Tripo): `piel_lisa` las detecta (más oscuras que la piel de alrededor, al lado de las comisuras) y las rellena (25 vértices).
+  - **Cejas** un 40 % más vivas (browDown 9,5 mm, browOuterUp 10,4, browInnerUp 11,5) con una caída más ancha para que la frente acompañe sin pliegues.
+  - **Dientes**: incisivos más anchos y altos, superelipse 5 (fila de dientes, no perlas), filo 0,6 mm más bajo; el labio de arriba sube (mouthUpperUp) en sonrisas, risas, entusiasmo y sorpresa.
+  - **Reposo más simpático**: cejas sin subir por dentro, arco algo más alto (browOuterUp 0,30) y sonrisa muy leve (mouthSmile 0,15).
+  - **Microexpresiones** (`A.microexpresiones`), visema `ch` para ch/ll, `CONTROLES_CARA_MAITANE.md` (documentación de los controles).
+  - **Demo facial** (`pruebas_maite.py … demo_cara`): ~43 s vertical con las 13 pruebas del prompt; parpadeo y trenza ya no dependen de los fps (para 60 fps).
