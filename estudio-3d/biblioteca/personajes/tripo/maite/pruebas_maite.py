@@ -88,7 +88,8 @@ def hornear_y_video(f0, f1, nombre):
             print("FOTO", nombre, t, flush=True)
         return
     sc.frame_set(f0)
-    with bpy.context.temp_override(scene=sc): bpy.ops.ptcache.bake_all(bake=True)
+    if any(md.type == 'CLOTH' and md.show_render for ob in bpy.data.objects for md in ob.modifiers):
+        with bpy.context.temp_override(scene=sc): bpy.ops.ptcache.bake_all(bake=True)
     ims = sc.render.image_settings
     if hasattr(ims, "media_type"): ims.media_type = 'VIDEO'          # Blender 5: el vídeo es un "tipo de medio" aparte
     ims.file_format = 'FFMPEG'; sc.render.ffmpeg.format = 'MPEG4'; sc.render.ffmpeg.codec = 'H264'
@@ -241,7 +242,7 @@ elif PRUEBA == "demo_cara":
     ciclorama(); luz("Contra_fria", (-1.2, 1.6, 1.9), 420, 1.2, (0.62, 0.78, 1.0), mira=(0, 0, 0.8))
     for ob in bpy.data.objects:                      # demo de la cara: los brazos casi no se mueven, sin tela
         for md in ob.modifiers:
-            if md.type == 'CLOTH': md.show_render = False
+            if md.type == 'CLOTH': md.show_render = False; md.show_viewport = False
     # medidas de la cabeza en reposo
     A.pose_reposo(1); sc.frame_set(1); bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get(); ev = ME.evaluated_get(dg); mev = ev.to_mesh()
