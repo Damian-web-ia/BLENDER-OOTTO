@@ -45,7 +45,12 @@ def mangas_tela(arm, me, separacion=0.0012, encoger=0.003):
         g = me.vertex_groups[P + lado + "Arm"]
         w = _pesos(me, g.index)
         wf = np.zeros(nf); np.add.at(wf, lf, w[lv]); wf /= lt
-        caras = np.where((mi == ic) & (wf > 0.40))[0]
+        caras = (mi == ic) & (wf > 0.40)
+        if "tela_vaquero" in m.attributes:                  # lo que es tirante (vaquero) no es manga: si no, la
+            tv = np.empty(N, np.float32); m.attributes["tela_vaquero"].data.foreach_get('value', tv)   # cáscara tapaba
+            vf = np.zeros(nf); np.add.at(vf, lf, tv[lv]); vf /= lt                                     # el tirante
+            caras &= vf < 0.5
+        caras = np.where(caras)[0]
         if not len(caras): continue
         vset = np.unique(np.concatenate([np.array(m.polygons[f].vertices) for f in caras]))
         # vértices del borde de costura: los que también tocan caras de camiseta que no son de la manga (hombro/axila)
