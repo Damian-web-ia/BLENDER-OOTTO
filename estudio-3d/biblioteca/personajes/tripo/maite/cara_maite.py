@@ -1199,7 +1199,7 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
             if ang_inf: Q = _rot_puntos(Q, C, lat, ang_inf * I["winf"])
             if giro: Q = _rot_puntos(Q, C, up, giro * np.maximum(I["wsup"], I["winf"]))
             Xn[idx] = Q; k_add(nombre, Xn)
-        kp(f"eyeBlink{sufijo}", 0.80 * th + 0.03, -0.20 * th - 0.01, 0)
+        kp(f"eyeBlink{sufijo}", 0.84 * th + 0.05, -0.22 * th - 0.02, 0)   # algo de solape: de 3/4 asomaba el globo por el lagrimal
         kp(f"eyeWide{sufijo}", -0.20 * th, 0.06 * th, 0)
         kp(f"eyeSquint{sufijo}", 0.12 * th, -0.38 * th, 0)
         kp(f"eyeLookUp{sufijo}", -0.16 * th, -0.07 * th, 0)
