@@ -49,7 +49,7 @@ def base(f0, f1):
 def sonido(ruta, f_inicio=1):
     """Pone el audio en la escena (sale dentro del MP4, en AAC)."""
     ed = sc.sequence_editor or sc.sequence_editor_create()
-    tiras = getattr(ed, "strips", None) or getattr(ed, "sequences")
+    tiras = ed.strips if hasattr(ed, "strips") else ed.sequences      # (una colección vacía es "falsa": no usar "or")
     tiras.new_sound("voz", ruta, 1, f_inicio)
     sc.render.ffmpeg.audio_codec = 'AAC'; sc.render.ffmpeg.audio_bitrate = 192; sc.render.ffmpeg.audio_channels = 'STEREO'
 
