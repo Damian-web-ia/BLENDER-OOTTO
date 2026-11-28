@@ -326,6 +326,7 @@ elif PRUEBA == "demo_cara":
     ex(T_VUELTA, "sonrisa_natural"); ex(T_FIN - 1.0, "guino"); ex(T_FIN - 0.4, "sonrisa_natural")
     A.parpadeos_auto(f0, f1, evitar=[(F(16.0), F(17.8)), (F(20.4), F(22.2)), (F(T_FIN - 1.2), F(T_FIN))])
     A.mirada_viva(f0, F(11.2), amplitud=0.016); A.mirada_viva(F(T_HAB), F(T_GIROS), amplitud=0.012)
+    A.microexpresiones(f0, F(4.0)); A.microexpresiones(F(T_HAB), F(T_GIROS), semilla=7, fuerza=0.7)
     # cámara: busto 85 mm → cara 85 mm → primer plano 100 mm durante el diálogo → vuelta completa
     plano(0, BUSTO, 85, az=6, centro=CB); plano(3.6, BUSTO * 0.94, 85, az=4, centro=CB)
     plano(7.5, CARA, 85, az=0, centro=CC); plano(15.8, CARA, 85, az=-3, centro=CC); plano(22.6, CARA * 1.04, 85, az=4, centro=CC)

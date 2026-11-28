@@ -418,6 +418,7 @@ for ch_ in "mbpv": _LETRA[ch_] = "mbp"
 _LETRA["f"] = "fv"
 for ch_ in "tdnlsrzcñx": _LETRA[ch_] = "dental"
 for ch_ in "kgjqh": _LETRA[ch_] = "kg"
+_LETRA["ç"] = "ch"                                  # "ch" y "ll" (se cambian por ç antes de repartir las letras)
 _TODAS = sorted({k for d in list(EXPRESIONES.values()) + list(VISEMAS.values()) for k in d} | {"eyeBlinkLeft", "eyeBlinkRight"})
 
 
@@ -454,6 +455,27 @@ def _cara_metodos(cls):
             if not any(a <= f <= b for a, b in evitar):
                 self.parpadeo(f, doble=rnd.random() < 0.12, parcial=1.0 if rnd.random() > 0.15 else 0.6)
             f += rnd.randint(int(2.0 * fps), int(5.0 * fps))
+    def microexpresiones(self, f0, f1, semilla=21, fuerza=1.0, evitar=()):
+        """Microexpresiones: gestos de menos de medio segundo (aletas de la nariz, media ceja, comisura que se tensa,
+        mejilla, barbilla, párpado de abajo) cada 1,4-3,5 s. Usan claves propias que ninguna expresión toca, así se suman
+        a cualquier expresión sin pisarla."""
+        import random
+        rnd = random.Random(semilla); fps = self.sc.render.fps
+        gestos = [({"nostrilFlareLeft": 0.35, "nostrilFlareRight": 0.35}, 0.45), ({"browInnerUpLeft": 0.25}, 0.5),
+                  ({"browInnerUpRight": 0.25}, 0.5), ({"lipTightenLeft": 0.30}, 0.4), ({"lipTightenRight": 0.30}, 0.4),
+                  ({"cheekRaiseLeft": 0.25}, 0.5), ({"cheekRaiseRight": 0.25}, 0.5), ({"chinRaise": 0.30}, 0.45),
+                  ({"eyeLowerLidUpLeft": 0.30, "eyeLowerLidUpRight": 0.30}, 0.5), ({"browOuterDownLeft": 0.25}, 0.45)]
+        usados = sorted({k for g, _ in gestos for k in g})
+        for k in usados: self._key(k, f0, 0.0)
+        f = f0 + rnd.randint(int(0.6 * fps), int(1.8 * fps)); n_ = 0
+        while f < f1 - fps:
+            if not any(a_ <= f <= b_ for a_, b_ in evitar):
+                g, dur = rnd.choice(gestos); n = max(4, int(dur * fps)); pico = rnd.uniform(0.6, 1.0) * fuerza
+                for k, v in g.items():
+                    self._key(k, f, 0.0); self._key(k, f + n // 3, v * pico); self._key(k, f + n, 0.0)
+                n_ += 1
+            f += rnd.randint(int(1.4 * fps), int(3.5 * fps))
+        return n_
     def pupila(self, f, valor=1.0):
         """Tamaño de las pupilas (1 normal; 0,6 contraídas; 1,4 dilatadas) con clave en f."""
         self.arm["pupila"] = valor; self.arm.keyframe_insert('["pupila"]', frame=f)
@@ -483,6 +505,7 @@ def _cara_metodos(cls):
         ult = None
         for w in palabras:
             txt = "".join(c for c in w["text"].lower() if c.isalpha() or c in "áéíóúüñ")
+            txt = txt.replace("ch", "ç").replace("ll", "ç")
             if not txt: continue
             t0, t1 = w["start"], w["end"]
             pesos = [1.6 if _LETRA.get(c, "") in "aeiou" else 1.0 for c in txt]
