@@ -262,6 +262,24 @@ def ropa_aaa(me, ancho_borde=(0.42, 0.58), detalle=0.55):
     fuv = np.zeros((nf, 2)); np.add.at(fuv, lf, luv); fuv /= lt[:, None]
     s_ = luv * 0.6 + fuv[lf] * 0.4                       # algo hacia dentro de la cara: lejos de la costura de UV
     c = px[np.clip((s_[:, 1] * h).astype(int), 0, h - 1), np.clip((s_[:, 0] * w).astype(int), 0, w - 1)]
+    # cuello y brazos: caras de "piel" pintadas de blanco junto a la camiseta (el borde del cuello salía manchado)
+    ipiel = next((i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_piel"), None)
+    icam = next((i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_camiseta"), None)
+    if ipiel is not None and icam is not None:
+        fc_ = np.zeros((nf, 3)); np.add.at(fc_, lf, c); fc_ /= lt[:, None]
+        mx_, mn_ = fc_.max(1), fc_.min(1); sat_ = (mx_ - mn_) / np.maximum(mx_, 1e-4)
+        cen_ = np.empty(nf * 3); m.polygons.foreach_get('center', cen_); cen_ = cen_.reshape(-1, 3)
+        blanca = (mi == ipiel) & (mx_ > 0.62) & (sat_ < 0.22) & (cen_[:, 2] < 0.80)
+        pasadas = 0
+        for _ in range(3):
+            vcam = np.zeros(N, bool); vcam[lv[mi[lf] == icam]] = True
+            junto = np.zeros(nf, bool); np.logical_or.at(junto, lf, vcam[lv])
+            cambia = blanca & junto & (mi == ipiel)
+            if not cambia.any(): break
+            mi[cambia] = icam; pasadas += int(cambia.sum())
+        if pasadas:
+            m.polygons.foreach_set('material_index', mi); m.update()
+        print("ROPA_AAA caras de piel pintadas de camiseta -> camiseta:", pasadas, flush=True)
     en = np.isin(mi[lf], idx)
     vc = np.zeros((N, 3)); cnt = np.zeros(N)
     np.add.at(vc, lv[en], c[en]); np.add.at(cnt, lv[en], 1)
@@ -280,7 +298,7 @@ def ropa_aaa(me, ancho_borde=(0.42, 0.58), detalle=0.55):
             acc = np.zeros_like(x); np.add.at(acc, a, x[bb])
             x[hay] = 0.5 * x[hay] + 0.5 * (acc[hay] / deg[hay][:, None] if x.ndim == 2 else acc[hay] / deg[hay])
         return x
-    vaq_s = suaviza(vaq, 3)
+    vaq_s = suaviza(vaq, 10)          # quita las islas pequeñas (manchas de blanco pintadas sobre los tirantes)
     lum_lin = _srgb_a_lineal(vc) @ np.array([0.2126, 0.7152, 0.0722])
     lum_s = suaviza(lum_lin, 8)
     for nombre, val in (("tela_vaquero", vaq_s), ("tela_lum", np.maximum(lum_s, 0.005))):
@@ -315,17 +333,17 @@ def ropa_aaa(me, ancho_borde=(0.42, 0.58), detalle=0.55):
         sg = nodo("ShaderNodeTexWave", "sarga", -2000, 1400, wave_type='BANDS', bands_direction='DIAGONAL')
         sg.inputs["Scale"].default_value = 1100.0; sg.inputs["Distortion"].default_value = 0.6; sg.inputs["Detail"].default_value = 1.0
         Lk.new(pos, sg.inputs["Vector"])
-        hi = nodo("ShaderNodeTexNoise", "hilos", -2000, 1700); hi.inputs["Scale"].default_value = 2600.0; hi.inputs["Detail"].default_value = 2.0
+        hi = nodo("ShaderNodeTexNoise", "hilos", -2000, 1700); hi.inputs["Scale"].default_value = 3600.0; hi.inputs["Detail"].default_value = 2.0
         Lk.new(pos, hi.inputs["Vector"])
-        hm = nodo("ShaderNodeMapRange", "hilos_k", -1800, 1700); hm.inputs["From Min"].default_value = 0.55; hm.inputs["From Max"].default_value = 0.75
+        hm = nodo("ShaderNodeMapRange", "hilos_k", -1800, 1700); hm.inputs["From Min"].default_value = 0.62; hm.inputs["From Max"].default_value = 0.80
         Lk.new(hi.outputs["Fac"], hm.inputs["Value"])
         cv = nodo("ShaderNodeMix", "vaquero_sarga", -1600, 1450, data_type='RGBA')
-        _sk(cv.inputs, "A_Color").default_value = (*(col_vaq * 0.78), 1); _sk(cv.inputs, "B_Color").default_value = (*(col_vaq * 1.18), 1)
+        _sk(cv.inputs, "A_Color").default_value = (*(col_vaq * 0.85), 1); _sk(cv.inputs, "B_Color").default_value = (*(col_vaq * 1.12), 1)
         Lk.new(sg.outputs["Fac"], _sk(cv.inputs, "Factor_Float"))
         ch = nodo("ShaderNodeMix", "vaquero_hilos", -1400, 1450, data_type='RGBA')
         Lk.new(hm.outputs["Result"], _sk(ch.inputs, "Factor_Float")); Lk.new(_sk(cv.outputs, "Result_Color"), _sk(ch.inputs, "A_Color"))
         _sk(ch.inputs, "B_Color").default_value = (*np.clip(col_vaq * 0.5 + 0.18, 0, 1), 1)
-        mk = nodo("ShaderNodeMath", "hilos_poco", -1600, 1700, operation='MULTIPLY'); mk.inputs[1].default_value = 0.35
+        mk = nodo("ShaderNodeMath", "hilos_poco", -1600, 1700, operation='MULTIPLY'); mk.inputs[1].default_value = 0.14
         Lk.new(hm.outputs["Result"], mk.inputs[0]); Lk.new(mk.outputs[0], _sk(ch.inputs, "Factor_Float"))
         # algodón: punto fino (muy poca variación)
         pa = nodo("ShaderNodeTexNoise", "punto", -2000, 2000); pa.inputs["Scale"].default_value = 3200.0; pa.inputs["Detail"].default_value = 1.0
@@ -361,7 +379,7 @@ def ropa_aaa(me, ancho_borde=(0.42, 0.58), detalle=0.55):
         for l in list(bs.inputs["Base Color"].links): Lk.remove(l)
         Lk.new(_sk(fin.outputs, "Result_Color"), bs.inputs["Base Color"])
         # brillo de tela: algodón con más pelusa (sheen), vaquero algo menos
-        sh = nodo("ShaderNodeMapRange", "pelusa", -450, 300); sh.inputs["To Min"].default_value = 0.45; sh.inputs["To Max"].default_value = 0.22
+        sh = nodo("ShaderNodeMapRange", "pelusa", -450, 300); sh.inputs["To Min"].default_value = 0.40; sh.inputs["To Max"].default_value = 0.06
         Lk.new(mv.outputs["Result"], sh.inputs["Value"]); Lk.new(sh.outputs["Result"], bs.inputs["Sheen Weight"])
         bs.inputs["Sheen Roughness"].default_value = 0.45; bs.inputs["Subsurface Weight"].default_value = 0.0
         nm = next((n for n in Nn if n.type == 'NORMAL_MAP'), None)
