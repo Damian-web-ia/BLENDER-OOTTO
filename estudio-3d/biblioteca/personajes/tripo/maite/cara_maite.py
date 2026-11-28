@@ -1217,6 +1217,50 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, lab
              "cheekSquintRight", "noseSneerLeft", "noseSneerRight", "tongueOut"]
     # boca cerrada en reposo (Damián, 28-11: abierta con los dientes a la vista "da miedo"): la base pasa a tener los
     # labios juntos y algo más de volumen; las claves que ya llevaban el cierre se quedan sólo con lo que les falta
+    # ---------------- claves propias (además de las 52 de ARKit): control fino por zonas y por lado (FACS)
+    EXTRA = []
+    def kx(nombre, Xn):
+        k_add(nombre, Xn); EXTRA.append(nombre)
+    for lado in ("Left", "Right"):
+        if lado not in cejas: continue
+        c = cejas[lado]; w, t = c["w"], c["t"]
+        kx(f"browInnerUp{lado}", co + np.outer(w * (1 - _ss(0.0, 0.7, t)), up) * 0.0080)
+        kx(f"browOuterDown{lado}", co - np.outer(w * _ss(0.3, 1.0, t), up) * 0.0045)
+        kx(f"browSqueeze{lado}", co + np.outer(w * (1 - t), c["interior_dir"]) * 0.0032 - np.outer(w * (1 - t), up) * 0.0015)
+    for lado, sufijo in (("L", "Left"), ("R", "Right")):
+        I = info_ojos[lado]; th = I["th"]; idx = I["idx"]; C = I["C"]
+        ws_ = np.asarray(I["wsup"]).reshape(-1); wi_ = np.asarray(I["winf"]).reshape(-1)
+        for nombre, ang, peso in ((f"eyeUpperLidUp{sufijo}", -0.15 * th, ws_), (f"eyeUpperLidDown{sufijo}", 0.35 * th, ws_),
+                                  (f"eyeLowerLidUp{sufijo}", -0.30 * th, wi_), (f"eyeLowerLidDown{sufijo}", 0.10 * th, wi_)):
+            Xn = co.copy(); Xn[idx] = _rot_puntos(Xn[idx], C, lat, ang * peso); kx(nombre, Xn)
+    for lado in ("Left", "Right"):
+        s_ = sgn[lado]
+        cs_ = ojos[lado] - up * 0.016 + X * 0.004 * s_ + F * 0.004
+        ws = w_punto(cs_, 0.016)
+        kx(f"cheekRaise{lado}", co + np.outer(ws, up) * 0.0035 + np.outer(ws, F) * 0.0010)
+        cp = K[lado] + X * 0.014 * s_ + up * 0.008 - F * 0.006
+        wc = w_punto(cp, 0.020)
+        kx(f"cheekSuck{lado}", co - nor * (wc * 0.0025)[:, None])
+        ala = O + X * (0.0175 * s_) + up * 0.0165
+        wn = w_punto(ala, 0.007)
+        kx(f"nostrilFlare{lado}", co + np.outer(wn, X) * 0.0012 * s_)
+    puente = O + up * 0.040 + F * 0.004
+    wb = w_punto(puente, 0.010)
+    kx("noseWrinkle", co + np.outer(wb, up) * 0.0010 - np.outer(wb, F) * 0.0004)
+    centro_lab = 1 - _ss(0.0, 0.013, np.abs(dx))
+    kx("upperLipRaise", co + np.outer(w_lab_sup * centro_lab, up) * 0.0020)
+    kx("lowerLipDepress", co - np.outer(w_lab_inf * centro_lab, up) * 0.0024)
+    for lado in ("Left", "Right"):
+        wl_ = w_lab * lado_x[lado]
+        kx(f"lipTighten{lado}", co - np.outer(wl_ * (z - lm) * 0.35, up) - np.outer(wl_, F) * 0.0004)
+    barb = np.where(piel & abajo, (1 - _ss(0.0, 0.020, lm - z)) * (1 - _ss(0.018, 0.032, np.abs(dx))) * (1 - _ss(0.012, 0.026, dep)), 0.0)
+    kx("chinRaise", co + np.outer(barb, up) * 0.0022 + np.outer(barb, F) * 0.0004)
+    mas = np.where(piel, _ss(0.040, 0.050, np.abs(dx)) * (1 - _ss(0.062, 0.075, np.abs(dx))) * _ss(0.004, -0.010, dz) * (1 - _ss(-0.040, -0.055, dz)), 0.0)
+    kx("jawClench", co + np.outer(mas * np.sign(dx), X) * 0.0010)
+    lw = np.where(leng, 1.0, 0.0)
+    kx("tongueUp", rotar(co, piv, lat, math.radians(-8) * lw) + np.outer(lw, up) * 0.0015)
+    kx("tongueLeft", co + np.outer(lw * _ss(-0.01, 0.01, -dep - 0.0), X) * 0.0035)
+    kx("tongueRight", co - np.outer(lw * _ss(-0.01, 0.01, -dep - 0.0), X) * 0.0035)
     # reposo más amable: parte de algunas claves pasa a la cara de reposo (ojos más abiertos, cejas algo más altas). Cada
     # una de esas claves se queda con lo que le falta para llegar a su pose de siempre; el parpadeo cierra igual.
     Dr = np.zeros_like(co)
@@ -1245,12 +1289,13 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, lab
         print("BOCA_REPOSO cerrada", f_, "volumen labios", labios_volumen, flush=True)
     if not m.shape_keys: me.shape_key_add(name="Basis", from_mix=False)
     hechas = []
-    for nombre in ORDEN:
+    for nombre in ORDEN + EXTRA:
         if nombre not in claves: continue
         k = me.shape_key_add(name=nombre, from_mix=False); k.data.foreach_set('co', claves[nombre].ravel().astype(np.float32))
         k.value = 0.0; k.slider_min = 0.0; k.slider_max = 1.0; hechas.append(nombre)
     faltan = [n for n in ORDEN if n not in hechas]
-    print("ARKIT", len(hechas), "de 52", ("faltan " + ",".join(faltan)) if faltan else "", flush=True)
+    print("ARKIT", len([n for n in hechas if n in ORDEN]), "de 52", ("faltan " + ",".join(faltan)) if faltan else "",
+          "+ propias", len([n for n in hechas if n in EXTRA]), "= total", len(hechas), flush=True)
     return hechas
 
 
