@@ -86,3 +86,7 @@ El vídeo de 30 h queda en espera hasta que Maite esté terminada.
   - **Reposo más simpático**: cejas sin subir por dentro, arco algo más alto (browOuterUp 0,30) y sonrisa muy leve (mouthSmile 0,15).
   - **Microexpresiones** (`A.microexpresiones`), visema `ch` para ch/ll, `CONTROLES_CARA_MAITANE.md` (documentación de los controles).
   - **Demo facial** (`pruebas_maite.py … demo_cara`): ~43 s vertical con las 13 pruebas del prompt; parpadeo y trenza ya no dependen de los fps (para 60 fps).
+- 28-11 10:00 · Reposo: además, browInnerUp -0,22 (la punta interior de las cejas baja: se quita la cara de pena). `maite_v2.blend` = cara nueva (copia de la anterior: `maite_v2_cara_v3_previa.blend`).
+  - Exportaciones rehechas y comprobadas reimportándolas: `maite.fbx` (12,9 MB) y `maite.glb` (41 MB), 96 huesos y **82 shape keys** cada uno.
+  - Render: `use_persistent_data` (medido 10,7 s → 4,3 s por fotograma) y `finalizar()` sólo evalúa el esqueleto mientras hornea (de ~20 min a 6 s en 1040 fotogramas). Sin tela, no se hornea la tela.
+  - Demo facial: encuadres verticales por alto de cuadro (busto 3,0 × cabeza, cara 2,05, primer plano 1,5 a 100 mm); en la vuelta de 360° el foco pasa al centro de la cabeza. Borrador sin voz en `demo_borrador/` (432×768, 24 fps). Falta la voz (pregunta a Damián: ¿Renata?) para el definitivo 1080×1920 a 60 fps (~6 h).
