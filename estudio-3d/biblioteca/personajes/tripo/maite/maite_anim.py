@@ -114,6 +114,69 @@ class MaiteAnim:
         """sube > 0: encoge los hombros."""
         self.rot("mixamorig:LeftShoulder", f, 0, 0, -sube); self.rot("mixamorig:RightShoulder", f, 0, 0, sube)
 
+    # -------------------------------------------------------------- caminar
+    def _mover(self, nombre, f, desplaz_mundo):
+        """Pone la 'location' del hueso para que quede desplazado esa cantidad (metros del mundo) desde su reposo.
+        Vale para huesos cuyo padre está en reposo (los pies IK y Hips cuelgan de CTRL_raiz, que no se mueve)."""
+        b = self.pb.get(nombre)
+        if not b: return
+        s = self.arm.scale[0]
+        R_ = b.bone.matrix_local.to_3x3()
+        b.location = (R_.inverted() @ (self.arm.matrix_world.to_3x3().normalized().inverted() @ Vector(desplaz_mundo))) / s
+        b.keyframe_insert("location", frame=f)
+
+    @staticmethod
+    def _gira_x(v, grados):
+        a = math.radians(grados); x, y, z = v
+        return (x, y * math.cos(a) - z * math.sin(a), y * math.sin(a) + z * math.cos(a))
+
+    def caminar(self, f0, pasos=6, zancada=0.30, frames_paso=14, altura_pie=0.045, adelante=(0.0, -1.0, 0.0), brazos=True):
+        """Paseo hacia delante con los pies plantados de verdad (IK): cada paso, un pie se despega de puntillas, viaja
+        en arco y apoya de talón; la cadera avanza sin parar, baja al apoyar y se va hacia el pie de apoyo; la pelvis
+        gira y el pecho la compensa; los brazos van en contrafase. Devuelve el último fotograma."""
+        F = Vector(adelante).normalized(); T = frames_paso
+        lado_pie = {L: 1.0, R: -1.0}
+        pos = {L: 0.0, R: 0.0}                  # avance de cada pie (metros)
+        sw = [L, R]
+        for l in (L, R): self._mover(f"IK_pie_{l[0]}", f0, (0, 0, 0)); self.pb[f"IK_pie_{l[0]}"]["roll"] = 0.0; self.pb[f"IK_pie_{l[0]}"].keyframe_insert('["roll"]', frame=f0)
+        self._mover("mixamorig:Hips", f0, (0, 0, 0))
+        for k in range(pasos):
+            l = sw[k % 2]; o = sw[(k + 1) % 2]; fk = f0 + k * T
+            ultimo = k == pasos - 1
+            destino = pos[o] if ultimo else pos[o] + zancada        # el último paso junta los pies
+            ini = pos[l]
+            # pie que viaja: despega (puntillas), arco, apoya de talón
+            b = self.pb[f"IK_pie_{l[0]}"]
+            for t, roll, alto in ((0.0, 0.55, 0.0), (0.45, 0.1, altura_pie), (0.85, -0.25, altura_pie * 0.25), (1.0, -0.1, 0.0)):
+                f = fk + int(round(t * T)); av = ini + (destino - ini) * (t if t < 1 else 1.0) ** 1.1
+                self._mover(f"IK_pie_{l[0]}", f, tuple(F * av + Vector((0, 0, alto))))
+                b["roll"] = roll; b.keyframe_insert('["roll"]', frame=f)
+            b["roll"] = 0.0; b.keyframe_insert('["roll"]', frame=fk + T + 3)
+            pos[l] = destino
+            # pie de apoyo: quieto (clave al principio y al final del paso)
+            for f in (fk, fk + T):
+                self._mover(f"IK_pie_{o[0]}", f, tuple(F * pos[o]))
+            # cadera: avanza a la mitad de los dos pies, baja al apoyar y se va hacia el pie de apoyo
+            for t in (0.0, 0.5, 1.0):
+                f = fk + int(round(t * T))
+                medio = (ini + (destino - ini) * t + pos[o]) / 2.0
+                bajo = -0.016 if t in (0.0, 1.0) else -0.004
+                lat = lado_pie[o] * 0.012 * math.sin(math.pi * t)
+                if ultimo and t == 1.0: bajo, lat = 0.0, 0.0
+                self._mover("mixamorig:Hips", f, tuple(F * medio + Vector((lat, 0, bajo))))
+                giro = 5.0 * lado_pie[l] * (1 - 2 * t) * (0 if ultimo and t == 1.0 else 1)
+                self.rot("mixamorig:Hips", f, 0, giro, 2.5 * lado_pie[o] * math.sin(math.pi * t))
+                self.torso(f, adelante=2.0, giro=-giro * 1.1)
+                self.cabeza(f, arriba=-1.0, giro=giro * 0.3)
+            # brazos en contrafase (el del lado del pie que viaja va hacia atrás)
+            if brazos:
+                for t in (0.0, 1.0):
+                    f = fk + int(round(t * T)); a = 16.0 * (1 - 2 * t) * (0 if ultimo and t == 1.0 else 1)
+                    db, da = self.POSES_BRAZO["reposo"]
+                    for lb, sg in ((l, 1.0), (o, -1.0)):
+                        self.brazo(f, lb, "reposo", d_brazo=self._gira_x(db, -a * sg), d_ante=self._gira_x(da, -a * sg * 1.4 - 8))
+        return f0 + pasos * T
+
     def pose_reposo(self, f):
         self.reset(f, [b.name for b in self.pb if not b.name.startswith("Trenza")])
         self.caderas(f)
