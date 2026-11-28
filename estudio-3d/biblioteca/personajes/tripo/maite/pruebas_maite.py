@@ -1,7 +1,7 @@
 # PRUEBAS OBLIGATORIAS DE MAITE (skill AAA, punto 19) · EKORUEDAS · 28-11-2026
 # Uso: blender -b --factory-startup --python pruebas_maite.py -- <carpeta_estudio> <carpeta_salida> <prueba> [muestras] [ancho]
 #   prueba: expresiones | dialogo <carpeta_voz> | pelo | ropa | objeto | cine [carpeta_voz] | giro | primer_plano | demo_cara [carpeta_voz]
-#   MAITE_FPS=60 cambia los fotogramas por segundo (demo_cara); MAITE_FOTOS="2,6.5,…" (segundos) saca fotos de control en vez del vídeo.
+#   MAITE_FPS=60 cambia los fotogramas por segundo (demo_cara); MAITE_TRAMO=dialogo saca sólo el diálogo de la demo; MAITE_FOTOS="2,6.5,…" (segundos) saca fotos de control en vez del vídeo.
 # Cada prueba anima con la biblioteca de Maite (maite_anim.py), hornea trenza y tela, y saca un MP4 (o una foto 4K).
 import bpy, os, sys, math, random
 from mathutils import Vector, Matrix, Quaternion
@@ -342,7 +342,10 @@ elif PRUEBA == "demo_cara":
     # durante la vuelta el foco pasa de los ojos al centro de la cabeza (si no, el pelo de atrás sale borroso)
     for t, p_ in ((T_VUELTA, EO), (T_VUELTA + 0.8, H), (T_FIN - 1.4, H), (T_FIN - 0.6, EO)):
         foco.location = p_; foco.keyframe_insert("location", frame=F(t))
-    hornear_y_video(f0, f1, "demo_cara")
+    if os.environ.get("MAITE_TRAMO") == "dialogo":      # sólo el diálogo (para oír la voz y ver los labios)
+        hornear_y_video(F(T_HAB - 0.7), F(T_HAB + DUR_HAB + 0.9), "demo_cara_dialogo")
+    else:
+        hornear_y_video(f0, f1, "demo_cara")
 elif PRUEBA == "primer_plano":
     # 6 — Primer plano 4K vertical del rostro (foto)
     base(1, 2); A.expresion(1, "sonrisa_natural"); A.finalizar(1, 2, trenza=False)
