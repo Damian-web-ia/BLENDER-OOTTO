@@ -104,7 +104,7 @@ class MaiteAnim:
         l = _lado(lado); c = self.MANOS.get(forma, self.MANOS["relajada"]); s = 1 if l == L else -1
         for dedo, k, abre in (("Index", "i", 1.0), ("Middle", "m", 0.3), ("Ring", "a", -0.4), ("Pinky", "p", -1.0)):
             for j in (1, 2, 3):
-                ang = c[k] * (0.85 if j == 1 else 1.0 if j == 2 else 0.75)
+                ang = c[k] * (0.85 if j == 1 else 1.0 if j == 2 else 0.75) * s     # la mano derecha es espejo (si no, se doblan hacia atrás)
                 self.rot(f"mixamorig:{l}Hand{dedo}{j}", f, ang, 0, (c["sep"] * abre * s) if j == 1 else 0)
         for j in (1, 2, 3):
             self.rot(f"mixamorig:{l}HandThumb{j}", f, 0, 0, c["pul"] * s * (0.6 if j == 1 else 0.4))
