@@ -9,7 +9,7 @@ argv = sys.argv[sys.argv.index("--") + 1:]
 EST, OUT, PRUEBA = argv[0], argv[1], argv[2]
 MUESTRAS = int(argv[3]) if len(argv) > 3 else 32; ANCHO = int(argv[4]) if len(argv) > 4 else 1080
 PM = os.path.join(EST, "biblioteca", "personajes", "tripo", "maite"); os.makedirs(OUT, exist_ok=True)
-bpy.ops.wm.open_mainfile(filepath=os.path.join(PM, "maite_v2.blend"))
+bpy.ops.wm.open_mainfile(filepath=os.environ.get("MAITE_BLEND") or os.path.join(PM, "maite_v2.blend"))
 sc = bpy.context.scene; sc.render.fps = int(os.environ.get("MAITE_FPS", "24"))
 ARM = bpy.data.objects["MAITE_rig"]; ME = bpy.data.objects["MAITE_cuerpo"]; P = "mixamorig:"
 MA = {}; exec(compile(open(os.path.join(PM, "maite_anim.py"), encoding="utf-8").read(), "maite_anim", "exec"), MA)
