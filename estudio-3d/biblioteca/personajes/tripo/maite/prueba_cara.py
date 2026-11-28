@@ -5,7 +5,7 @@ from mathutils import Vector, Matrix
 argv = sys.argv[sys.argv.index("--") + 1:]
 EST, OUT, PLANO = argv[0], argv[1], argv[2]; MUESTRAS = int(argv[3]) if len(argv) > 3 else 64
 PM = os.path.join(EST, "biblioteca", "personajes", "tripo", "maite"); os.makedirs(OUT, exist_ok=True)
-bpy.ops.wm.open_mainfile(filepath=os.path.join(PM, "maite_v2.blend"))
+bpy.ops.wm.open_mainfile(filepath=os.environ.get("MAITE_BLEND") or os.path.join(PM, "maite_v2.blend"))   # MAITE_BLEND: probar otro archivo
 sc = bpy.context.scene
 ARM = bpy.data.objects["MAITE_rig"]; ME = bpy.data.objects["MAITE_cuerpo"]
 ARM.scale = (1.73, 1.73, 1.73); bpy.context.view_layer.update()
