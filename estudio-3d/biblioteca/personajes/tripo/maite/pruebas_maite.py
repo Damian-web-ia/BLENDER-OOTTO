@@ -96,6 +96,8 @@ def hornear_y_video(f0, f1, nombre):
         # renders largos: fotograma a fotograma en PNG (se puede reanudar: los que ya existen no se repiten) y al final
         # se monta el MP4 con la voz en el editor de vídeo de Blender
         carp = os.path.join(OUT, nombre + "_cuadros"); os.makedirs(carp, exist_ok=True)
+        for f_ in os.listdir(carp):                    # marcadores vacíos de un render cortado: se repiten
+            if os.path.getsize(os.path.join(carp, f_)) == 0: os.remove(os.path.join(carp, f_))
         ims = sc.render.image_settings
         if hasattr(ims, "media_type"): ims.media_type = 'IMAGE'
         ims.file_format = 'PNG'; ims.color_mode = 'RGB'; ims.color_depth = '8'; ims.compression = 30
