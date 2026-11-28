@@ -646,13 +646,12 @@ def _reindexar(me, puntos):
 
 def _caja_redonda(bm, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
     """Caja de esquinas redondeadas (para dientes): cubo subdividido y 'inflado' hacia una superelipse.
-    Devuelve (desde, hasta): el tramo de índices de sus vértices (se añaden al final de la malla)."""
-    bm.verts.ensure_lookup_table(); n0 = len(bm.verts)
+    Devuelve la lista de sus vértices (OJO: bmesh reutiliza huecos, los nuevos no siempre van al final)."""
+    antes = set(bm.verts)
     r = bmesh.ops.create_cube(bm, size=2.0)
     aristas = list({e for v in r["verts"] for e in v.link_edges})
     bmesh.ops.subdivide_edges(bm, edges=aristas, cuts=segs, use_grid_fill=True)
-    bm.verts.ensure_lookup_table(); n1 = len(bm.verts)
-    vs = [bm.verts[i] for i in range(n0, n1)]
+    vs = [v for v in bm.verts if v not in antes]
     for v in vs:
         p = v.co.copy()
         k = (abs(p.x) ** 3 + abs(p.y) ** 3 + abs(p.z) ** 3) ** (1 / 3)
@@ -660,19 +659,19 @@ def _caja_redonda(bm, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
         v.co = centro + X * (p.x * sx) + Y * (p.y * sy) + Z * (p.z * sz)
     for f in {f for v in vs for f in v.link_faces}:
         f.material_index = mat_i; f.smooth = True
-    return n0, n1
+    return vs
 
 
 def _elipsoide(bm, centro, X, Y, Z, rx, ry, rz, mat_i, u=24, v=14):
-    bm.verts.ensure_lookup_table(); n0 = len(bm.verts)
-    bmesh.ops.create_uvsphere(bm, u_segments=u, v_segments=v, radius=1.0)
-    bm.verts.ensure_lookup_table(); n1 = len(bm.verts)
-    vs = [bm.verts[i] for i in range(n0, n1)]
+    """Elipsoide; devuelve sus vértices. (Antes se tomaba un tramo de índices n0..n1, pero create_uvsphere crea y borra
+    geometría por dentro y los vértices nuevos ocupan huecos: quedaban vértices sin transformar, en una esfera de 1 m.)"""
+    r = bmesh.ops.create_uvsphere(bm, u_segments=u, v_segments=v, radius=1.0)
+    vs = list(r["verts"])
     for q in vs:
         p = q.co.copy(); q.co = centro + X * (p.x * rx) + Y * (p.y * ry) + Z * (p.z * rz)
     for f in {f for q in vs for f in q.link_faces}:
         f.material_index = mat_i; f.smooth = True
-    return n0, n1
+    return vs
 
 
 def construir_boca(arm, me, adelante, lat, datos_ojos):
@@ -738,7 +737,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     vp = {v: k for k, v in enumerate({v for f in caras_piel for v in f.verts})}
     bvh_piel = BVHTree.FromPolygons([v.co.copy() for v in vp], [[vp[v] for v in f.verts] for f in caras_piel])
     abertura = [((v.co - O).dot(X), (v.co - O).dot(up)) for v in bucle]
-    partes = {"dientes_sup": [], "dientes_inf": [], "encia_sup": [], "encia_inf": [], "lengua": [], "saco": []}   # tramos de índices
+    partes = {"dientes_sup": [], "dientes_inf": [], "encia_sup": [], "encia_inf": [], "lengua": [], "saco": []}   # listas de vértices
     anchos = [0.0043, 0.0037, 0.0035, 0.0032, 0.0031, 0.0030]
     altos_s = [0.0050, 0.0044, 0.0047, 0.0041, 0.0038, 0.0035]
     z_borde_sup = O.z - 0.0007                     # filo de los dientes de arriba
@@ -766,7 +765,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     partes["lengua"].append(_elipsoide(bm, O - F * 0.0200 + up * (z_borde_sup - O.z - 0.0068), X, F, up, 0.0092, 0.0115, 0.0030, mats["MAITE_lengua"], 28, 14))
     partes["saco"].append(_elipsoide(bm, O - F * 0.0235 + up * 0.0004, X, F, up, 0.0245, 0.0175, 0.0102, mats["MAITE_boca_int"], 36, 20))
     bm.verts.index_update(); bm.verts.ensure_lookup_table()
-    info = {k: [i for (a_, b_) in tramos for i in range(a_, b_)] for k, tramos in partes.items()}
+    info = {k: [v.index for lista in listas for v in lista] for k, listas in partes.items()}
     # nada de dentro puede asomar por la piel: si un vértice está delante de la piel (y no detrás de la abertura), se mete
     def en_abertura(px_, pz_):
         dentro = False; n = len(abertura)
