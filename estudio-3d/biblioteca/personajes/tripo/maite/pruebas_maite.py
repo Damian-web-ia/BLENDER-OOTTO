@@ -1,6 +1,6 @@
 # PRUEBAS OBLIGATORIAS DE MAITE (skill AAA, punto 19) · EKORUEDAS · 28-11-2026
 # Uso: blender -b --factory-startup --python pruebas_maite.py -- <carpeta_estudio> <carpeta_salida> <prueba> [muestras] [ancho]
-#   prueba: expresiones | pelo | ropa | objeto | giro | primer_plano
+#   prueba: expresiones | dialogo <carpeta_voz> | pelo | ropa | objeto | giro | primer_plano
 # Cada prueba anima con la biblioteca de Maite (maite_anim.py), hornea trenza y tela, y saca un MP4 (o una foto 4K).
 import bpy, os, sys, math, random
 from mathutils import Vector, Matrix, Quaternion
@@ -43,6 +43,13 @@ sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.35
 def base(f0, f1):
     A.pose_reposo(f0); A.mano(f0, "L", "relajada"); A.mano(f0, "R", "relajada")
     A.respirar(f0, f1); A.vida(f0, f1)
+
+def sonido(ruta, f_inicio=1):
+    """Pone el audio en la escena (sale dentro del MP4, en AAC)."""
+    ed = sc.sequence_editor or sc.sequence_editor_create()
+    tiras = getattr(ed, "strips", None) or getattr(ed, "sequences")
+    tiras.new_sound("voz", ruta, 1, f_inicio)
+    sc.render.ffmpeg.audio_codec = 'AAC'; sc.render.ffmpeg.audio_bitrate = 192; sc.render.ffmpeg.audio_channels = 'STEREO'
 
 def hornear_y_video(f0, f1, nombre):
     sc.frame_start, sc.frame_end = f0, f1
@@ -115,6 +122,24 @@ elif PRUEBA == "objeto":
     A.parpadeos_auto(f0, f1, evitar=[(20, 30)]); A.mirada_viva(100, f1)
     camara((0.55, -1.35, 0.86), (0.0, 0.0, 0.70), 50)
     hornear_y_video(f0, f1, "prueba5_objeto")
+elif PRUEBA == "dialogo":
+    # 2 — Diálogo en español con labios sincronizados a la voz (tiempos de cada palabra de la voz generada)
+    # argv[5] = carpeta con voz.wav (o .mp3) y palabras.json ([{"text","start","end"}] en segundos)
+    import json, glob
+    CARP = argv[5]; pal = json.load(open(os.path.join(CARP, "palabras.json"), encoding="utf-8"))
+    voz = (glob.glob(os.path.join(CARP, "voz.*")) or [None])[0]
+    dur = max(w["end"] for w in pal); f0 = 1; f_hab = 13; f1 = f_hab + int(dur * 24) + 24
+    base(f0, f1); A.expresion(1, "sonrisa_natural")
+    A.hablar(pal, f_inicio=f_hab, intensidad=1.0)
+    # gestos al hablar: cabeza que acompaña las frases, cejas en las palabras con acento, manos que explican
+    for i, w in enumerate(pal):
+        f = f_hab + int(w["start"] * 24)
+        if i % 5 == 0: A.cabeza(f, arriba=2 if i % 10 == 0 else -2, giro=4 if i % 10 == 0 else -3, ladeo=2)
+    A.brazo(f_hab + 20, "R", "explica"); A.brazo(f_hab + int(dur * 12), "R", "presenta"); A.brazo(f1 - 12, "R", "reposo")
+    A.parpadeos_auto(f0, f1); A.mirada_viva(f0, f1)
+    if voz: sonido(voz, f_hab)
+    camara((0.12, -0.80, 0.88), (0.02, 0.0, 0.80), 70)
+    hornear_y_video(f0, f1, "prueba2_dialogo")
 elif PRUEBA == "giro":
     # 8 — Turntable: la cámara da una vuelta completa alrededor de Maite en reposo (8 s)
     f0, f1 = 1, 192; base(f0, f1); A.expresion(1, "sonrisa_natural"); A.parpadeos_auto(f0, f1)
