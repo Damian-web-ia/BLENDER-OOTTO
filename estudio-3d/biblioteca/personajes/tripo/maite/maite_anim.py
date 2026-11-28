@@ -251,6 +251,8 @@ class MaiteAnim:
         cabeza (arriba) con la del pecho (abajo). Encima, un muelle amortiguado con algo de gravedad; unas esferas
         en el pecho y el hombro izquierdo impiden que se meta en el cuerpo."""
         arm = self.arm; sc = self.sc; PB = self.pb
+        r_ = 24.0 / max(1, sc.render.fps)                  # muelle ajustado a 24 fps: a otros fps, mismo movimiento por segundo
+        rigidez *= r_ * r_; gravedad *= r_ * r_; amort = amort ** r_; previo = int(previo / r_)
         pbs = [PB[n] for n in self.trenza]
         g = arm.matrix_world.inverted().to_3x3() @ Vector((0, 0, -gravedad))
         for b in pbs: b.rotation_quaternion = Quaternion()
@@ -410,10 +412,11 @@ def _cara_metodos(cls):
         if not kb: return
         for lado in ("Left", "Right"):
             k = kb[f"eyeBlink{lado}"]
+            e_ = self.sc.render.fps / 24.0                 # los tiempos son los de 24 fps; a 60 fps se estiran
             self.sc.frame_set(f - 1); base = k.value
             for df, v in ((-1, base), (1, base + (1 - base) * 0.55 * parcial), (2, base + (1 - base) * parcial), (3, base + (1 - base) * parcial * 0.9), (7, base)):
-                k.value = v; k.keyframe_insert("value", frame=f + df)
-        if doble: self.parpadeo(f + 9, False, parcial * 0.85)
+                k.value = v; k.keyframe_insert("value", frame=f + (1 if df > 0 else -1) * max(1, round(abs(df) * e_)))
+        if doble: self.parpadeo(f + round(9 * self.sc.render.fps / 24.0), False, parcial * 0.85)
     def parpadeos_auto(self, f0, f1, semilla=11, evitar=()):
         import random
         rnd = random.Random(semilla); fps = self.sc.render.fps; f = f0 + rnd.randint(int(0.8 * fps), int(2.5 * fps))
