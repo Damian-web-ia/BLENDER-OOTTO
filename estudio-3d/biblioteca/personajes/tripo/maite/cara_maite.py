@@ -1184,10 +1184,10 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
     for lado in ("Left", "Right"):
         if lado not in cejas: continue
         c = cejas[lado]; w, t = c["w"], c["t"]
-        k_add(f"browDown{lado}", co - np.outer(w * (1.0 - 0.4 * t), up) * 0.0046 + np.outer(w * (1 - t), c["interior_dir"]) * 0.0018 - np.outer(w * (1 - t), F) * 0.0006)
-        k_add(f"browOuterUp{lado}", co + np.outer(w * _ss(0.3, 1.0, t), up) * 0.0056)
+        k_add(f"browDown{lado}", co - np.outer(w * (1.0 - 0.4 * t), up) * 0.0068 + np.outer(w * (1 - t), c["interior_dir"]) * 0.0030 - np.outer(w * (1 - t), F) * 0.0009)
+        k_add(f"browOuterUp{lado}", co + np.outer(w * _ss(0.3, 1.0, t), up) * 0.0074)
         ci = np.maximum(ci, w * (1 - _ss(0.0, 0.7, t)))
-    k_add("browInnerUp", co + np.outer(ci, up) * 0.0060)
+    k_add("browInnerUp", co + np.outer(ci, up) * 0.0080)
     # ---------------- lengua
     k_add("tongueOut", rotar(co, piv, lat, math.radians(14) * np.where(leng, 1.0, 0.0)) + np.outer(np.where(leng, 1.0, 0.0), F) * 0.010 - np.outer(np.where(leng, 1.0, 0.0), up) * 0.001)
     # ---------------- ojos (párpados)
