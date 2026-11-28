@@ -86,11 +86,20 @@ def mangas_tela(arm, me, separacion=0.0012, encoger=0.003):
         for i_, v in enumerate(vset):
             for g_ in m.vertices[int(v)].groups:
                 if g_.weight > 0.001: por_grupo.setdefault(g_.group, []).append((i_, g_.weight))
+        total = np.zeros(len(vset))
         for gidx, lista in por_grupo.items():
             nombre_g = me.vertex_groups[gidx].name
             if nombre_g.startswith("Trenza") or nombre_g == "suave_articulaciones": continue   # la manga no sigue a la trenza
             ng = ob.vertex_groups.new(name=nombre_g)
-            for i_, wi in lista: ng.add([i_], float(wi), 'REPLACE')
+            for i_, wi in lista: ng.add([i_], float(wi), 'REPLACE'); total[i_] += wi
+        # vértices que sólo tenían peso de la trenza: sin hueso se quedaban quietos al andar (una tira blanca estirada
+        # desde el hombro): pasan al hombro de su lado
+        huerfanos = np.where(total < 1e-3)[0]
+        if len(huerfanos):
+            nh = P + lado + "Shoulder"
+            ng = ob.vertex_groups.get(nh) or ob.vertex_groups.new(name=nh)
+            ng.add([int(i_) for i_ in huerfanos], 1.0, 'REPLACE')
+        print("ROPA manga", l, "vértices sin hueso -> hombro:", len(huerfanos), flush=True)
         # pines: cosida al hombro (1), libre con peso hacia el bajo (0,35)
         b = arm.data.bones[P + lado + "Arm"]
         A = np.array(arm.matrix_world @ b.head_local); B = np.array(arm.matrix_world @ b.tail_local); ab = B - A
