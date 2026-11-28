@@ -961,6 +961,36 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
         lf = np.repeat(np.arange(len(m.polygons)), lt)
         fijos = set(np.unique(lv[~np.isin(mi, list(fam))[lf]]).tolist())
         for d in datos.values(): fijos |= set(int(i) for i in d["bucle"]) | set(int(i) for i in d["borde_int"])
+    # 1) solapas: tiras de caras de la malla de Tripo sueltas por un lado (aristas con una sola cara) y dobladas
+    #    sobre la piel. No hay membrana que las estire (su borde está libre): se quitan las caras (los vértices se
+    #    quedan, así no cambia ningún índice) y si queda algún agujero pequeño se tapa.
+    bm = bmesh.new(); bm.from_mesh(m); bm.normal_update()
+    Fv = Vector(tuple(F))
+    def cerca_ojo(p_): return min(np.linalg.norm(np.array(p_[:]) - C) for C, _ in centros) < radio
+    def mala(f): return f.material_index in fam and (f.normal.dot(Fv) < -0.2 or f.calc_area() < 2e-8)
+    sueltas = [e for e in bm.edges if len(e.link_faces) == 1 and cerca_ojo((e.verts[0].co + e.verts[1].co) / 2)]
+    solapa = {f for e in sueltas for f in e.link_faces if mala(f)}
+    cola = list(solapa)
+    while cola:
+        f = cola.pop()
+        for e in f.edges:
+            for g in e.link_faces:
+                if g not in solapa and mala(g): solapa.add(g); cola.append(g)
+    n_sol = len(solapa); n_tapas = 0
+    if solapa:
+        bmesh.ops.delete(bm, geom=list(solapa), context='FACES_ONLY')
+        sueltas_e = [e for e in bm.edges if not e.link_faces]
+        if sueltas_e: bmesh.ops.delete(bm, geom=sueltas_e, context='EDGES')
+        bordes = [e for e in bm.edges if len(e.link_faces) == 1 and cerca_ojo((e.verts[0].co + e.verts[1].co) / 2)]
+        if bordes:
+            r_ = bmesh.ops.holes_fill(bm, edges=bordes, sides=12)
+            for f in r_["faces"]:
+                vecina = next((g for e in f.edges for g in e.link_faces if g is not f), None)
+                if vecina is not None: f.material_index = vecina.material_index
+                f.smooth = True; n_tapas += 1
+        bm.to_mesh(m); m.update()
+    bm.free()
+    print("PIEL_PLIEGUES solapas quitadas:", n_sol, "caras; agujeros tapados:", n_tapas, flush=True)
     total = 0; n_malas = 0
     for intento in range(intentos + 1):
         bm = bmesh.new(); bm.from_mesh(m); bm.normal_update(); bm.verts.ensure_lookup_table(); bm.faces.ensure_lookup_table()
