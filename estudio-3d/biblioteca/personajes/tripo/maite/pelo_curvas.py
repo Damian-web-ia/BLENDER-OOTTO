@@ -45,9 +45,14 @@ def _zona_pelo(arm, me, ip):
     es = (mi == ip) & (en_cabeza | en_trenza)
     otro = (mi == ip) & ~es
     i_cuero = next((i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_funda"), None)
-    if i_cuero is not None and otro.any():
-        mi[otro] = i_cuero; m.polygons.foreach_set('material_index', mi); m.update()
-    print("PELO_HEBRAS zona de pelo:", int(es.sum()), "caras; fuera de la cabeza y la trenza -> cuero:", int(otro.sum()), flush=True)
+    i_mono = next((i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_mono"), None)
+    # en el torso son los bordes oscuros de los tirantes (vaquero); más abajo, cuero
+    torso = otro & (cen[:, 2] > 0.55)
+    if i_mono is not None and torso.any(): mi[torso] = i_mono
+    if i_cuero is not None and (otro & ~torso).any(): mi[otro & ~torso] = i_cuero
+    if otro.any(): m.polygons.foreach_set('material_index', mi); m.update()
+    print("PELO_HEBRAS zona de pelo:", int(es.sum()), "caras; fuera de la cabeza y la trenza -> tirante:", int(torso.sum()),
+          "cuero:", int((otro & ~torso).sum()), flush=True)
     return es
 
 

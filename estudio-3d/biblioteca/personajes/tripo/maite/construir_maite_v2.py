@@ -322,6 +322,7 @@ ROPA["mangas_tela"](ARM, ME)
 PCV = {}
 exec(compile(open(os.path.join(PM, "pelo_curvas.py"), encoding="utf-8").read(), "pelo_curvas", "exec"), PCV)
 PCV["pelo_curvas"](ARM, ME, ojos=[tuple(d["C"]) for d in OJOS_DATOS.values()])
+MA["ropa_aaa"](ME)          # otra vez: el pelo de los bordes de tirante acaba de pasar al peto
 ARM["maite_version"] = "v2-fase3"
 bpy.ops.wm.save_as_mainfile(filepath=SALIDA, compress=True)
 print("MAITE_V2_OK", SALIDA, flush=True)
