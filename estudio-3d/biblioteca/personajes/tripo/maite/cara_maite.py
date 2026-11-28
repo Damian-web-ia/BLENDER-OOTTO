@@ -721,13 +721,13 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     sel = [i for i, c in enumerate(cen) if x0 + 0.0008 < c[0] < x1 - 0.0008 and inf(c[0]) < c[2] < sup(c[0]) and c[1] < -0.04]
     bm = bmesh.new(); bm.from_mesh(m); bm.faces.ensure_lookup_table()
     mats = {}
-    for nombre, col, rug, sss, coat in (("MAITE_labio_int", (0.56, 0.22, 0.22), 0.38, 0.0, 0.0), ("MAITE_boca_int", (0.075, 0.016, 0.018), 0.6, 0.0, 0.0),
+    for nombre, col, rug, sss, coat in (("MAITE_labio_int", (0.56, 0.22, 0.22), 0.38, 0.0, 0.0), ("MAITE_boca_int", (0.16, 0.035, 0.040), 0.6, 0.0, 0.0),   # rojo oscuro, no negro (28-11)
                                          ("MAITE_dientes", (0.86, 0.84, 0.78), 0.28, 0.15, 0.35), ("MAITE_encias", (0.70, 0.27, 0.29), 0.35, 0.3, 0.4),
                                          ("MAITE_lengua", (0.66, 0.26, 0.27), 0.45, 0.35, 0.25)):
         mt_ = material_simple(nombre, col, rug=rug, sss=sss, coat=coat)
         if nombre == "MAITE_labio_int":       # se ve de canto: con barniz/subsurface salía una franja blanca en el labio
             mt_.node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.25
-        if nombre in ("MAITE_boca_int", "MAITE_lengua", "MAITE_encias"): _oscurecer_por_oclusion(mt_, 0.010, 2.5 if nombre == "MAITE_boca_int" else 1.4)
+        if nombre in ("MAITE_boca_int", "MAITE_lengua", "MAITE_encias"): _oscurecer_por_oclusion(mt_, 0.010, 1.6 if nombre == "MAITE_boca_int" else 1.4)
         m.materials.append(mt_); mats[nombre] = len(m.materials) - 1
     fc = _color_caras(me)
     ssel = set(sel)
@@ -798,14 +798,14 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
                 if signo > 0:
                     c_ = pos + up * (z_borde_sup - O.z + h_ / 2)
                 else:
-                    c_ = pos + up * (z_borde_sup - O.z - 0.0004 - h_ / 2)
+                    c_ = pos + up * (z_borde_sup - O.z - 0.0016 - h_ / 2)          # los de abajo, tras el labio (si no, "cremallera" al hablar)
                 _caja_redonda(bm, capa, PARTES["dientes_sup" if signo > 0 else "dientes_inf"],
-                              c_, tang, nrm_, up, w_ * 0.505, 0.0012, h_ / 2, mats["MAITE_dientes"], segs=3, pot=5.0)   # más rectos: fila de dientes, no perlas
+                              c_, tang, nrm_, up, w_ * 0.56, 0.0012, h_ / 2, mats["MAITE_dientes"], segs=3, pot=7.0)   # se solapan: fila continua con surcos suaves, sin rayas negras
             s_acum += w_
     # encías: anillos aplastados que siguen el arco de los dientes
     for signo, clave_, r_a, prof in ((1, "encia_sup", 0.0210, 0.0026), (-1, "encia_inf", 0.0189, 0.0040)):
         cprof = prof + r_a - 0.0006
-        c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0004 if signo < 0 else 0))
+        c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0016 if signo < 0 else 0))
         _elipsoide(bm, capa, PARTES[clave_], c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12)
     _elipsoide(bm, capa, PARTES["lengua"], O - F * 0.0215 + up * (z_borde_sup - O.z - 0.0088), X, F, up, 0.0090, 0.0112, 0.0026, mats["MAITE_lengua"], 28, 14)
     _elipsoide(bm, capa, PARTES["saco"], O - F * 0.0235 + up * 0.0004, X, F, up, 0.0245, 0.0175, 0.0102, mats["MAITE_boca_int"], 36, 20)
@@ -1127,7 +1127,7 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, lab
     def k_add(nombre, Xn):
         claves[nombre] = Xn
     # ---------------- mandíbula
-    k_add("jawOpen", rotar(co, piv, lat, math.radians(14) * wj))
+    k_add("jawOpen", rotar(co, piv, lat, math.radians(17) * wj))          # abre más (28-11: hablaba con una rendija)
     k_add("jawForward", co + np.outer(wj, F) * 0.0026)
     for s_, nombre in ((1, "jawLeft"), (-1, "jawRight")):
         k_add(nombre, rotar(co, piv, up, math.radians(5) * s_ * wj) + np.outer(wj, X) * 0.0012 * s_)

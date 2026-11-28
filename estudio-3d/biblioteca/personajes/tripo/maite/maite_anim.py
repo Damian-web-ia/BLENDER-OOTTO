@@ -408,11 +408,11 @@ EXPRESIONES = {
 
 # visemas del español (solo boca y mandíbula)
 VISEMAS = {
-    "a": {"jawOpen": 0.64, "mouthStretchLeft": 0.10, "mouthStretchRight": 0.10, "mouthUpperUpLeft": 0.25, "mouthUpperUpRight": 0.25},
-    "e": {"jawOpen": 0.38, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
+    "a": {"jawOpen": 0.66, "mouthStretchLeft": 0.10, "mouthStretchRight": 0.10, "mouthUpperUpLeft": 0.30, "mouthUpperUpRight": 0.30, "mouthLowerDownLeft": 0.35, "mouthLowerDownRight": 0.35},
+    "e": {"jawOpen": 0.42, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15, "mouthUpperUpLeft": 0.25, "mouthUpperUpRight": 0.25, "mouthLowerDownLeft": 0.25, "mouthLowerDownRight": 0.25},
     "i": {"jawOpen": 0.20, "mouthStretchLeft": 0.50, "mouthStretchRight": 0.50, "mouthSmileLeft": 0.25, "mouthSmileRight": 0.25, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
-    "o": {"jawOpen": 0.46, "mouthFunnel": 0.85},
-    "u": {"jawOpen": 0.16, "mouthPucker": 0.90},
+    "o": {"jawOpen": 0.48, "mouthFunnel": 0.90, "mouthPucker": 0.25, "mouthLowerDownLeft": 0.20, "mouthLowerDownRight": 0.20},
+    "u": {"jawOpen": 0.18, "mouthPucker": 0.95, "mouthFunnel": 0.30},
     "mbp": {"jawOpen": 0.0, "mouthClose": 0.95, "mouthPressLeft": 0.25, "mouthPressRight": 0.25, "mouthRollLower": 0.15},
     "fv": {"jawOpen": 0.08, "mouthRollLower": 0.6, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
     "dental": {"jawOpen": 0.18, "mouthStretchLeft": 0.15, "mouthStretchRight": 0.15},
@@ -508,7 +508,10 @@ def _cara_metodos(cls):
             f += rnd.randint(int(0.5 * fps), int(1.5 * fps))
     def hablar(self, palabras, f_inicio=1, intensidad=1.0, fps=None):
         """Labios a partir de las palabras con tiempos (las de Ootto: [{'text','start','end'} en segundos]).
-        Cada letra se reparte en el tiempo de su palabra (las vocales pesan más) y pone su visema."""
+        Cada letra se reparte en el tiempo de su palabra (las vocales pesan más) y da un visema candidato. Coarticulación
+        (28-11, Damián: "no me convence la boca"): entre dos claves hay al menos 0,08 s (una letra suelta no le da tiempo
+        a la boca; si chocan gana la que más se ve: m/b/p que cierran, luego vocales y f); las consonantes que no cierran
+        (t, d, s, n, l, r, k, g) no tienen clave: la boca pasa de vocal a vocal; la boca sólo se relaja en las pausas, no al final de cada palabra."""
         fps = fps or self.sc.render.fps
         usados = sorted({k for d in VISEMAS.values() for k in d})
         nb_, ib_ = getattr(self, "_expr_actual", ("neutra", 1.0))
@@ -516,23 +519,40 @@ def _cara_metodos(cls):
         def poner(f, vis, k_=1.0):
             d = VISEMAS[vis]
             for k in usados: self._key(k, f, d.get(k, 0.0) * intensidad * k_ + fondo.get(k, 0.0))
-        ult = None
-        for w in palabras:
+        cand = []                                     # (segundo, visema, fuerza, prioridad)
+        pal = [w for w in palabras if "".join(c for c in w["text"] if c.isalpha())]
+        if not pal: return
+        cand.append((max(0.0, pal[0]["start"] - 0.10), "reposo", 1.0, 3))
+        for i, w in enumerate(pal):
             txt = "".join(c for c in w["text"].lower() if c.isalpha() or c in "áéíóúüñ")
             txt = txt.replace("ch", "ç").replace("ll", "ç")
-            if not txt: continue
-            t0, t1 = w["start"], w["end"]
+            t0, t1 = w["start"], max(w["end"], w["start"] + 0.06)
             pesos = [1.6 if _LETRA.get(c, "") in "aeiou" else 1.0 for c in txt]
             tot = sum(pesos); t = t0
             for c, p_ in zip(txt, pesos):
                 dur = (t1 - t0) * p_ / tot; vis = _LETRA.get(c)
-                if vis and vis != "kg" or vis == "kg":
-                    f = f_inicio + int(round((t + dur * 0.5) * fps))
-                    if f != ult: poner(f, vis, 1.0 if vis in "aeiou" else 0.75); ult = f
+                if vis:
+                    if vis == "mbp": pr, k_ = 3, 1.0
+                    elif vis in ("a", "e", "i", "o", "u", "fv"): pr, k_ = 2, 1.0
+                    else: pr, k_ = 1, 0.5
+                    if pr > 1 or not any(_LETRA.get(x, "") in "aeiou" for x in txt):   # t, d, s, n, l, r, k, g: la boca
+                        cand.append((t + dur * 0.5, vis, k_, pr))                      # pasa de vocal a vocal sin cerrarse
                 t += dur
-            # al final de la palabra, la boca se relaja un poco
-            f_fin = f_inicio + int(round(t1 * fps)) + 2
-            if f_fin != ult: poner(f_fin, "reposo"); ult = f_fin
+            sig = pal[i + 1]["start"] if i + 1 < len(pal) else None
+            if sig is None or sig - t1 > 0.18:                 # pausa: la boca descansa
+                cand.append((t1 + 0.06, "reposo", 1.0, 2))
+        esp = max(2, int(round(0.08 * fps)))
+        claves = []
+        for t, vis, k_, pr in sorted(cand, key=lambda c: c[0]):
+            f = f_inicio + int(round(t * fps))
+            if claves and f - claves[-1][0] < esp:
+                if pr > claves[-1][3]:
+                    f_ = max(f, claves[-2][0] + esp) if len(claves) > 1 else f
+                    claves[-1] = (f_, vis, k_, pr)
+                continue
+            claves.append((f, vis, k_, pr))
+        for f, vis, k_, pr in claves: poner(f, vis, k_)
+        return len(claves)
     for n_, fn_ in list(locals().items()):
         if callable(fn_) and not n_.startswith("__") and n_ not in ("cls",):
             setattr(cls, n_, fn_)
