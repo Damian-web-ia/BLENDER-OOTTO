@@ -647,12 +647,14 @@ def _reindexar(me, puntos):
 def _caja_redonda(bm, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
     """Caja de esquinas redondeadas (para dientes): cubo subdividido y 'inflado' hacia una superelipse.
     Devuelve la lista de sus vértices (OJO: bmesh reutiliza huecos, los nuevos no siempre van al final)."""
-    for v in bm.verts: v.tag = True                     # marca (los conjuntos de BMVert no sirven: comparan mal)
+    # marca en una capa propia (ni conjuntos de BMVert, que comparan mal, ni 'tag', que lo usan los operadores)
+    capa = bm.verts.layers.int.get("viejo") or bm.verts.layers.int.new("viejo")
+    for v in bm.verts: v[capa] = 1
     r = bmesh.ops.create_cube(bm, size=2.0)
+    for v in r["verts"]: v[capa] = 0
     aristas = list({e for v in r["verts"] for e in v.link_edges})
     bmesh.ops.subdivide_edges(bm, edges=aristas, cuts=segs, use_grid_fill=True)
-    vs = [v for v in bm.verts if not v.tag]
-    for v in bm.verts: v.tag = False
+    vs = [v for v in bm.verts if v[capa] == 0]
     for v in vs:
         p = v.co.copy()
         k = (abs(p.x) ** 3 + abs(p.y) ** 3 + abs(p.z) ** 3) ** (1 / 3)
