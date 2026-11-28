@@ -408,7 +408,7 @@ EXPRESIONES = {
 
 # visemas del español (solo boca y mandíbula)
 VISEMAS = {
-    "a": {"jawOpen": 0.56, "mouthStretchLeft": 0.08, "mouthStretchRight": 0.08, "mouthUpperUpLeft": 0.15, "mouthUpperUpRight": 0.15, "mouthLowerDownLeft": 0.12, "mouthLowerDownRight": 0.12},
+    "a": {"jawOpen": 0.48, "mouthStretchLeft": 0.08, "mouthStretchRight": 0.08, "mouthUpperUpLeft": 0.15, "mouthUpperUpRight": 0.15, "mouthLowerDownLeft": 0.12, "mouthLowerDownRight": 0.12},
     "e": {"jawOpen": 0.30, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15, "mouthUpperUpLeft": 0.15, "mouthUpperUpRight": 0.15, "mouthLowerDownLeft": 0.10, "mouthLowerDownRight": 0.10},
     "i": {"jawOpen": 0.20, "mouthStretchLeft": 0.50, "mouthStretchRight": 0.50, "mouthSmileLeft": 0.25, "mouthSmileRight": 0.25, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
     "o": {"jawOpen": 0.42, "mouthFunnel": 0.75, "mouthPucker": 0.12},

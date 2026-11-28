@@ -783,8 +783,8 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     for v in bm.verts: v[capa] = 0
     for clave_, lista_ in (("bucle", idx_bucle), ("labio_int", idx_v1), ("boca_int", idx_v2)):
         for i_ in lista_: bm.verts[i_][capa] = PARTES[clave_]
-    anchos = [0.0050, 0.0042, 0.0038, 0.0034, 0.0031]       # incisivos anchos; 5 por lado: los de atrás asomaban por las comisuras en la o/u
-    altos_s = [0.0058, 0.0052, 0.0052, 0.0045, 0.0040]
+    anchos = [0.0050, 0.0042, 0.0038, 0.0033]       # 4 por lado (8 a la vista, como en animación): con más asomaban por las comisuras en la o/u
+    altos_s = [0.0058, 0.0052, 0.0052, 0.0044]
     z_borde_sup = O.z - 0.0013                     # filo de los dientes de arriba (algo más bajo: se ven al sonreír y reír)
     for fila, (r_arco, prof, esc, signo) in enumerate(((0.0185, 0.0026, 1.0, 1), (0.0168, 0.0040, 0.88, -1))):   # arco más cerrado: los de atrás, hacia dentro
         s_acum = 0.0
