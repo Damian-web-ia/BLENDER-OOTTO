@@ -500,8 +500,20 @@ def preparar_parpados(arm, me, datos, adelante, semilla=7):
         semi = np.linalg.norm(B - A) / 2
         dcor = np.minimum(np.linalg.norm(Q - A, axis=1), np.linalg.norm(Q - B, axis=1))
         fcor = _ss(0.0, 0.45 * semi, dcor)
-        wsup = (1 - _ss(0.0006, 0.0068, dsup)) * _ss(-0.0004, 0.0012, hq) * fcor
-        winf = (1 - _ss(0.0004, 0.0042, dinf)) * _ss(-0.0004, 0.0012, -hq) * fcor
+        fcor = _ss(0.0, 0.55 * semi, dcor)
+        wsup = (1 - _ss(0.0006, 0.0090, dsup)) * _ss(-0.0004, 0.0012, hq) * fcor
+        winf = (1 - _ss(0.0004, 0.0050, dinf)) * _ss(-0.0004, 0.0012, -hq) * fcor
+        # suavizado por aristas: el giro pasa de 1 a 0 sin escalón (si no, al cerrar sale un pliegue en las esquinas)
+        loc = np.full(len(co0), -1); loc[idx] = np.arange(len(idx))
+        evp = np.empty(len(m.edges) * 2, np.int64); m.edges.foreach_get('vertices', evp); evp = evp.reshape(-1, 2)
+        ea, eb_ = loc[evp[:, 0]], loc[evp[:, 1]]; ok_ = (ea >= 0) & (eb_ >= 0); ea, eb_ = ea[ok_], eb_[ok_]
+        fijo_s = np.isin(idx, sup); fijo_i = np.isin(idx, inf)
+        deg = np.zeros(len(idx)); np.add.at(deg, ea, 1); np.add.at(deg, eb_, 1)
+        for w_, fijo in ((wsup, fijo_s), (winf, fijo_i)):
+            for _ in range(6):
+                acc = np.zeros(len(idx)); np.add.at(acc, ea, w_[eb_]); np.add.at(acc, eb_, w_[ea])
+                nuevo = np.where(deg > 0, 0.5 * w_ + 0.5 * acc / np.maximum(deg, 1), w_)
+                w_[:] = np.where(fijo, w_, nuevo)
         # el borde interior (extruido) va con su vértice del borde
         for k in d["borde_int"]:
             j = np.where(idx == k)[0]
@@ -807,6 +819,13 @@ def alisar_parpados(me, datos, adelante, iteraciones=160, grosor=0.0014):
     total = 0
     for lado, d in datos.items():
         C = np.array(d["C"], np.float64); R = float(d["R"])
+        # el borde del párpado descansa sobre el globo: bucle a R+1,0 mm, labio interno a R+0,5 mm, fondo a R+0,2 mm
+        ib = np.array(d["bucle"]); r_ = co[ib] - C; nr = np.linalg.norm(r_, axis=1)
+        nuevo = np.minimum(nr, R + 0.0010)
+        co[ib] = C + r_ / nr[:, None] * nuevo[:, None]
+        bi = np.array(d["borde_int"]); r_ = co[bi] - C; nr = np.linalg.norm(r_, axis=1)
+        nuevo = np.where(nr > R + 0.0003, np.minimum(nr, R + 0.0005), nr)
+        co[bi] = C + r_ / nr[:, None] * nuevo[:, None]
         bucle = co[d["bucle"]]
         rel = co - C
         cerca = np.linalg.norm(rel, axis=1) < 0.032
@@ -1303,10 +1322,10 @@ def maquillaje(me, datos_ojos, info_boca, tam=2048):
     nariz = np.zeros(len(P))
     if punta is not None:
         for sgn_ in (-1, 1):
-            Nc = O + X * (fxv[punta] + sgn_ * 0.0045) + np.array([0, 0, 1.0]) * (fzv[punta] - 0.0062) + F * (ffv[punta] - 0.0047)
+            Nc = O + X * (fxv[punta] + sgn_ * 0.0046) + np.array([0, 0, 1.0]) * (fzv[punta] - 0.0070) + F * (ffv[punta] - 0.0058)
             q = P - Nc
-            e = np.sqrt(((q @ X) / 0.0024) ** 2 + (q[:, 2] / 0.0014) ** 2 + ((q @ F) / 0.0030) ** 2)
-            nariz = np.maximum(nariz, 1 - _ss(0.55, 1.0, e))
+            e = np.sqrt(((q @ X) / 0.0030) ** 2 + (q[:, 2] / 0.0013) ** 2 + ((q @ F) / 0.0030) ** 2)
+            nariz = np.maximum(nariz, (1 - _ss(0.35, 1.0, e)) * 0.9)
     img = bpy.data.images.get("MAITE_maquillaje")
     if img: bpy.data.images.remove(img)
     img = bpy.data.images.new("MAITE_maquillaje", tam, tam, alpha=False)
@@ -1331,7 +1350,7 @@ def _material_maquillaje(mt, img, tinte_labios=(0.82, 0.44, 0.47), tinte_rubor=(
     mx = Nn.get("LISA_mezcla"); destino = [l.to_socket for l in _sk(mx.outputs, "Result_Color").links]
     prev = _sk(mx.outputs, "Result_Color")
     for nombre, canal, tinte, k, x_ in (("MAQ_labios", "Red", tinte_labios, k_labios, -450), ("MAQ_rubor", "Green", tinte_rubor, k_rubor, -300),
-                                        ("MAQ_nariz", "Blue", (0.40, 0.21, 0.19), 0.80, -150)):
+                                        ("MAQ_nariz", "Blue", (0.55, 0.33, 0.31), 0.60, -150)):
         mu = Nn.new("ShaderNodeMath"); mu.name = nombre + "_k"; mu.operation = 'MULTIPLY'; mu.inputs[1].default_value = k; mu.location = (x_, 1000)
         Lk.new(sp.outputs[canal], mu.inputs[0])
         mm = Nn.new("ShaderNodeMix"); mm.name = nombre; mm.data_type = 'RGBA'; mm.blend_type = 'MULTIPLY'; mm.location = (x_, 800)
