@@ -681,7 +681,7 @@ def _reindexar(me, puntos):
     return [kd.find(Vector(p))[1] for p in puntos]
 
 
-def _caja_redonda(bm, capa, parte, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
+def _caja_redonda(bm, capa, parte, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2, pot=3.0):
     """Caja de esquinas redondeadas (para dientes): cubo subdividido y 'inflado' hacia una superelipse.
     Sus vértices quedan marcados con 'parte' en la capa entera 'capa'. (Las referencias a BMVert NO sobreviven a
     subdivide_edges ni a crear capas, y create_uvsphere reutiliza huecos: por eso todo se marca en una capa.)"""
@@ -693,7 +693,7 @@ def _caja_redonda(bm, capa, parte, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
     vs = [v for v in bm.verts if v[capa] == tmp]
     for v in vs:
         p = v.co.copy()
-        k = (abs(p.x) ** 3 + abs(p.y) ** 3 + abs(p.z) ** 3) ** (1 / 3)
+        k = (abs(p.x) ** pot + abs(p.y) ** pot + abs(p.z) ** pot) ** (1 / pot)
         p = p / max(k, 1e-6)
         v.co = centro + X * (p.x * sx) + Y * (p.y * sy) + Z * (p.z * sz)
         v[capa] = parte
@@ -800,7 +800,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
                 else:
                     c_ = pos + up * (z_borde_sup - O.z - 0.0004 - h_ / 2)
                 _caja_redonda(bm, capa, PARTES["dientes_sup" if signo > 0 else "dientes_inf"],
-                              c_, tang, nrm_, up, w_ * 0.505, 0.0012, h_ / 2, mats["MAITE_dientes"])
+                              c_, tang, nrm_, up, w_ * 0.505, 0.0012, h_ / 2, mats["MAITE_dientes"], segs=3, pot=5.0)   # más rectos: fila de dientes, no perlas
             s_acum += w_
     # encías: anillos aplastados que siguen el arco de los dientes
     for signo, clave_, r_a, prof in ((1, "encia_sup", 0.0210, 0.0026), (-1, "encia_inf", 0.0189, 0.0040)):
