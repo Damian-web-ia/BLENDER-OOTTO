@@ -304,6 +304,7 @@ CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO)
 CM["bordes_ojos"](ME, OJOS_DATOS)
 OJOS_DATOS = CM["retoque_belleza"](ARM, ME, OJOS_DATOS, BOCA_INFO, ADELANTE, agrandar=0.07, mandibula=0.07)   # ojos más juntos y boca más estrecha (28-11)
 CM["control_pupilas"](ARM)
+ARM["boca"] = str(tuple(round(float(x), 5) for x in BOCA_INFO["O"]))   # centro de la boca (para encuadrar primeros planos)
 # ---- fase 6: materiales AAA (pelo)
 MA = {}
 exec(compile(open(os.path.join(PM, "materiales_aaa.py"), encoding="utf-8").read(), "materiales_aaa", "exec"), MA)

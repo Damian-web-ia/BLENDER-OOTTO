@@ -28,6 +28,11 @@ mn = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)
 mx = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
 H = (mn + mx) / 2; ALTO = mx.z - mn.z
 C = Vector((H.x, mn.y, H.z - ALTO * 0.08))  # centro de la cara (por delante)
+OJ = [ARM.matrix_world @ ARM.pose.bones[n].head for n in ("Ojo_L", "Ojo_R") if n in ARM.pose.bones]
+E = sum(OJ, Vector()) / len(OJ) if OJ else Vector((H.x, mn.y + 0.03, H.z))
+H.x = E.x                                        # la trenza cae a un lado: el centro de la caja no es el de la cara
+B = Vector(eval(ARM["boca"])) if "boca" in ARM else Vector((E.x, E.y, E.z - 0.040))
+print("OJOS", tuple(round(v, 4) for v in E), "BOCA", tuple(round(v, 4) for v in B), flush=True)
 print("CABEZA", tuple(round(v, 4) for v in H), "alto", round(ALTO, 4), "frente_y", round(mn.y, 4), flush=True)
 def luz(n, loc, e, tam, col):
     d = bpy.data.lights.new(n, 'AREA'); d.energy = e; d.size = tam; d.color = col
@@ -76,13 +81,9 @@ for nombre, az, el in VISTAS: foto(nombre, orbita(az, el), 85, H)
 claves({}); foto("08_neutra", orbita(0, 0), 85, H)
 # --- primeros planos
 claves({k: v * 0.6 for k, v in sonrisa.items()})
-OJ = [ARM.matrix_world @ ARM.pose.bones[n].head for n in ("Ojo_L", "Ojo_R") if n in ARM.pose.bones]
-E = sum(OJ, Vector()) / len(OJ) if OJ else Vector((H.x, mn.y + 0.03, H.z))
-B = Vector((E.x, E.y, E.z - 0.049))             # boca
-print("OJOS", tuple(round(v, 4) for v in E), flush=True)
-foto("09_ojos", (E.x, E.y - 0.55, E.z), 135, E)
-foto("10_labios", (B.x, B.y - 0.45, B.z), 135, B)
-foto("11_piel_mejilla", (E.x + 0.20, E.y - 0.30, E.z - 0.02), 135, (E.x + 0.032, E.y, E.z - 0.024))
+foto("09_ojos", (E.x, E.y - 0.20, E.z), 135, E)
+foto("10_labios", (B.x, B.y - 0.17, B.z), 135, B)
+foto("11_piel_mejilla", (E.x + 0.14, E.y - 0.21, E.z - 0.016), 135, (E.x + 0.030, E.y, E.z - 0.020))
 foto("12_pelo", orbita(160, 18), 85, H)
 # --- expresiones
 EXP = ["neutra", "sonrisa_profesional", "sonrisa_espontanea", "risa_suave", "carcajada", "entusiasmo", "curiosidad", "concentracion",

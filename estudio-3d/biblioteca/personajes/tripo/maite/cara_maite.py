@@ -1450,6 +1450,19 @@ def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010,
     if motas.any():
         mask = np.maximum(mask, 1 - _ss(0.0012, 0.0032, _dist_a(co, co[motas])))
     print("PIEL_LISA motas claras en la cara:", int(motas.sum()), flush=True)
+    # rayitas oscuras junto a las comisuras: Tripo pintó la sombra de las comisuras de su boca abierta; con la boca de
+    # reposo cerrada y más estrecha esa sombra queda en la mejilla como una marca (Damián, 28-11: "que sea guapa")
+    Ob_ = np.array(info_boca["O"]); Xb_ = np.array(info_boca["X"]); Xb_ = Xb_ / np.linalg.norm(Xb_)
+    tb_ = (co[info_boca["bucle"]] - Ob_) @ Xb_; hw_ = float(np.max(np.abs(tb_)))
+    t_ = (co - Ob_) @ Xb_; u_ = co[:, 2] - Ob_[2]
+    zona_k = es_piel_v & (np.abs(t_) > hw_ - 0.0008) & (np.abs(t_) < hw_ + 0.016) & (np.abs(u_) < 0.015) & ~cejas
+    comis = np.zeros(N, bool)
+    for vi in np.where(zona_k)[0]:
+        vec_ = [j for _, j, _ in kd.find_range(co[vi], 0.0055)]
+        if len(vec_) > 6 and np.median(lum[vec_]) - lum_min_v[vi] > 0.06: comis[vi] = True
+    if comis.any():
+        mask = np.maximum(mask, 1 - _ss(0.0012, 0.0034, _dist_a(co, co[comis])))
+    print("PIEL_LISA marcas junto a las comisuras:", int(comis.sum()), "(media boca", round(hw_ * 1000, 1), "mm)", flush=True)
     # cuello y brazos junto a la camiseta: la piel de Tripo está pintada con blanco corrido en el borde (en 4K se ve
     # a parches): esa franja de piel se rellena con la piel limpia de al lado
     icam = next((i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_camiseta"), None)

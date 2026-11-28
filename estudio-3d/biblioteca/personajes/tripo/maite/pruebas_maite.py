@@ -251,6 +251,7 @@ elif PRUEBA == "demo_cara":
     H = (mn + mx) / 2; ALTO = mx.z - mn.z
     OJ = [ARM.matrix_world @ ARM.pose.bones[n].head for n in ("Ojo_L", "Ojo_R") if n in ARM.pose.bones]
     EO = sum(OJ, Vector()) / len(OJ) if OJ else Vector((H.x, mn.y + 0.03, H.z))
+    H.x = EO.x                                   # la trenza cae a un lado: centrar en la cara
     print("CABEZA", tuple(round(v, 4) for v in H), "alto", round(ALTO, 4), "ojos", tuple(round(v, 4) for v in EO), flush=True)
     # foco en los ojos, pegado a la cabeza
     pbh = ARM.pose.bones["mixamorig:Head"]
