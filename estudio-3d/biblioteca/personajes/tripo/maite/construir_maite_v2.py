@@ -306,6 +306,8 @@ MA = {}
 exec(compile(open(os.path.join(PM, "materiales_aaa.py"), encoding="utf-8").read(), "materiales_aaa", "exec"), MA)
 MA["pelo_aaa"](ME, ojos=[tuple(d["C"]) for d in OJOS_DATOS.values()])
 MA["piel_aaa"](ME)
+MA["ropa_aaa"](ME)
+MA["cascara_pelo"](ME)
 trenza = preparar_trenza(ARM, ME)
 ARM["trenza"] = ",".join(trenza)
 # ---- fase 3: rig corporal (IK, roll de pie, giro de antebrazo, dedos, suavizado de articulaciones)

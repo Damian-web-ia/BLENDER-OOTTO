@@ -233,3 +233,154 @@ def piel_aaa(me, poro=0.00055, fuerza_poro=0.16, rug_labios=0.36):
         for l in list(bc.links): Lk.remove(l)
         Lk.new(_sk(mx.outputs, "Result_Color"), bc)
     print("PIEL_AAA poro", poro, "fuerza", fuerza_poro, flush=True)
+
+
+def ropa_aaa(me, ancho_borde=(0.42, 0.58), detalle=0.55):
+    """Camiseta y peto vaquero limpios para 4K. La textura de Tripo tiene las telas pintadas a manchas (borrosas, con
+    sombras pintadas y el blanco de la camiseta corrido sobre los tirantes). Ahora:
+    - qué es vaquero y qué es algodón lo decide un atributo por vértice ('tela_vaquero', lo azul de la textura,
+      suavizado); con la malla subdividida el borde sale limpio y curvo, sin manchas;
+    - cada tela con su color de siempre (la mediana de la textura: no cambia el diseño) y su tejido procedural
+      (sarga diagonal e hilos claros en el vaquero, punto fino en el algodón), en coordenadas de reposo;
+    - de la textura sólo queda el detalle fino (costuras, bolsillos, pespuntes): su luz dividida por la luz media
+      de alrededor ('tela_lum'), así no arrastra las manchas grandes;
+    - un poco de oclusión en los pliegues."""
+    m = me.data
+    nombres = ("MAITE_camiseta", "MAITE_mono", "MAITE_punos")
+    idx = [i for i, mt in enumerate(m.materials) if mt and mt.name in nombres]
+    if not idx: return
+    mt0 = m.materials[idx[0]]
+    img = next(n.image for n in mt0.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image and n.image.colorspace_settings.name == 'sRGB')
+    w, h = img.size; px = np.empty(w * h * 4, np.float32); img.pixels.foreach_get(px); px = px.reshape(h, w, 4)[:, :, :3]
+    uvl = next(l for l in m.uv_layers if l.active_render)
+    luv = np.empty(len(uvl.data) * 2, np.float32); uvl.data.foreach_get('uv', luv); luv = luv.reshape(-1, 2)
+    nf = len(m.polygons); N = len(m.vertices)
+    lt = np.empty(nf, np.int32); m.polygons.foreach_get('loop_total', lt)
+    mi = np.empty(nf, np.int32); m.polygons.foreach_get('material_index', mi)
+    lv = np.empty(len(m.loops), np.int64); m.loops.foreach_get('vertex_index', lv)
+    lf = np.repeat(np.arange(nf), lt)
+    fuv = np.zeros((nf, 2)); np.add.at(fuv, lf, luv); fuv /= lt[:, None]
+    s_ = luv * 0.6 + fuv[lf] * 0.4                       # algo hacia dentro de la cara: lejos de la costura de UV
+    c = px[np.clip((s_[:, 1] * h).astype(int), 0, h - 1), np.clip((s_[:, 0] * w).astype(int), 0, w - 1)]
+    en = np.isin(mi[lf], idx)
+    vc = np.zeros((N, 3)); cnt = np.zeros(N)
+    np.add.at(vc, lv[en], c[en]); np.add.at(cnt, lv[en], 1)
+    tela = cnt > 0; vc[tela] /= cnt[tela][:, None]
+    r, g, b = vc.T; lum = vc @ np.array([0.3, 0.55, 0.15])
+    azul = np.clip((b - (r + g) / 2) / (lum + 0.05), 0, 3)
+    vaq = np.where(tela, (azul > 0.45).astype(float), 0.0)
+    # vecinos por aristas, sólo dentro de la tela
+    ev = np.empty(len(m.edges) * 2, np.int64); m.edges.foreach_get('vertices', ev); ev = ev.reshape(-1, 2)
+    a = np.r_[ev[:, 0], ev[:, 1]]; bb = np.r_[ev[:, 1], ev[:, 0]]
+    ok = tela[a] & tela[bb]; a, bb = a[ok], bb[ok]
+    deg = np.zeros(N); np.add.at(deg, a, 1); hay = deg > 0
+    def suaviza(x, pasos):
+        x = x.copy()
+        for _ in range(pasos):
+            acc = np.zeros_like(x); np.add.at(acc, a, x[bb])
+            x[hay] = 0.5 * x[hay] + 0.5 * (acc[hay] / deg[hay][:, None] if x.ndim == 2 else acc[hay] / deg[hay])
+        return x
+    vaq_s = suaviza(vaq, 3)
+    lum_lin = _srgb_a_lineal(vc) @ np.array([0.2126, 0.7152, 0.0722])
+    lum_s = suaviza(lum_lin, 8)
+    for nombre, val in (("tela_vaquero", vaq_s), ("tela_lum", np.maximum(lum_s, 0.005))):
+        if nombre in m.attributes: m.attributes.remove(m.attributes[nombre])
+        at = m.attributes.new(nombre, 'FLOAT', 'POINT'); at.data.foreach_set('value', val.astype(np.float32))
+    # colores de siempre (mediana de cada tela), en lineal
+    col_vaq = _srgb_a_lineal(np.median(vc[tela & (vaq_s > 0.8)], axis=0)) if (tela & (vaq_s > 0.8)).any() else np.array([0.03, 0.06, 0.2])
+    col_alg = _srgb_a_lineal(np.median(vc[tela & (vaq_s < 0.2)], axis=0)) if (tela & (vaq_s < 0.2)).any() else np.array([0.8, 0.8, 0.77])
+    print("ROPA_AAA vértices de tela", int(tela.sum()), "vaquero", int((vaq_s > 0.5).sum()), "color vaquero", np.round(col_vaq, 3),
+          "algodón", np.round(col_alg, 3), flush=True)
+
+    for i in idx:
+        mt = m.materials[i]; T = mt.node_tree; Nn = T.nodes; Lk = T.links
+        for n in [n for n in Nn if n.name.startswith("TELA_")]: Nn.remove(n)
+        bs = next(n for n in Nn if n.type == 'BSDF_PRINCIPLED')
+        tex = next(n for n in Nn if n.type == 'TEX_IMAGE' and n.image and n.image.colorspace_settings.name == 'sRGB')
+        vm = next((n for n in Nn if n.type == 'VECT_MATH' and n.operation == 'MULTIPLY'), None)
+        def nodo(tipo, nombre, x, y, **kw):
+            n = Nn.new(tipo); n.name = "TELA_" + nombre; n.label = n.name; n.location = (x, y)
+            for k, v in kw.items(): setattr(n, k, v)
+            return n
+        if vm is None:
+            tc = nodo("ShaderNodeTexCoord", "coord", -2200, 600)
+            vm = nodo("ShaderNodeVectorMath", "medidas", -2000, 600, operation='MULTIPLY')
+            vm.inputs[1].default_value = tuple(me.dimensions); Lk.new(tc.outputs["Generated"], vm.inputs[0])
+        pos = vm.outputs["Vector"]
+        av = nodo("ShaderNodeAttribute", "vaquero", -2000, 1000, attribute_type='GEOMETRY', attribute_name="tela_vaquero")
+        mv = nodo("ShaderNodeMapRange", "borde", -1800, 1000, interpolation_type='SMOOTHSTEP')
+        mv.inputs["From Min"].default_value, mv.inputs["From Max"].default_value = ancho_borde
+        Lk.new(av.outputs["Fac"], mv.inputs["Value"])
+        # vaquero: sarga diagonal + hilos claros sueltos alrededor del color de siempre
+        sg = nodo("ShaderNodeTexWave", "sarga", -2000, 1400, wave_type='BANDS', bands_direction='DIAGONAL')
+        sg.inputs["Scale"].default_value = 1100.0; sg.inputs["Distortion"].default_value = 0.6; sg.inputs["Detail"].default_value = 1.0
+        Lk.new(pos, sg.inputs["Vector"])
+        hi = nodo("ShaderNodeTexNoise", "hilos", -2000, 1700); hi.inputs["Scale"].default_value = 2600.0; hi.inputs["Detail"].default_value = 2.0
+        Lk.new(pos, hi.inputs["Vector"])
+        hm = nodo("ShaderNodeMapRange", "hilos_k", -1800, 1700); hm.inputs["From Min"].default_value = 0.55; hm.inputs["From Max"].default_value = 0.75
+        Lk.new(hi.outputs["Fac"], hm.inputs["Value"])
+        cv = nodo("ShaderNodeMix", "vaquero_sarga", -1600, 1450, data_type='RGBA')
+        _sk(cv.inputs, "A_Color").default_value = (*(col_vaq * 0.78), 1); _sk(cv.inputs, "B_Color").default_value = (*(col_vaq * 1.18), 1)
+        Lk.new(sg.outputs["Fac"], _sk(cv.inputs, "Factor_Float"))
+        ch = nodo("ShaderNodeMix", "vaquero_hilos", -1400, 1450, data_type='RGBA')
+        Lk.new(hm.outputs["Result"], _sk(ch.inputs, "Factor_Float")); Lk.new(_sk(cv.outputs, "Result_Color"), _sk(ch.inputs, "A_Color"))
+        _sk(ch.inputs, "B_Color").default_value = (*np.clip(col_vaq * 0.5 + 0.18, 0, 1), 1)
+        mk = nodo("ShaderNodeMath", "hilos_poco", -1600, 1700, operation='MULTIPLY'); mk.inputs[1].default_value = 0.35
+        Lk.new(hm.outputs["Result"], mk.inputs[0]); Lk.new(mk.outputs[0], _sk(ch.inputs, "Factor_Float"))
+        # algodón: punto fino (muy poca variación)
+        pa = nodo("ShaderNodeTexNoise", "punto", -2000, 2000); pa.inputs["Scale"].default_value = 3200.0; pa.inputs["Detail"].default_value = 1.0
+        Lk.new(pos, pa.inputs["Vector"])
+        ca = nodo("ShaderNodeMix", "algodon", -1400, 2000, data_type='RGBA')
+        _sk(ca.inputs, "A_Color").default_value = (*(col_alg * 0.95), 1); _sk(ca.inputs, "B_Color").default_value = (*np.clip(col_alg * 1.03, 0, 1), 1)
+        Lk.new(pa.outputs["Fac"], _sk(ca.inputs, "Factor_Float"))
+        # tela según el atributo
+        ct = nodo("ShaderNodeMix", "tela", -1200, 1700, data_type='RGBA')
+        Lk.new(mv.outputs["Result"], _sk(ct.inputs, "Factor_Float"))
+        Lk.new(_sk(ca.outputs, "Result_Color"), _sk(ct.inputs, "A_Color")); Lk.new(_sk(ch.outputs, "Result_Color"), _sk(ct.inputs, "B_Color"))
+        # detalle fino de la textura: luz / luz media de alrededor
+        bw = nodo("ShaderNodeRGBToBW", "luz_tex", -1600, 900); Lk.new(tex.outputs["Color"], bw.inputs["Color"])
+        al = nodo("ShaderNodeAttribute", "luz_media", -1600, 750, attribute_type='GEOMETRY', attribute_name="tela_lum")
+        dv = nodo("ShaderNodeMath", "cociente", -1400, 850, operation='DIVIDE'); Lk.new(bw.outputs["Val"], dv.inputs[0]); Lk.new(al.outputs["Fac"], dv.inputs[1])
+        cl = nodo("ShaderNodeClamp", "cociente_lim", -1200, 850); cl.inputs["Min"].default_value = 0.55; cl.inputs["Max"].default_value = 1.45
+        Lk.new(dv.outputs[0], cl.inputs["Value"])
+        dm = nodo("ShaderNodeMix", "detalle", -1000, 850, data_type='FLOAT')
+        hay_ = nodo("ShaderNodeMath", "hay_luz_media", -1400, 650, operation='GREATER_THAN'); hay_.inputs[1].default_value = 0.001
+        Lk.new(al.outputs["Fac"], hay_.inputs[0])           # objetos sin el atributo (mangas de tela): sin detalle
+        fk = nodo("ShaderNodeMath", "detalle_k", -1200, 650, operation='MULTIPLY'); fk.inputs[1].default_value = detalle
+        Lk.new(hay_.outputs[0], fk.inputs[0]); Lk.new(fk.outputs[0], _sk(dm.inputs, "Factor_Float"))
+        _sk(dm.inputs, "A_Float").default_value = 1.0; Lk.new(cl.outputs["Result"], _sk(dm.inputs, "B_Float"))
+        # oclusión en pliegues
+        ao = nodo("ShaderNodeAmbientOcclusion", "ao", -1200, 500); ao.inputs["Distance"].default_value = 0.015; ao.samples = 8
+        am = nodo("ShaderNodeMapRange", "ao_k", -1000, 500); am.inputs["To Min"].default_value = 0.72; am.inputs["To Max"].default_value = 1.0
+        Lk.new(ao.outputs["AO"], am.inputs["Value"])
+        f1 = nodo("ShaderNodeMath", "luz_total", -800, 700, operation='MULTIPLY'); Lk.new(_sk(dm.outputs, "Result_Float"), f1.inputs[0]); Lk.new(am.outputs["Result"], f1.inputs[1])
+        cc = nodo("ShaderNodeCombineColor", "luz_rgb", -650, 700)
+        for k_ in ("Red", "Green", "Blue"): Lk.new(f1.outputs[0], cc.inputs[k_])
+        fin = nodo("ShaderNodeMix", "final", -450, 900, data_type='RGBA', blend_type='MULTIPLY'); _sk(fin.inputs, "Factor_Float").default_value = 1.0
+        Lk.new(_sk(ct.outputs, "Result_Color"), _sk(fin.inputs, "A_Color")); Lk.new(cc.outputs["Color"], _sk(fin.inputs, "B_Color"))
+        for l in list(bs.inputs["Base Color"].links): Lk.remove(l)
+        Lk.new(_sk(fin.outputs, "Result_Color"), bs.inputs["Base Color"])
+        # brillo de tela: algodón con más pelusa (sheen), vaquero algo menos
+        sh = nodo("ShaderNodeMapRange", "pelusa", -450, 300); sh.inputs["To Min"].default_value = 0.45; sh.inputs["To Max"].default_value = 0.22
+        Lk.new(mv.outputs["Result"], sh.inputs["Value"]); Lk.new(sh.outputs["Result"], bs.inputs["Sheen Weight"])
+        bs.inputs["Sheen Roughness"].default_value = 0.45; bs.inputs["Subsurface Weight"].default_value = 0.0
+        nm = next((n for n in Nn if n.type == 'NORMAL_MAP'), None)
+        if nm is not None: nm.inputs["Strength"].default_value = 0.6     # los pliegues de Tripo, más suaves
+    print("ROPA_AAA materiales:", [m.materials[i].name for i in idx], flush=True)
+
+
+def cascara_pelo(me, saturacion=0.70, valor=0.55):
+    """Bajo las hebras se ve la masa de pelo de Tripo: con su pintura rojiza parecía 'piel' entre los mechones.
+    Se oscurece y se le quita algo de rojo: entre hebra y hebra se lee sombra de pelo."""
+    m = me.data
+    mt = next((x for x in m.materials if x and x.name == "MAITE_pelo"), None)
+    if mt is None: return
+    Nn = mt.node_tree.nodes; Lk = mt.node_tree.links; bs = next(n for n in Nn if n.type == 'BSDF_PRINCIPLED')
+    if Nn.get("CASCARA_hsv"): return
+    prev = bs.inputs["Base Color"].links[0].from_socket if bs.inputs["Base Color"].is_linked else None
+    hs = Nn.new("ShaderNodeHueSaturation"); hs.name = "CASCARA_hsv"; hs.location = (100, 600)
+    hs.inputs["Saturation"].default_value = saturacion; hs.inputs["Value"].default_value = valor
+    if prev is not None: Lk.new(prev, hs.inputs["Color"])
+    else: hs.inputs["Color"].default_value = bs.inputs["Base Color"].default_value
+    Lk.new(hs.outputs["Color"], bs.inputs["Base Color"])
+    print("CASCARA_PELO más oscura", flush=True)

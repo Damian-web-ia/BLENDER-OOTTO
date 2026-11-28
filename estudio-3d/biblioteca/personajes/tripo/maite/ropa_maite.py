@@ -69,6 +69,10 @@ def mangas_tela(arm, me, separacion=0.0012, encoger=0.003):
             for li in p.loop_indices:
                 un.data[k].uv = uvr.data[li].uv; k += 1
         for p in md_.polygons: p.use_smooth = True
+        for na in ("tela_vaquero", "tela_lum"):              # la tela de la manga se pinta igual que en el cuerpo
+            if na in m.attributes and m.attributes[na].domain == 'POINT':
+                src = np.empty(N, np.float32); m.attributes[na].data.foreach_get('value', src)
+                at_ = md_.attributes.new(na, 'FLOAT', 'POINT'); at_.data.foreach_set('value', src[np.array(vset, np.int64)])
         ob = bpy.data.objects.new(nm, md_)
         me.users_collection[0].objects.link(ob)
         ob.parent = me.parent; ob.matrix_parent_inverse = me.matrix_parent_inverse.copy(); ob.matrix_world = me.matrix_world.copy()
