@@ -47,7 +47,10 @@ def dirigir(nombre, d):
     b.matrix = Matrix.Translation(M_.translation) @ q.to_matrix().to_4x4() @ M_.to_3x3().to_4x4(); bpy.context.view_layer.update()
 def brazos_abajo():
     for lado, sx in (("Left", 1), ("Right", -1)):
-        dirigir(P + lado + "Arm", (0.22 * sx, 0.04, -0.97))
+        dirigir(P + lado + "Arm", (0.22 * sx, 0.04, -0.97)); dirigir(P + lado + "ForeArm", (0.12 * sx, -0.22, -0.97))
+def mover_mundo(nombre, d):
+    b = PB[nombre]; bpy.context.view_layer.update()
+    b.matrix = Matrix.Translation(Vector(d)) @ b.matrix; bpy.context.view_layer.update()
 def girar_local(nombre, eje, grados):
     b = PB[nombre]; b.rotation_mode = 'QUATERNION'
     from mathutils import Quaternion
@@ -62,21 +65,24 @@ def pose(nombre, cam_=CUERPO):
 def _(): brazos_abajo()
 @pose("02_sentadilla")
 def _():
-    brazos_abajo(); PB[P + "Hips"].location = (0, -0.16, 0.03)          # baja 16 cm (eje Y del hueso = arriba)
-    girar_local(P + "Spine", (1, 0, 0), 18)
-    for lado in ("Left", "Right"): dirigir(P + lado + "Arm", (0.25 if lado == "Left" else -0.25, -0.75, -0.6))
+    brazos_abajo(); mover_mundo(P + "Hips", (0, 0.05, -0.13))          # baja 13 cm y la cadera va atrás
+    girar_local(P + "Spine", (1, 0, 0), 14); girar_local(P + "Spine1", (1, 0, 0), 10)
+    for lado, sx in (("Left", 1), ("Right", -1)):
+        dirigir(P + lado + "Arm", (0.20 * sx, -0.85, -0.45)); dirigir(P + lado + "ForeArm", (0.10 * sx, -0.99, 0.0))
 @pose("03_paso")
 def _():
-    brazos_abajo(); PB["IK_pie_L"].location = (0, 0.17, 0); PB["IK_pie_R"].location = (0, -0.10, 0)
-    PB["IK_pie_R"]["roll"] = 0.75; PB[P + "Hips"].location = (0, -0.025, -0.035)
+    brazos_abajo(); PB["IK_pie_L"].location = (0, 0.13, 0); PB["IK_pie_R"].location = (0, -0.07, 0)
+    PB["IK_pie_R"]["roll"] = 0.65; mover_mundo(P + "Hips", (0, -0.03, -0.02))
 @pose("04_brazos_arriba")
 def _():
     for lado, sx in (("Left", 1), ("Right", -1)):
         dirigir(P + lado + "Arm", (0.30 * sx, 0.05, 0.95)); dirigir(P + lado + "ForeArm", (0.15 * sx, -0.05, 0.99))
-@pose("05_puno_giro", ((0.65, -0.95, 0.70), (0.25, 0.0, 0.62), 60))
+@pose("05_puno_giro", ((0.05, -0.85, 0.72), (0.0, -0.15, 0.62), 55))
 def _():
     brazos_abajo()
-    dirigir(P + "LeftArm", (0.55, -0.55, -0.62)); dirigir(P + "LeftForeArm", (0.35, -0.93, 0.10))
+    dirigir(P + "LeftArm", (0.45, -0.60, -0.66)); dirigir(P + "LeftForeArm", (0.10, -0.99, 0.10))
+    dirigir(P + "RightArm", (-0.45, -0.60, -0.66)); dirigir(P + "RightForeArm", (-0.10, -0.99, 0.10))
+    PB["MANO_dedos_R"].rotation_euler = (math.radians(70), 0, 0)
     PB["MANO_dedos_L"].rotation_euler = (math.radians(70), 0, 0)
     girar_local(P + "LeftHand", (0, 1, 0), 80)
 @pose("06_mano_ik", ((-0.55, -1.25, 0.80), (-0.05, 0.0, 0.62), 55))

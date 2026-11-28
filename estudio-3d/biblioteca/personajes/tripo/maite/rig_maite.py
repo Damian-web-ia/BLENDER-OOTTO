@@ -165,11 +165,11 @@ def montar_rig(arm, me):
                 t = b.constraints.new('TRANSFORM'); t.name = "dedos"; t.target = arm; t.subtarget = f"MANO_dedos_{l}"
                 t.map_from = 'ROTATION'; t.map_to = 'ROTATION'; t.target_space = 'LOCAL'; t.owner_space = 'LOCAL'
                 t.mix_mode_rot = 'AFTER'
-                f_curl = (0.55 if dedo == "Thumb" else 1.0) * (1.0 if k > 1 else 0.85)
+                f_curl = (0.55 if dedo == "Thumb" else 1.0) * (1.0 if k > 1 else 0.85) * (1.0 if l == "L" else -1.0)   # espejo
                 t.from_min_x_rot, t.from_max_x_rot = -math.pi / 2, math.pi / 2
                 t.to_min_x_rot, t.to_max_x_rot = -math.pi / 2 * f_curl, math.pi / 2 * f_curl
                 t.map_to_x_from = 'X'
-                f_ab = reparto[dedo] if k == 1 else 0.0
+                f_ab = (reparto[dedo] if k == 1 else 0.0) * (1.0 if l == "L" else -1.0)
                 t.from_min_z_rot, t.from_max_z_rot = -math.pi / 4, math.pi / 4
                 t.to_min_z_rot, t.to_max_z_rot = -math.pi / 4 * f_ab, math.pi / 4 * f_ab
                 t.map_to_z_from = 'Z'
