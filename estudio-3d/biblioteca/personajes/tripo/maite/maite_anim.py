@@ -96,6 +96,7 @@ class MaiteAnim:
         "senala":   dict(i=0, m=75, a=82, p=88, pul=30, sep=2),
         "puno":     dict(i=85, m=88, a=90, p=92, pul=45, sep=0),
         "agarra":   dict(i=48, m=52, a=55, p=58, pul=28, sep=2),
+        "empuna":   dict(i=72, m=76, a=78, p=80, pul=38, sep=0),     # empuña una barra (llave, herramienta)
         "pulgar":   dict(i=85, m=88, a=90, p=92, pul=-25, sep=0),
         "pinza":    dict(i=38, m=20, a=24, p=28, pul=34, sep=3),
         "tensa":    dict(i=-6, m=-4, a=-2, p=0, pul=-15, sep=12),

@@ -62,18 +62,17 @@ def agarrar(arm, ob, lado="R"):
     pb = arm.pose.bones
     def mundo(n, cola=False):
         b = pb[P + l + n]; return arm.matrix_world @ (b.tail if cola else b.head)
-    mano = mundo("Hand"); ind = mundo("HandIndex1"); men = mundo("HandPinky1"); med = mundo("HandMiddle1")
-    palma = (mano * 0.35 + ind * 0.30 + men * 0.35)
-    dedos = (med - mano).normalized(); cruza = (men - ind).normalized()
-    normal = dedos.cross(cruza).normalized()
-    # la palma mira hacia donde se cierran los dedos: comprobar con el pulgar (está del lado de la palma)
-    pul = mundo("HandThumb2")
-    if (pul - palma).dot(normal) < 0: normal = -normal
-    r = ob.get("agarre_radio", 0.006)
-    centro = palma + normal * (r + 0.006) + dedos * 0.004
-    eje_obj = Vector(ob.get("agarre_eje", (1, 0, 0))); punto = Vector(ob.get("agarre_punto", (0, 0, 0)))
-    q = eje_obj.rotation_difference(cruza)
-    ob.matrix_world = Matrix.Translation(centro) @ q.to_matrix().to_4x4() @ Matrix.Translation(-punto)
+    # con la mano ya cerrada: el hueco del puño está entre la palma y las segundas falanges de los dedos
+    mano = mundo("Hand"); ind1 = mundo("HandIndex1"); men1 = mundo("HandPinky1")
+    f2 = [mundo(f"Hand{d}2") for d in ("Index", "Middle", "Ring", "Pinky")]
+    palma = (mano * 0.30 + ind1 * 0.35 + men1 * 0.35)
+    hueco = palma * 0.45 + (sum(f2, Vector()) / 4) * 0.55
+    eje = (f2[0] - f2[3]).normalized()                     # de meñique a índice: el centro de la cruz sale por el meñique
+    dedos = (mundo("HandMiddle1") - mano).normalized()
+    y_ = (dedos - eje * dedos.dot(eje)).normalized(); z_ = eje.cross(y_)
+    R_ = Matrix((eje, y_, z_)).transposed().to_4x4()
+    punto = Vector(ob.get("agarre_punto", (0, 0, 0)))
+    ob.matrix_world = Matrix.Translation(hueco) @ R_ @ Matrix.Translation(-punto)
     mw = ob.matrix_world.copy()
     ob.parent = arm; ob.parent_type = 'BONE'; ob.parent_bone = P + l + "Hand"
     bpy.context.view_layer.update(); ob.matrix_world = mw

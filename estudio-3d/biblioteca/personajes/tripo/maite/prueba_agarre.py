@@ -10,9 +10,9 @@ sc = bpy.context.scene; ARM = bpy.data.objects["MAITE_rig"]
 MA = {}; exec(compile(open(os.path.join(PM, "maite_anim.py"), encoding="utf-8").read(), "maite_anim", "exec"), MA)
 UT = {}; exec(compile(open(os.path.join(PM, "utileria_maite.py"), encoding="utf-8").read(), "utileria", "exec"), UT)
 A = MA["MaiteAnim"](ARM)
-A.pose_reposo(1); A.brazo(1, "R", "agarra"); A.mano(1, "R", "agarra"); sc.frame_set(1)
+A.pose_reposo(1); A.brazo(1, "R", "agarra"); A.mano(1, "R", "empuna"); sc.frame_set(1)
 llave = UT["llave_cruz"](); UT["agarrar"](ARM, llave, "R")
-A.mano(20, "R", "agarra", muneca=(0, 45, 0)); A.brazo(40, "R", "presenta"); A.mano(40, "R", "agarra")
+A.mano(20, "R", "empuna", muneca=(0, 45, 0)); A.brazo(40, "R", "presenta"); A.mano(40, "R", "empuna")
 for ob in bpy.data.objects:
     for md in ob.modifiers:
         if md.type == 'CLOTH': md.show_render = False
