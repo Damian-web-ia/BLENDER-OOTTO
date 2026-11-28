@@ -296,11 +296,12 @@ BOCA_INFO = CM["construir_boca"](ARM, ME, ADELANTE, LAT, OJOS_DATOS)
 CM["alisar_parpados"](ME, OJOS_DATOS, ADELANTE)
 PARPADOS = CM["preparar_parpados"](ARM, ME, OJOS_DATOS, ADELANTE)
 CM["_desplegar_piel"](ME, OJOS_DATOS, None, ADELANTE, cerca_globo=0.0016)      # otra pasada: pliegues que deja preparar_parpados
-ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE)
+ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE, cerrar_reposo=0.92, labios_volumen=0.0006)
 CM["ajustar_globos"](ME, OJOS_DATOS)
 CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO)
 CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO)
 CM["bordes_ojos"](ME, OJOS_DATOS)
+OJOS_DATOS = CM["retoque_belleza"](ARM, ME, OJOS_DATOS, BOCA_INFO, ADELANTE)   # ojos más juntos y boca más estrecha (28-11)
 # ---- fase 6: materiales AAA (pelo)
 MA = {}
 exec(compile(open(os.path.join(PM, "materiales_aaa.py"), encoding="utf-8").read(), "materiales_aaa", "exec"), MA)

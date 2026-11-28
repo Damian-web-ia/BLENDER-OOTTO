@@ -1054,7 +1054,7 @@ def _dist_a(P, Q):
     return np.array([kd.find(p)[2] for p in np.asarray(P, np.float64)])
 
 
-def crear_claves(arm, me, info_ojos, info_boca, adelante):
+def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, labios_volumen=0.0):
     m = me.data; N = len(m.vertices)
     co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
     nor = np.empty(N * 3, np.float64); m.vertices.foreach_get('normal', nor); nor = nor.reshape(-1, 3)
@@ -1215,6 +1215,21 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante):
              "mouthPressLeft", "mouthPressRight", "mouthLowerDownLeft", "mouthLowerDownRight", "mouthUpperUpLeft", "mouthUpperUpRight",
              "browDownLeft", "browDownRight", "browInnerUp", "browOuterUpLeft", "browOuterUpRight", "cheekPuff", "cheekSquintLeft",
              "cheekSquintRight", "noseSneerLeft", "noseSneerRight", "tongueOut"]
+    # boca cerrada en reposo (Damián, 28-11: abierta con los dientes a la vista "da miedo"): la base pasa a tener los
+    # labios juntos y algo más de volumen; las claves que ya llevaban el cierre se quedan sólo con lo que les falta
+    if cerrar_reposo > 0:
+        f_ = float(cerrar_reposo)
+        D = cierre * f_ + np.outer(w_lab, F) * labios_volumen
+        for nombre in list(claves): claves[nombre] = claves[nombre] + D
+        claves["mouthClose"] = claves["mouthClose"] - cierre * f_
+        claves["mouthFunnel"] = claves["mouthFunnel"] - cierre * min(0.25, f_)
+        claves["mouthPucker"] = claves["mouthPucker"] - cierre * min(0.80, f_)
+        for lado in ("Left", "Right"):
+            if f"mouthPress{lado}" in claves:
+                claves[f"mouthPress{lado}"] = claves[f"mouthPress{lado}"] - cierre * np.minimum(lado_x[lado], f_)[:, None]
+        m.vertices.foreach_set('co', (co + D).ravel()); m.update()
+        info_boca["D_reposo"] = D
+        print("BOCA_REPOSO cerrada", f_, "volumen labios", labios_volumen, flush=True)
     if not m.shape_keys: me.shape_key_add(name="Basis", from_mix=False)
     hechas = []
     for nombre in ORDEN:
@@ -1477,7 +1492,7 @@ def _material_piel_lisa(mt, rug_lisa):
 # ======================================================================================
 # MAQUILLAJE: labios algo más rosados y un rubor suave en las mejillas, pintados en una imagen propia (2K, mismas UV)
 # calculando para cada píxel su posición 3D (así la forma del labio sale nítida aunque la malla tenga caras de 4 mm).
-def _pixeles_3d(me, caras, w, h):
+def _pixeles_3d(me, caras, w, h, desplaz=None):
     """Para las caras dadas: índices de píxel (y, x) de la imagen w×h que caen dentro de cada triángulo en UV y su
     posición 3D interpolada."""
     m = me.data; uvl = m.uv_layers.active.data
@@ -1486,6 +1501,7 @@ def _pixeles_3d(me, caras, w, h):
         p = m.polygons[fi]
         uv = np.array([uvl[li].uv[:] for li in p.loop_indices], np.float64) * [w, h]
         V = np.array([m.vertices[vi].co[:] for vi in p.vertices], np.float64)
+        if desplaz is not None: V = V - desplaz[list(p.vertices)]
         for k in range(1, len(uv) - 1):
             a, b, c = uv[0], uv[k], uv[k + 1]
             x0, y0 = np.floor(np.minimum(np.minimum(a, b), c)).astype(int) - 1
@@ -1531,7 +1547,7 @@ def maquillaje(me, datos_ojos, info_boca, tam=2048):
     Cs = [np.array(d["C"]) for d in datos_ojos.values()]
     caras = [p.index for p in m.polygons if p.material_index == ip and
              (np.linalg.norm(np.array(p.center) - O) < 0.050 or min(np.linalg.norm(np.array(p.center) - C) for C in Cs) < 0.045)]
-    ys, xs, P = _pixeles_3d(me, caras, tam, tam)
+    ys, xs, P = _pixeles_3d(me, caras, tam, tam, info_boca.get("D_reposo"))
     x, z = P[:, 0], P[:, 2]
     t = np.clip((x - cx) / hw, -1.0, 1.0); fuera_x = np.abs((x - cx) / hw) > 1.0
     alto_s = 0.0036 * np.sqrt(np.clip(1 - t * t, 0, 1)) ** 0.8
@@ -1704,3 +1720,53 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
         else: _sk(mu.inputs, "A_Color").default_value = bs.inputs["Base Color"].default_value
         L.new(cc.outputs["Color"], _sk(mu.inputs, "B_Color")); L.new(_sk(mu.outputs, "Result_Color"), bs.inputs["Base Color"])
     print("BORDES_OJOS borde_sup:", int((sup > 0.5).sum()), "vértices arriba", flush=True)
+
+
+def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, estrechar=0.15, r_plano=0.018, r_fin=0.040):
+    """Proporciones de una cara guapa (Damián, 28-11: "los ojos dan miedo, están muy separados, y la boca igual").
+    El modelo de Tripo tiene los ojos a 58 mm (escala del modelo) y una boca de 47 mm: se acercan los ojos hacia el
+    centro y se estrecha la boca, con un campo de desplazamiento suave:
+    - cada ojo se mueve entero (globo, párpados, pestañas, cuenca) hasta r_plano de su centro y el efecto se apaga
+      hasta r_fin: el puente de la nariz se afina y las sienes se estiran un poco, sin pliegues;
+    - la boca se estrecha hacia su centro (labios, comisuras, dientes, encías y lengua juntos).
+    Se aplica a la malla y a TODAS las shape keys (las expresiones siguen igual, sobre la cara nueva) y se mueven los
+    huesos de los ojos (los globos y córneas cuelgan de ellos). Devuelve los centros nuevos de los ojos."""
+    m = me.data; N = len(m.vertices)
+    co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
+    F = np.array(adelante, np.float64); F /= np.linalg.norm(F)
+    Xd = np.cross(F, [0, 0, 1.0]); Xd /= np.linalg.norm(Xd)
+    Cs = {l: np.array(d["C"], np.float64) for l, d in datos_ojos.items()}
+    medio = sum(Cs.values()) / len(Cs)
+    D = np.zeros((N, 3)); mov = {}
+    for l, C in Cs.items():
+        hacia = Xd * np.sign((medio - C) @ Xd)                  # hacia el centro de la cara
+        w = 1 - _ss(r_plano, r_fin, np.linalg.norm(co - C, axis=1))
+        D += np.outer(w, hacia * acercar); mov[l] = hacia * acercar
+    O = np.array(info_boca["O"], np.float64); X = np.array(info_boca["X"], np.float64); X /= np.linalg.norm(X)
+    rel = co - O; dx = rel @ X; dz = rel[:, 2]; dy = rel @ F
+    e = np.sqrt((dx / 0.027) ** 2 + (dz / 0.015) ** 2 + (dy / 0.032) ** 2)
+    wm = 1 - _ss(0.75, 1.5, e)
+    D += np.outer(-dx * estrechar * wm, X)
+    # malla y shape keys
+    m.vertices.foreach_set('co', (co + D).ravel())
+    if m.shape_keys:
+        for kb in m.shape_keys.key_blocks:
+            a = np.empty(N * 3, np.float64); kb.data.foreach_get('co', a)
+            kb.data.foreach_set('co', (a.reshape(-1, 3) + D).ravel())
+    m.update()
+    # huesos de los ojos (y con ellos globos y córneas)
+    act = bpy.context.view_layer.objects.active
+    bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode='EDIT')
+    eb = arm.data.edit_bones
+    for l, dv in mov.items():
+        b = eb.get(f"Ojo_{l}")
+        if b: b.head = b.head + Vector(dv); b.tail = b.tail + Vector(dv)
+    bpy.ops.object.mode_set(mode='OBJECT'); bpy.context.view_layer.objects.active = act
+    for l in datos_ojos: datos_ojos[l]["C"] = Vector(tuple(Cs[l] + mov[l])) if isinstance(datos_ojos[l]["C"], Vector) else Cs[l] + mov[l]
+    arm["ojos"] = str({k: (tuple(round(float(x), 5) for x in d["C"]), round(float(d["R"]), 5)) for k, d in datos_ojos.items()})
+    bpy.context.view_layer.update()
+    glob = {l: tuple(round(x, 4) for x in bpy.data.objects[f"MAITE_globo_{l}"].matrix_world.translation) for l in datos_ojos if f"MAITE_globo_{l}" in bpy.data.objects}
+    dist = float(np.linalg.norm((Cs["L"] + mov["L"]) - (Cs["R"] + mov["R"]))) if "L" in Cs and "R" in Cs else 0
+    print("BELLEZA ojos a", round(dist * 1000, 1), "mm (antes", round(float(np.linalg.norm(Cs["L"] - Cs["R"])) * 1000, 1),
+          "); boca", int(estrechar * 100), "% más estrecha; globos", glob, "desplazamiento máx", round(float(np.abs(D).max()) * 1000, 2), "mm", flush=True)
+    return datos_ojos
