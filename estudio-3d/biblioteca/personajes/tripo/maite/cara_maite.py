@@ -912,6 +912,9 @@ def alisar_parpados(me, datos, adelante, iteraciones=160, grosor=0.0014):
         uvw = np.c_[rel_ @ Xd, rel_ @ U, rel_ @ F]
         x2 = uvw.copy()
         lam_v = lam[zi][:, None]
+        # grosor de la piel sobre el globo: 1,0 mm junto al bucle (donde está el borde) -> grosor a 2 mm de él;
+        # con 1,4 mm también junto al bucle, la primera fila de piel quedaba por encima del borde y se doblaba (rayita)
+        g_zi = R + 0.0010 + (grosor - 0.0010) * _ss(0.0, 0.0020, dl[zi])
         for it in range(iteraciones * 12):
             acc = np.zeros((N, 3)); np.add.at(acc, aa, x2[bb])
             media = acc[zi] / deg[zi][:, None]
@@ -921,8 +924,8 @@ def alisar_parpados(me, datos, adelante, iteraciones=160, grosor=0.0014):
             else:                                          # 2) profundidad suave
                 x2[zi, 2] = x2[zi, 2] + (media[:, 2] - x2[zi, 2]) * lam[zi]
             r2 = x2[zi, 0] ** 2 + x2[zi, 1] ** 2
-            frente = np.sqrt(np.maximum((R + grosor) ** 2 - r2, 0.0))
-            sobre = r2 < (R + grosor) ** 2
+            frente = np.sqrt(np.maximum(g_zi ** 2 - r2, 0.0))
+            sobre = r2 < g_zi ** 2
             x2[zi, 2] = np.where(sobre, np.maximum(x2[zi, 2], frente), x2[zi, 2])
         x = co.copy()
         x[zi] = C + np.outer(x2[zi, 0], Xd) + np.outer(x2[zi, 1], U) + np.outer(x2[zi, 2], F)
@@ -950,6 +953,7 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
     F = np.array(adelante if adelante is not None else (0.203, -0.979, 0.0), np.float64); F /= np.linalg.norm(F)
     Xd = np.cross(F, [0, 0, 1.0]); Xd /= np.linalg.norm(Xd); U = np.cross(Xd, F)
     centros = [(np.array(d["C"], np.float64), float(d["R"])) for d in datos.values()]
+    bucles = [np.array(d["bucle"], np.int64) for d in datos.values()]
     if fijos is None:                       # llamada suelta: fijos = bordes del ojo y vértices que tocan otras piezas
         mi = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('material_index', mi)
         lt = np.empty(len(m.polygons), np.int32); m.polygons.foreach_get('loop_total', lt)
@@ -997,8 +1001,10 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
                 if it < 400: x[idx, :2] = media[:, :2]
                 else: x[idx, 2] = media[:, 2]
             r2 = x[idx, 0] ** 2 + x[idx, 1] ** 2
-            frente = np.sqrt(np.maximum((R0 + 0.0014) ** 2 - r2, 0.0))
-            x[idx, 2] = np.where(r2 < (R0 + 0.0014) ** 2, np.maximum(x[idx, 2], frente), x[idx, 2])
+            dlb = _dist_a(co[idx], co[bucles[k]])
+            g_ = R0 + 0.0010 + 0.0004 * _ss(0.0, 0.0020, dlb)
+            frente = np.sqrt(np.maximum(g_ ** 2 - r2, 0.0))
+            x[idx, 2] = np.where(r2 < g_ ** 2, np.maximum(x[idx, 2], frente), x[idx, 2])
             nuevo = C0 + np.outer(x[idx, 0], Xd) + np.outer(x[idx, 1], U) + np.outer(x[idx, 2], F)
             co[idx] = nuevo
             for j, vi in enumerate(idx): m.vertices[int(vi)].co = nuevo[j]
@@ -1568,7 +1574,7 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
     mt = bpy.data.materials["MAITE_parpado_borde"]; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
     a = atributo(N, -700, 200)
     mx = N.new("ShaderNodeMix"); mx.data_type = 'RGBA'; mx.location = (-400, 200)
-    _sk(mx.inputs, "A_Color").default_value = (0.46, 0.23, 0.21, 1); _sk(mx.inputs, "B_Color").default_value = (0.085, 0.045, 0.040, 1)
+    _sk(mx.inputs, "A_Color").default_value = (0.38, 0.15, 0.14, 1); _sk(mx.inputs, "B_Color").default_value = (0.085, 0.045, 0.040, 1)
     L.new(a.outputs["Fac"], _sk(mx.inputs, "Factor_Float")); L.new(_sk(mx.outputs, "Result_Color"), bs.inputs["Base Color"])
     rg = N.new("ShaderNodeMapRange"); rg.location = (-400, -100); rg.inputs["To Min"].default_value = 0.30; rg.inputs["To Max"].default_value = 0.55
     L.new(a.outputs["Fac"], rg.inputs["Value"]); L.new(rg.outputs["Result"], bs.inputs["Roughness"])
