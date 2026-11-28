@@ -72,7 +72,7 @@ def _driver(pb_owner, ruta, indice, arm, var_bone, var_prop, expr):
 
 def montar_rig(arm, me):
     bpy.context.view_layer.objects.active = arm
-    for o in bpy.context.selected_objects: o.select_set(False)
+    for o in bpy.context.view_layer.objects: o.select_set(False)
     arm.select_set(True)
     bpy.ops.object.mode_set(mode='EDIT')
     eb = arm.data.edit_bones

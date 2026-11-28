@@ -31,7 +31,7 @@ def _uv_pelo(me, ip):
     m.uv_layers.active = uvp
     for p in m.polygons: p.select = (p.material_index == ip)
     bpy.context.view_layer.objects.active = me
-    for o in bpy.context.selected_objects: o.select_set(False)
+    for o in bpy.context.view_layer.objects: o.select_set(False)
     me.select_set(True)
     bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_mode(type='FACE')
     bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.002, scale_to_bounds=False)
