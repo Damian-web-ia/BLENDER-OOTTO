@@ -1,6 +1,6 @@
 # EXPORTAR A MAITE (entregables de la skill, punto 20) · EKORUEDAS · 28-11-2026
 # Uso: blender -b --factory-startup --python exportar_maite.py -- <carpeta_estudio> <carpeta_salida>
-# Deja: maite.fbx (malla + esqueleto + 52 shape keys ARKit, para Unity/Unreal/otros), maite.glb (web/AR, con shape keys)
+# Deja: maite.fbx (malla + esqueleto + 82 shape keys: 52 ARKit + 30 propias, para Unity/Unreal/otros), maite.glb (web/AR, con shape keys)
 # y maite_ficha.json (huesos de control, shape keys, materiales, medidas). El pelo de hebras (Hair Curves) no existe en
 # FBX/GLB: en esos formatos va la masa de pelo de la malla; el .blend es el archivo completo de render.
 import bpy, os, sys, json
