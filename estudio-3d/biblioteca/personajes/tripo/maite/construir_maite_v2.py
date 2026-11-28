@@ -305,6 +305,10 @@ exec(compile(open(os.path.join(PM, "materiales_aaa.py"), encoding="utf-8").read(
 MA["pelo_aaa"](ME, ojos=[tuple(d["C"]) for d in OJOS_DATOS.values()])
 trenza = preparar_trenza(ARM, ME)
 ARM["trenza"] = ",".join(trenza)
-ARM["maite_version"] = "v2-fase1"
+# ---- fase 3: rig corporal (IK, roll de pie, giro de antebrazo, dedos, suavizado de articulaciones)
+RIG = {}
+exec(compile(open(os.path.join(PM, "rig_maite.py"), encoding="utf-8").read(), "rig_maite", "exec"), RIG)
+RIG["montar_rig"](ARM, ME)
+ARM["maite_version"] = "v2-fase3"
 bpy.ops.wm.save_as_mainfile(filepath=SALIDA, compress=True)
 print("MAITE_V2_OK", SALIDA, flush=True)

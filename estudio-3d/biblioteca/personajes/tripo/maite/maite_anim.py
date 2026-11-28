@@ -16,7 +16,8 @@ def _lado(l): return L if l in ("L", "Left", "izq", "I") else R
 class MaiteAnim:
     def __init__(self, arm):
         self.arm = arm; self.pb = arm.pose.bones; self.sc = bpy.context.scene
-        for b in self.pb: b.rotation_mode = 'QUATERNION'
+        for b in self.pb:                                # sólo el esqueleto (los pivotes del rig van en Euler con drivers)
+            if b.name.startswith("mixamorig:") or b.name.startswith("Trenza"): b.rotation_mode = 'QUATERNION'
         self.trenza = [n for n in arm.get("trenza", "").split(",") if n]
         self._resp = []; self._vida = []
 
