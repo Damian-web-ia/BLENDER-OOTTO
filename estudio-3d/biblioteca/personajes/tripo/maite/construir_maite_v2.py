@@ -299,6 +299,10 @@ ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE)
 CM["ajustar_globos"](ME, OJOS_DATOS)
 CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO)
 CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO)
+# ---- fase 6: materiales AAA (pelo)
+MA = {}
+exec(compile(open(os.path.join(PM, "materiales_aaa.py"), encoding="utf-8").read(), "materiales_aaa", "exec"), MA)
+MA["pelo_aaa"](ME)
 trenza = preparar_trenza(ARM, ME)
 ARM["trenza"] = ",".join(trenza)
 ARM["maite_version"] = "v2-fase1"

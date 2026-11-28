@@ -799,6 +799,19 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     return info
 
 
+def _pliegues(me, C, radio=0.022):
+    """Aristas de piel cuyas dos caras están casi del revés (pliegue) cerca de C."""
+    bm = bmesh.new(); bm.from_mesh(me.data); bm.normal_update()
+    ip = {i for i, mt in enumerate(me.data.materials) if mt and mt.name in ("MAITE_piel", "MAITE_ojos_dientes", "MAITE_pelo")}
+    Cv = Vector(tuple(C)); n = 0
+    for e in bm.edges:
+        if len(e.link_faces) != 2: continue
+        f1, f2 = e.link_faces
+        if f1.material_index in ip and f2.material_index in ip and ((e.verts[0].co + e.verts[1].co) / 2 - Cv).length < radio:
+            if f1.normal.dot(f2.normal) < -0.3: n += 1
+    bm.free(); return n
+
+
 def alisar_parpados(me, datos, adelante, iteraciones=160, grosor=0.0014):
     """El modelo de Tripo trae el párpado de arriba esculpido con un pliegue que se dobla hacia dentro (caras del revés
     a 10-14 mm sobre el ojo: en el render es una 'aleta'). Se relaja la piel alrededor del agujero del ojo como una
@@ -837,18 +850,35 @@ def alisar_parpados(me, datos, adelante, iteraciones=160, grosor=0.0014):
         deg = np.zeros(N); np.add.at(deg, aa, 1)
         zi = np.where(zona & (deg > 0))[0]
         x = co.copy()
-        for _ in range(iteraciones):
-            acc = np.zeros((N, 3)); np.add.at(acc, aa, x[bb])
+        # Relajación "plana" (tipo Tutte): primero la posición en el plano de la cara (u, v) como media de los
+        # vecinos hasta converger -> sin pliegues; luego la profundidad, también suave, y nunca dentro del globo.
+        Xd = np.array(adelante, np.float64); Xd = np.cross(Xd, [0, 0, 1.0]); Xd /= np.linalg.norm(Xd)   # lateral
+        U = np.array([0, 0, 1.0])
+        rel_ = co - C
+        uvw = np.c_[rel_ @ Xd, rel_ @ U, rel_ @ F]
+        x2 = uvw.copy()
+        lam_v = lam[zi][:, None]
+        for it in range(iteraciones * 12):
+            acc = np.zeros((N, 3)); np.add.at(acc, aa, x2[bb])
             media = acc[zi] / deg[zi][:, None]
-            x[zi] = x[zi] + (media - x[zi]) * lam[zi][:, None]
-            r_ = x[zi] - C; nr = np.linalg.norm(r_, axis=1)
-            dentro = nr < R + grosor
-            x[zi[dentro]] = C + r_[dentro] / nr[dentro][:, None] * (R + grosor)
+            if it < iteraciones * 10:                      # 1) plano: (u, v) del todo; profundidad poco a poco
+                x2[zi, :2] = x2[zi, :2] + (media[:, :2] - x2[zi, :2]) * np.minimum(1.0, lam_v * 1.6)
+                x2[zi, 2] = x2[zi, 2] + (media[:, 2] - x2[zi, 2]) * lam[zi] * 0.5
+            else:                                          # 2) profundidad suave
+                x2[zi, 2] = x2[zi, 2] + (media[:, 2] - x2[zi, 2]) * lam[zi]
+            r2 = x2[zi, 0] ** 2 + x2[zi, 1] ** 2
+            frente = np.sqrt(np.maximum((R + grosor) ** 2 - r2, 0.0))
+            sobre = r2 < (R + grosor) ** 2
+            x2[zi, 2] = np.where(sobre, np.maximum(x2[zi, 2], frente), x2[zi, 2])
+        x = co.copy()
+        x[zi] = C + np.outer(x2[zi, 0], Xd) + np.outer(x2[zi, 1], U) + np.outer(x2[zi, 2], F)
         mov = np.linalg.norm(x[zi] - co[zi], axis=1)
         co[zi] = x[zi]; total += len(zi)
         print("PARPADO_ALISADO", lado, len(zi), "vértices, movimiento máx", round(float(mov.max()) if len(mov) else 0, 4),
               "medio", round(float(mov.mean()) if len(mov) else 0, 4), flush=True)
+    antes = {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}
     m.vertices.foreach_set('co', co.ravel()); m.update()
+    print("PARPADO_PLIEGUES antes", antes, "después", {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}, flush=True)
     return total
 
 
