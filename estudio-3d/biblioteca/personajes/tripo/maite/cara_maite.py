@@ -993,6 +993,17 @@ def _desplegar_piel(me, datos, fijos, adelante=None, radio=0.030, intentos=5, an
     print("PIEL_PLIEGUES parche de", total, "vértices; quedan", {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}, flush=True)
 
 
+def _dist_a(P, Q):
+    """Distancia de cada punto de P al punto más cercano de Q."""
+    Q = np.asarray(Q, np.float64)
+    if len(Q) == 0: return np.full(len(P), 1e9)
+    from mathutils.kdtree import KDTree
+    kd = KDTree(len(Q))
+    for i, q in enumerate(Q): kd.insert(q, i)
+    kd.balance()
+    return np.array([kd.find(p)[2] for p in np.asarray(P, np.float64)])
+
+
 def crear_claves(arm, me, info_ojos, info_boca, adelante):
     m = me.data; N = len(m.vertices)
     co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
