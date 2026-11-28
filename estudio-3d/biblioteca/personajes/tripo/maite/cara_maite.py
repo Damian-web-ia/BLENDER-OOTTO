@@ -265,6 +265,26 @@ def material_cornea():
     return mt
 
 
+def _malla_cornea(nombre, radio, th_iris, abombado=0.065, anillos=24, seg=64):
+    """Córnea = casquete sobre el iris (polo +Z), algo abombado, que se funde con el globo en el borde.
+    Antes era una esfera entera de cristal alrededor de todo el ojo: su borde, mirado de canto, reflejaba el
+    entorno y dibujaba un aro gris lila alrededor del ojo."""
+    th_c = min(th_iris * 1.22, 1.25); hc = radio * abombado
+    vs = [(0.0, 0.0, radio + hc)]
+    for i in range(1, anillos + 1):
+        t = i / anillos; th = th_c * t
+        r_ = radio + 0.0 + hc * (1 - t * t) ** 2
+        for j in range(seg):
+            a = 2 * math.pi * j / seg
+            vs.append((r_ * math.sin(th) * math.cos(a), r_ * math.sin(th) * math.sin(a), r_ * math.cos(th)))
+    caras = [(0, 1 + j, 1 + (j + 1) % seg) for j in range(seg)]
+    for i in range(anillos - 1):
+        b0, b1 = 1 + i * seg, 1 + (i + 1) * seg
+        caras += [(b0 + j, b1 + j, b1 + (j + 1) % seg, b0 + (j + 1) % seg) for j in range(seg)]
+    md = bpy.data.meshes.new(nombre); md.from_pydata(vs, [], caras); md.update()
+    return md
+
+
 def material_cuenca():
     """Fondo entre el párpado y el globo: sigue siendo 'blanco del ojo' (algo rosado) y se oscurece donde se mete
     (oclusión ambiental), así las comisuras de un ojo almendrado se leen como esclera y no como un pliegue marrón."""
@@ -447,8 +467,11 @@ def construir_ojos(arm, me, col_ojo=None):
         iris_rgb = tuple(float(x) for x in (col_ojo or IRIS_COLOR))
         mt = material_ojo(f"MAITE_ojo_{lado}", iris_rgb, th_i, th_p)
         for nombre, radio, mat_ in ((f"MAITE_globo_{lado}", R, mt), (f"MAITE_cornea_{lado}", R + 0.0001, material_cornea())):
-            bmg = bmesh.new(); bmesh.ops.create_uvsphere(bmg, u_segments=64, v_segments=40, radius=radio)
-            md = bpy.data.meshes.new(nombre); bmg.to_mesh(md); bmg.free()
+            if "cornea" in nombre:
+                md = _malla_cornea(nombre, radio, th_i)
+            else:
+                bmg = bmesh.new(); bmesh.ops.create_uvsphere(bmg, u_segments=64, v_segments=40, radius=radio)
+                md = bpy.data.meshes.new(nombre); bmg.to_mesh(md); bmg.free()
             for p in md.polygons: p.use_smooth = True
             o = bpy.data.objects.new(nombre, md); col.objects.link(o); md.materials.append(mat_)
             # +Z local del globo = hacia delante (el iris está en el polo +Z)
@@ -908,7 +931,55 @@ def alisar_parpados(me, datos, adelante, iteraciones=160, grosor=0.0014):
     antes = {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}
     m.vertices.foreach_set('co', co.ravel()); m.update()
     print("PARPADO_PLIEGUES antes", antes, "después", {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}, flush=True)
+    fijos = set(np.where(otro)[0].tolist())
+    for d in datos.values(): fijos |= set(int(i) for i in d["bucle"]) | set(int(i) for i in d["borde_int"])
+    _desplegar_piel(me, datos, fijos)
     return total
+
+
+def _desplegar_piel(me, datos, fijos, radio=0.030, rondas=10, holgura=0.0010):
+    """Quita los pliegues que quedan alrededor del ojo (caras dadas la vuelta: en 4K se ven como rayitas o pelos
+    sueltos en el párpado). Busca aristas cuyas dos caras miran en sentidos opuestos, coge esos vértices y unos
+    anillos alrededor y los suaviza poco a poco (media de los vecinos) sin meterlos en el globo."""
+    m = me.data
+    fam = {i for i, mt in enumerate(m.materials) if mt and mt.name in ("MAITE_piel", "MAITE_ojos_dientes", "MAITE_pelo")}
+    centros = [(Vector(tuple(d["C"])), float(d["R"])) for d in datos.values()]
+    hechos = 0
+    for r in range(rondas):
+        bm = bmesh.new(); bm.from_mesh(m); bm.normal_update(); bm.verts.ensure_lookup_table()
+        malos = set()
+        for e in bm.edges:
+            if len(e.link_faces) != 2: continue
+            f1, f2 = e.link_faces
+            if f1.material_index not in fam or f2.material_index not in fam: continue
+            c = (e.verts[0].co + e.verts[1].co) / 2
+            if min((c - C).length for C, _ in centros) > radio: continue
+            if f1.normal.dot(f2.normal) < 0.0: malos.update((e.verts[0].index, e.verts[1].index))
+        if r == 0: print("PIEL_PLIEGUES alrededor de los ojos:", len(malos), "vértices", flush=True)
+        if not malos: bm.free(); break
+        sel = set(malos)
+        for _ in range(2 + r // 2):
+            borde = set()
+            for vi in sel:
+                v = bm.verts[vi]
+                for e in v.link_edges: borde.add(e.other_vert(v).index)
+            sel |= borde
+        sel = [vi for vi in sel if vi not in fijos and all(f.material_index in fam for f in bm.verts[vi].link_faces)]
+        if not sel: bm.free(); break
+        co = np.array([v.co[:] for v in bm.verts], np.float64)
+        idx = np.array(sel); vec = [[e.other_vert(bm.verts[i]).index for e in bm.verts[i].link_edges] for i in sel]
+        bm.free()
+        for it in range(25):
+            media = np.array([co[nb].mean(0) for nb in vec])
+            co[idx] += (media - co[idx]) * 0.5
+            for C, R in centros:
+                q = co[idx] - np.array(C); nq = np.linalg.norm(q, axis=1)
+                dentro = nq < R + holgura
+                if dentro.any():
+                    co[idx[dentro]] = np.array(C) + q[dentro] / nq[dentro][:, None] * (R + holgura)
+        for k, vi in enumerate(idx): m.vertices[int(vi)].co = co[vi]
+        m.update(); hechos += len(idx)
+    print("PIEL_PLIEGUES suavizados", hechos, "vértices; quedan", {lado: _pliegues(me, d["C"]) for lado, d in datos.items()}, flush=True)
 
 
 # ================================================================ LAS 52 SHAPE KEYS DE ARKIT (+ todo en la misma malla)
@@ -1507,6 +1578,20 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
         for md in [md for md in g.modifiers if md.name == "SombraParpado"]: g.modifiers.remove(md)
         md = g.modifiers.new("SombraParpado", 'NODES'); md.node_group = ng
         mt = g.active_material; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
+        if not N.get("ESCLERA_brillo"):
+            # la esclera es húmeda (brilla); el iris no (lo cubre la córnea, y con brillo propio la pupila salía lechosa)
+            th_i = math.asin(min(0.95, IRIS_RADIO / datos_ojos[lado]["R"]))
+            tc = N.new("ShaderNodeTexCoord"); tc.location = (100, 1000)
+            nv = N.new("ShaderNodeVectorMath"); nv.operation = 'NORMALIZE'; nv.location = (250, 1000); L.new(tc.outputs["Object"], nv.inputs[0])
+            sz_ = N.new("ShaderNodeSeparateXYZ"); sz_.location = (400, 1000); L.new(nv.outputs["Vector"], sz_.inputs[0])
+            es = N.new("ShaderNodeMapRange"); es.name = "ESCLERA_brillo"; es.interpolation_type = 'SMOOTHSTEP'; es.location = (550, 1000)
+            es.inputs["From Min"].default_value = math.cos(th_i * 0.95); es.inputs["From Max"].default_value = math.cos(th_i * 1.10)
+            es.inputs["To Min"].default_value = 0.0; es.inputs["To Max"].default_value = 0.5
+            L.new(sz_.outputs["Z"], es.inputs["Value"]); L.new(es.outputs["Result"], bs.inputs["Specular IOR Level"])
+            er = N.new("ShaderNodeMapRange"); er.interpolation_type = 'SMOOTHSTEP'; er.location = (550, 800)
+            er.inputs["From Min"].default_value = math.cos(th_i * 0.95); er.inputs["From Max"].default_value = math.cos(th_i * 1.10)
+            er.inputs["To Min"].default_value = bs.inputs["Roughness"].default_value; er.inputs["To Max"].default_value = 0.16
+            L.new(sz_.outputs["Z"], er.inputs["Value"]); L.new(er.outputs["Result"], bs.inputs["Roughness"])
         if N.get("SOMBRA_mult"): continue
         prev = bs.inputs["Base Color"].links[0].from_socket if bs.inputs["Base Color"].is_linked else None
         at_ = N.new("ShaderNodeAttribute"); at_.attribute_type = 'GEOMETRY'; at_.attribute_name = "lejos_parpado"; at_.location = (100, 500)
