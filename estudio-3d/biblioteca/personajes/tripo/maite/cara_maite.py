@@ -785,7 +785,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
         for i_ in lista_: bm.verts[i_][capa] = PARTES[clave_]
     anchos = [0.0043, 0.0037, 0.0035, 0.0032, 0.0031, 0.0030]
     altos_s = [0.0050, 0.0044, 0.0047, 0.0041, 0.0038, 0.0035]
-    z_borde_sup = O.z - 0.0007                     # filo de los dientes de arriba
+    z_borde_sup = O.z - 0.0013                     # filo de los dientes de arriba (algo más bajo: se ven al sonreír y reír)
     for fila, (r_arco, prof, esc, signo) in enumerate(((0.0205, 0.0026, 1.0, 1), (0.0184, 0.0040, 0.88, -1))):
         s_acum = 0.0
         for k, (w_, h_) in enumerate(zip(anchos, altos_s)):
@@ -1115,7 +1115,7 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, lab
         P = co[idx]; t = (P - Ce) @ X * sgn[lado_arkit]                 # + hacia fuera (sien)
         tn = (t - t.min()) / max(1e-6, t.max() - t.min())
         dist = _dist_a(co, P)
-        w = np.where(piel, 1 - _ss(0.0015, 0.0110, dist), 0.0) * _ss(Ce[2] + 0.006, Ce[2] + 0.013, z)
+        w = np.where(piel, 1 - _ss(0.0015, 0.0160, dist), 0.0) * _ss(Ce[2] + 0.006, Ce[2] + 0.013, z)   # caída ancha: la frente acompaña (sin pliegues con cejas más vivas)
         Il = info_ojos[lado]; wl = np.zeros(N); wl[Il["idx"]] = Il["wsup"]; w = w * (1 - _ss(0.2, 0.6, wl))   # el borde del párpado y las pestañas, quietos
         # parámetro dentro-fuera para cada vértice (del más cercano de la ceja)
         tv = (co - Ce) @ X * sgn[lado_arkit]; tvn = np.clip((tv - t.min()) / max(1e-6, t.max() - t.min()), 0, 1)
@@ -1184,10 +1184,10 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, lab
     for lado in ("Left", "Right"):
         if lado not in cejas: continue
         c = cejas[lado]; w, t = c["w"], c["t"]
-        k_add(f"browDown{lado}", co - np.outer(w * (1.0 - 0.4 * t), up) * 0.0068 + np.outer(w * (1 - t), c["interior_dir"]) * 0.0030 - np.outer(w * (1 - t), F) * 0.0009)
-        k_add(f"browOuterUp{lado}", co + np.outer(w * _ss(0.3, 1.0, t), up) * 0.0074)
+        k_add(f"browDown{lado}", co - np.outer(w * (1.0 - 0.4 * t), up) * 0.0095 + np.outer(w * (1 - t), c["interior_dir"]) * 0.0040 - np.outer(w * (1 - t), F) * 0.0012)
+        k_add(f"browOuterUp{lado}", co + np.outer(w * _ss(0.3, 1.0, t), up) * 0.0104)
         ci = np.maximum(ci, w * (1 - _ss(0.0, 0.7, t)))
-    k_add("browInnerUp", co + np.outer(ci, up) * 0.0080)
+    k_add("browInnerUp", co + np.outer(ci, up) * 0.0115)
     # ---------------- lengua
     k_add("tongueOut", rotar(co, piv, lat, math.radians(14) * np.where(leng, 1.0, 0.0)) + np.outer(np.where(leng, 1.0, 0.0), F) * 0.010 - np.outer(np.where(leng, 1.0, 0.0), up) * 0.001)
     # ---------------- ojos (párpados)
@@ -1224,9 +1224,9 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, lab
     for lado in ("Left", "Right"):
         if lado not in cejas: continue
         c = cejas[lado]; w, t = c["w"], c["t"]
-        kx(f"browInnerUp{lado}", co + np.outer(w * (1 - _ss(0.0, 0.7, t)), up) * 0.0080)
-        kx(f"browOuterDown{lado}", co - np.outer(w * _ss(0.3, 1.0, t), up) * 0.0045)
-        kx(f"browSqueeze{lado}", co + np.outer(w * (1 - t), c["interior_dir"]) * 0.0032 - np.outer(w * (1 - t), up) * 0.0015)
+        kx(f"browInnerUp{lado}", co + np.outer(w * (1 - _ss(0.0, 0.7, t)), up) * 0.0115)
+        kx(f"browOuterDown{lado}", co - np.outer(w * _ss(0.3, 1.0, t), up) * 0.0062)
+        kx(f"browSqueeze{lado}", co + np.outer(w * (1 - t), c["interior_dir"]) * 0.0042 - np.outer(w * (1 - t), up) * 0.0020)
     for lado, sufijo in (("L", "Left"), ("R", "Right")):
         I = info_ojos[lado]; th = I["th"]; idx = I["idx"]; C = I["C"]
         ws_ = np.asarray(I["wsup"]).reshape(-1); wi_ = np.asarray(I["winf"]).reshape(-1)
