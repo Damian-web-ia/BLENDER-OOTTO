@@ -644,37 +644,33 @@ def _reindexar(me, puntos):
     return [kd.find(Vector(p))[1] for p in puntos]
 
 
-def _caja_redonda(bm, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
+def _caja_redonda(bm, capa, parte, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
     """Caja de esquinas redondeadas (para dientes): cubo subdividido y 'inflado' hacia una superelipse.
-    Devuelve la lista de sus vértices (OJO: bmesh reutiliza huecos, los nuevos no siempre van al final)."""
-    # marca en una capa propia (ni conjuntos de BMVert, que comparan mal, ni 'tag', que lo usan los operadores)
-    capa = bm.verts.layers.int.get("viejo") or bm.verts.layers.int.new("viejo")
-    for v in bm.verts: v[capa] = 1
+    Sus vértices quedan marcados con 'parte' en la capa entera 'capa'. (Las referencias a BMVert NO sobreviven a
+    subdivide_edges ni a crear capas, y create_uvsphere reutiliza huecos: por eso todo se marca en una capa.)"""
+    tmp = -7
     r = bmesh.ops.create_cube(bm, size=2.0)
-    for v in r["verts"]: v[capa] = 0
+    for v in r["verts"]: v[capa] = tmp
     aristas = list({e for v in r["verts"] for e in v.link_edges})
     bmesh.ops.subdivide_edges(bm, edges=aristas, cuts=segs, use_grid_fill=True)
-    vs = [v for v in bm.verts if v[capa] == 0]
+    vs = [v for v in bm.verts if v[capa] == tmp]
     for v in vs:
         p = v.co.copy()
         k = (abs(p.x) ** 3 + abs(p.y) ** 3 + abs(p.z) ** 3) ** (1 / 3)
         p = p / max(k, 1e-6)
         v.co = centro + X * (p.x * sx) + Y * (p.y * sy) + Z * (p.z * sz)
+        v[capa] = parte
     for f in {f for v in vs for f in v.link_faces}:
         f.material_index = mat_i; f.smooth = True
-    return vs
 
 
-def _elipsoide(bm, centro, X, Y, Z, rx, ry, rz, mat_i, u=24, v=14):
-    """Elipsoide; devuelve sus vértices. (Antes se tomaba un tramo de índices n0..n1, pero create_uvsphere crea y borra
-    geometría por dentro y los vértices nuevos ocupan huecos: quedaban vértices sin transformar, en una esfera de 1 m.)"""
+def _elipsoide(bm, capa, parte, centro, X, Y, Z, rx, ry, rz, mat_i, u=24, v=14):
     r = bmesh.ops.create_uvsphere(bm, u_segments=u, v_segments=v, radius=1.0)
     vs = list(r["verts"])
     for q in vs:
-        p = q.co.copy(); q.co = centro + X * (p.x * rx) + Y * (p.y * ry) + Z * (p.z * rz)
+        p = q.co.copy(); q.co = centro + X * (p.x * rx) + Y * (p.y * ry) + Z * (p.z * rz); q[capa] = parte
     for f in {f for q in vs for f in q.link_faces}:
         f.material_index = mat_i; f.smooth = True
-    return vs
 
 
 def construir_boca(arm, me, adelante, lat, datos_ojos):
@@ -740,7 +736,12 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     vp = {v: k for k, v in enumerate({v for f in caras_piel for v in f.verts})}
     bvh_piel = BVHTree.FromPolygons([v.co.copy() for v in vp], [[vp[v] for v in f.verts] for f in caras_piel])
     abertura = [((v.co - O).dot(X), (v.co - O).dot(up)) for v in bucle]
-    partes = {"dientes_sup": [], "dientes_inf": [], "encia_sup": [], "encia_inf": [], "lengua": [], "saco": []}   # listas de vértices
+    PARTES = {"dientes_sup": 1, "dientes_inf": 2, "encia_sup": 3, "encia_inf": 4, "lengua": 5, "saco": 6, "bucle": 101, "labio_int": 102, "boca_int": 103}
+    capa = bm.verts.layers.int.get("parte_boca") or bm.verts.layers.int.new("parte_boca")      # (invalida las referencias viejas)
+    bm.verts.ensure_lookup_table()
+    for v in bm.verts: v[capa] = 0
+    for clave_, lista_ in (("bucle", idx_bucle), ("labio_int", idx_v1), ("boca_int", idx_v2)):
+        for i_ in lista_: bm.verts[i_][capa] = PARTES[clave_]
     anchos = [0.0043, 0.0037, 0.0035, 0.0032, 0.0031, 0.0030]
     altos_s = [0.0050, 0.0044, 0.0047, 0.0041, 0.0038, 0.0035]
     z_borde_sup = O.z - 0.0007                     # filo de los dientes de arriba
@@ -757,18 +758,23 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
                     c_ = pos + up * (z_borde_sup - O.z + h_ / 2)
                 else:
                     c_ = pos + up * (z_borde_sup - O.z - 0.0004 - h_ / 2)
-                partes["dientes_sup" if signo > 0 else "dientes_inf"].append(
-                    _caja_redonda(bm, c_, tang, nrm_, up, w_ * 0.505, 0.0012, h_ / 2, mats["MAITE_dientes"]))
+                _caja_redonda(bm, capa, PARTES["dientes_sup" if signo > 0 else "dientes_inf"],
+                              c_, tang, nrm_, up, w_ * 0.505, 0.0012, h_ / 2, mats["MAITE_dientes"])
             s_acum += w_
     # encías: anillos aplastados que siguen el arco de los dientes
     for signo, clave_, r_a, prof in ((1, "encia_sup", 0.0210, 0.0026), (-1, "encia_inf", 0.0189, 0.0040)):
         cprof = prof + r_a - 0.0006
         c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0004 if signo < 0 else 0))
-        partes[clave_].append(_elipsoide(bm, c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12))
-    partes["lengua"].append(_elipsoide(bm, O - F * 0.0200 + up * (z_borde_sup - O.z - 0.0068), X, F, up, 0.0092, 0.0115, 0.0030, mats["MAITE_lengua"], 28, 14))
-    partes["saco"].append(_elipsoide(bm, O - F * 0.0235 + up * 0.0004, X, F, up, 0.0245, 0.0175, 0.0102, mats["MAITE_boca_int"], 36, 20))
+        _elipsoide(bm, capa, PARTES[clave_], c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12)
+    _elipsoide(bm, capa, PARTES["lengua"], O - F * 0.0200 + up * (z_borde_sup - O.z - 0.0068), X, F, up, 0.0092, 0.0115, 0.0030, mats["MAITE_lengua"], 28, 14)
+    _elipsoide(bm, capa, PARTES["saco"], O - F * 0.0235 + up * 0.0004, X, F, up, 0.0245, 0.0175, 0.0102, mats["MAITE_boca_int"], 36, 20)
     bm.verts.index_update(); bm.verts.ensure_lookup_table()
-    info = {k: [v.index for lista in listas for v in lista] for k, listas in partes.items()}
+    info = {k: [] for k in PARTES}
+    inv = {v_: k for k, v_ in PARTES.items()}
+    for v in bm.verts:
+        k = inv.get(v[capa])
+        if k: info[k].append(v.index)
+    idx_bucle, idx_v1, idx_v2 = info.pop("bucle"), info.pop("labio_int"), info.pop("boca_int")
     # nada de dentro puede asomar por la piel: si un vértice está delante de la piel (y no detrás de la abertura), se mete
     def en_abertura(px_, pz_):
         dentro = False; n = len(abertura)
@@ -788,6 +794,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
                 v.co = loc - nrm_p * 0.0012; metidos += 1
     print("BOCA vértices metidos dentro de la cara:", metidos, flush=True)
     info["bucle"] = idx_bucle; info["labio_int"] = idx_v1; info["boca_int"] = idx_v2
+    bm.verts.layers.int.remove(capa)
     info.update(O=tuple(O), F=tuple(F), X=tuple(X))
     bm.normal_update(); bm.to_mesh(m); bm.free(); m.update()
     # pesos del esqueleto de las piezas nuevas: todo a la cabeza
