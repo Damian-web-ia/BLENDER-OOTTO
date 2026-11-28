@@ -78,7 +78,9 @@ def mangas_tela(arm, me, separacion=0.0012, encoger=0.003):
             for g_ in m.vertices[int(v)].groups:
                 if g_.weight > 0.001: por_grupo.setdefault(g_.group, []).append((i_, g_.weight))
         for gidx, lista in por_grupo.items():
-            ng = ob.vertex_groups.new(name=me.vertex_groups[gidx].name)
+            nombre_g = me.vertex_groups[gidx].name
+            if nombre_g.startswith("Trenza") or nombre_g == "suave_articulaciones": continue   # la manga no sigue a la trenza
+            ng = ob.vertex_groups.new(name=nombre_g)
             for i_, wi in lista: ng.add([i_], float(wi), 'REPLACE')
         # pines: cosida al hombro (1), libre con peso hacia el bajo (0,35)
         b = arm.data.bones[P + lado + "Arm"]
@@ -86,17 +88,18 @@ def mangas_tela(arm, me, separacion=0.0012, encoger=0.003):
         t = np.clip(((co[vset] - A) @ ab) / (ab @ ab), 0, 1)
         t0, t1 = np.percentile(t, 5), np.percentile(t, 95)
         tn = np.clip((t - t0) / max(1e-6, t1 - t0), 0, 1)
-        pin = 1.0 - 0.65 * tn ** 1.3
+        pin = 1.0 - 0.42 * tn ** 1.5
         pin = np.where(toca_torso[vset], 1.0, pin)
         gp = ob.vertex_groups.new(name="pin")
         for i_, wi in enumerate(pin): gp.add([i_], float(wi), 'REPLACE')
         am = ob.modifiers.new("Armature", 'ARMATURE'); am.object = arm
         cl = ob.modifiers.new("Tela", 'CLOTH')
         s = cl.settings
-        s.quality = 8; s.mass = 0.12; s.air_damping = 1.0
-        s.tension_stiffness = 12; s.compression_stiffness = 12; s.shear_stiffness = 6; s.bending_stiffness = 0.4
+        # algodón a escala del modelo (1 m): masa por vértice pequeña (con 0,12 kg la manga pesaba 55 kg y se caía)
+        s.quality = 10; s.mass = 0.0025; s.air_damping = 1.0; s.gravity = (0, 0, -9.81)
+        s.tension_stiffness = 15; s.compression_stiffness = 15; s.shear_stiffness = 5; s.bending_stiffness = 0.05
         s.tension_damping = 5; s.compression_damping = 5; s.shear_damping = 5; s.bending_damping = 0.5
-        s.vertex_group_mass = "pin"; s.pin_stiffness = 1.0
+        s.vertex_group_mass = "pin"; s.pin_stiffness = 30.0
         s.shrink_min = 0.0
         cl.collision_settings.use_collision = True; cl.collision_settings.distance_min = 0.0012
         cl.collision_settings.collision_quality = 3; cl.collision_settings.use_self_collision = False
