@@ -64,6 +64,8 @@ def claves(d):
 def foto(nombre, loc, lente, mira=None):
     ruta = os.path.join(OUT, nombre + ".png")
     if os.path.exists(ruta) and os.environ.get("HOJA_REPETIR") != "1": print("YA", nombre); return
+    solo = os.environ.get("HOJA_SOLO")
+    if solo and nombre not in solo.split(","): return
     mira = C if mira is None else mira
     cam.location = loc; cd.lens = lente
     cam.rotation_euler = (Vector(mira) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
