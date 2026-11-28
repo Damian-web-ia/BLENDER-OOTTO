@@ -62,11 +62,11 @@ Cada clave lleva solo lo que le falta para su pose completa. Por eso las 82 se p
   - `A.parpadeos_auto(f0, f1, evitar=[(a, b)])` reparte parpadeos naturales cada 2–5 s y se salta los tramos indicados.
 - **Microsacadas**: `A.mirada_viva(f0, f1, amplitud=0.026)` da pequeños saltos de la mirada cada 0,5–1,5 s, para que no parezca fija.
 
-## 3. Biblioteca de expresiones: 45
+## 3. Biblioteca de expresiones: 46
 
 Se usan con `A.expresion(f, "nombre", intensidad=1.0)`. La expresión se mezcla con la anterior según la distancia entre claves.
 
-neutra, alegria, sonrisa_natural, sonrisa_asimetrica, risa, entusiasmo, satisfaccion, tristeza, sorpresa, miedo, enfado, frustracion, preocupacion, nerviosismo, confusion, incredulidad, curiosidad, concentracion, pensamiento, verguenza, cansancio, aburrimiento, sarcasmo, ironia, comica, guino, sonrisa_profesional, sonrisa_espontanea, felicidad, risa_suave, carcajada, seguridad, determinacion, orgullo, complicidad, sorpresa_leve, sorpresa_intensa, impaciencia, decepcion, desaprobacion, sospecha, explicando, pensamiento_profundo, ceja_izquierda, ceja_derecha.
+neutra, alegria, sonrisa_natural, sonrisa_asimetrica, risa, entusiasmo, satisfaccion, tristeza, sorpresa, miedo, enfado, frustracion, preocupacion, nerviosismo, confusion, incredulidad, curiosidad, concentracion, pensamiento, verguenza, cansancio, aburrimiento, sarcasmo, ironia, comica, guino, sonrisa_profesional, sonrisa_espontanea, felicidad, risa_suave, carcajada, seguridad, determinacion, orgullo, complicidad, sorpresa_leve, sorpresa_intensa, impaciencia, decepcion, desaprobacion, sospecha, explicando, pensamiento_profundo, ceja_izquierda, ceja_derecha, hablando_simpatica (de fondo mientras habla).
 
 Las expresiones son diccionarios de shape keys (`EXPRESIONES` en `maite_anim.py`). Para añadir una nueva basta una línea:
 
@@ -91,7 +91,7 @@ Usan claves propias que ninguna expresión toca, así que se suman a cualquier e
 
 `A.hablar(palabras, f_inicio)` recibe las palabras con sus tiempos, por ejemplo `[{"text": "Hola", "start": 0.0, "end": 0.35}, …]`. Así las devuelve la voz generada.
 
-Cada letra se reparte en el tiempo de su palabra (las vocales pesan más) y pone su visema:
+Cada letra se reparte en el tiempo de su palabra (las vocales pesan más) y pone su visema. La expresión que tenga en ese momento se mantiene de fondo, así que, por ejemplo, sigue sonriendo mientras habla:
 
 | Visema | Letras |
 |---|---|

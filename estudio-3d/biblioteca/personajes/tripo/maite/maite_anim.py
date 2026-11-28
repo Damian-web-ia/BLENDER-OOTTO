@@ -403,15 +403,16 @@ EXPRESIONES = {
     "pensamiento_profundo": {"eyeLookUpLeft": 0.5, "eyeLookUpRight": 0.5, "browDownLeft": 0.45, "browDownRight": 0.3, "mouthPucker": 0.25, "mouthLeft": 0.3, "eyeSquintLeft": 0.2},
     "ceja_izquierda":    {"browOuterUpLeft": 0.95, "browInnerUp": 0.2, "browDownRight": 0.15},
     "ceja_derecha":      {"browOuterUpRight": 0.95, "browInnerUp": 0.2, "browDownLeft": 0.15},
+    "hablando_simpatica": _sim({"mouthSmile*": 0.45, "cheekSquint*": 0.25, "eyeSquint*": 0.10, "browOuterUp*": 0.20}),
 }
 
 # visemas del español (solo boca y mandíbula)
 VISEMAS = {
-    "a": {"jawOpen": 0.55, "mouthStretchLeft": 0.10, "mouthStretchRight": 0.10},
-    "e": {"jawOpen": 0.32, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15},
-    "i": {"jawOpen": 0.16, "mouthStretchLeft": 0.50, "mouthStretchRight": 0.50, "mouthSmileLeft": 0.25, "mouthSmileRight": 0.25},
-    "o": {"jawOpen": 0.40, "mouthFunnel": 0.75},
-    "u": {"jawOpen": 0.14, "mouthPucker": 0.85},
+    "a": {"jawOpen": 0.64, "mouthStretchLeft": 0.10, "mouthStretchRight": 0.10, "mouthUpperUpLeft": 0.25, "mouthUpperUpRight": 0.25},
+    "e": {"jawOpen": 0.38, "mouthStretchLeft": 0.35, "mouthStretchRight": 0.35, "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
+    "i": {"jawOpen": 0.20, "mouthStretchLeft": 0.50, "mouthStretchRight": 0.50, "mouthSmileLeft": 0.25, "mouthSmileRight": 0.25, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
+    "o": {"jawOpen": 0.46, "mouthFunnel": 0.85},
+    "u": {"jawOpen": 0.16, "mouthPucker": 0.90},
     "mbp": {"jawOpen": 0.0, "mouthClose": 0.95, "mouthPressLeft": 0.25, "mouthPressRight": 0.25, "mouthRollLower": 0.15},
     "fv": {"jawOpen": 0.08, "mouthRollLower": 0.6, "mouthUpperUpLeft": 0.2, "mouthUpperUpRight": 0.2},
     "dental": {"jawOpen": 0.18, "mouthStretchLeft": 0.15, "mouthStretchRight": 0.15},
@@ -472,8 +473,8 @@ def _cara_metodos(cls):
         a cualquier expresión sin pisarla."""
         import random
         rnd = random.Random(semilla); fps = self.sc.render.fps
-        gestos = [({"nostrilFlareLeft": 0.35, "nostrilFlareRight": 0.35}, 0.45), ({"browInnerUpLeft": 0.25}, 0.5),
-                  ({"browInnerUpRight": 0.25}, 0.5), ({"lipTightenLeft": 0.30}, 0.4), ({"lipTightenRight": 0.30}, 0.4),
+        gestos = [({"nostrilFlareLeft": 0.35, "nostrilFlareRight": 0.35}, 0.45), ({"browInnerUpLeft": 0.15}, 0.5),
+                  ({"browInnerUpRight": 0.15}, 0.5), ({"lipTightenLeft": 0.30}, 0.4), ({"lipTightenRight": 0.30}, 0.4),
                   ({"cheekRaiseLeft": 0.25}, 0.5), ({"cheekRaiseRight": 0.25}, 0.5), ({"chinRaise": 0.30}, 0.45),
                   ({"eyeLowerLidUpLeft": 0.30, "eyeLowerLidUpRight": 0.30}, 0.5), ({"browOuterDownLeft": 0.25}, 0.45)]
         usados = sorted({k for g, _ in gestos for k in g})
@@ -510,9 +511,11 @@ def _cara_metodos(cls):
         Cada letra se reparte en el tiempo de su palabra (las vocales pesan más) y pone su visema."""
         fps = fps or self.sc.render.fps
         usados = sorted({k for d in VISEMAS.values() for k in d})
+        nb_, ib_ = getattr(self, "_expr_actual", ("neutra", 1.0))
+        fondo = {k: v * ib_ * 0.8 for k, v in EXPRESIONES.get(nb_, {}).items()}   # la expresión de fondo sigue (sonríe al hablar)
         def poner(f, vis, k_=1.0):
             d = VISEMAS[vis]
-            for k in usados: self._key(k, f, d.get(k, 0.0) * intensidad * k_)
+            for k in usados: self._key(k, f, d.get(k, 0.0) * intensidad * k_ + fondo.get(k, 0.0))
         ult = None
         for w in palabras:
             txt = "".join(c for c in w["text"].lower() if c.isalpha() or c in "áéíóúüñ")

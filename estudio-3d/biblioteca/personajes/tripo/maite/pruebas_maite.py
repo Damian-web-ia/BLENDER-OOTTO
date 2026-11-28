@@ -314,13 +314,13 @@ elif PRUEBA == "demo_cara":
     ex(23.0, "concentracion"); ex(24.4, "concentracion"); A.mirar(F(23.0), -0.04, -0.12); A.cabeza(F(23.0), arriba=-6, giro=-5)
     A.pupila(F(23.0), 0.85); A.pupila(F(24.4), 1.0)
     # 9 — diálogo (labios por visemas), gestos de cabeza y cejas
-    A.mirar(F(24.5), 0, 0); A.cabeza(F(24.6)); ex(24.6, "sonrisa_natural", 0.7)
+    A.mirar(F(24.5), 0, 0); A.cabeza(F(24.6)); ex(24.6, "hablando_simpatica")
     A.hablar(pal, f_inicio=F(T_HAB))
     for i, w in enumerate(pal):
         f = F(T_HAB + w["start"])
         if i % 4 == 0: A.cabeza(f, arriba=2 if i % 8 == 0 else -1.5, giro=3 if i % 8 == 0 else -2.5, ladeo=1.5)
     if voz: sonido(voz, F(T_HAB))
-    ex(T_HAB + DUR_HAB + 0.2, "sonrisa_natural")
+    ex(T_HAB + DUR_HAB + 0.2, "sonrisa_espontanea", 0.8)
     # 10 — giros de cabeza: la trenza reacciona
     for dt, g, ar, tz in ((0.0, 0, 0, 0), (0.5, 36, 2, 12), (1.0, 36, 0, 12), (1.5, -38, -2, -14), (2.1, -38, 0, -14), (2.6, 0, 3, 0), (3.2, 0, 0, 0)):
         A.cabeza(F(T_GIROS + dt), arriba=ar, giro=g); A.torso(F(T_GIROS + dt), giro=tz * 0.6)
