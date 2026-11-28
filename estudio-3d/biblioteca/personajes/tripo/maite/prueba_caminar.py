@@ -12,9 +12,9 @@ ARM = bpy.data.objects["MAITE_rig"]
 MA = {}; exec(compile(open(os.path.join(PM, "maite_anim.py"), encoding="utf-8").read(), "maite_anim", "exec"), MA)
 A = MA["MaiteAnim"](ARM)
 A.pose_reposo(1); A.mano(1, "L", "relajada"); A.mano(1, "R", "relajada")
-fin = A.caminar(1, pasos=6, zancada=0.30, frames_paso=14)
+fin = A.caminar(1, pasos=6, zancada=0.30, frames_paso=14, inicio=(0.0, 0.9, 0.0))
 A.pose_reposo(fin + 12)
-A.respirar(1, fin + 12); A.finalizar(1, fin + 12, trenza=False)
+A.respirar(1, fin + 12); A.finalizar(1, fin + 12, trenza=True)
 for ob in bpy.data.objects:
     for md in ob.modifiers:
         if md.type == 'CLOTH': md.show_render = False; md.show_viewport = False
@@ -38,7 +38,7 @@ sc.view_settings.view_transform = 'AgX'
 for nombre, loc, mira in (("lado", (2.6, -0.9, 0.55), (0, -0.9, 0.45)), ("frente", (0.4, -3.6, 0.7), (0, -0.9, 0.45))):
     cam.location = loc; cd.lens = 40
     cam.rotation_euler = (Vector(mira) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
-    for f in range(1, fin + 13, 7):
+    for f in range(1, fin + 13, 7 if nombre == "lado" else 14):
         sc.frame_set(f); sc.render.filepath = os.path.join(OUT, f"{nombre}_{f:03d}.png")
         bpy.ops.render.render(write_still=True)
 print("CAMINAR_OK", fin, flush=True)
