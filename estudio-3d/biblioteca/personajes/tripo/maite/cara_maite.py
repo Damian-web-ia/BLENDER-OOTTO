@@ -1054,7 +1054,7 @@ def _dist_a(P, Q):
     return np.array([kd.find(p)[2] for p in np.asarray(P, np.float64)])
 
 
-def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, labios_volumen=0.0):
+def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, labios_volumen=0.0, reposo=None):
     m = me.data; N = len(m.vertices)
     co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
     nor = np.empty(N * 3, np.float64); m.vertices.foreach_get('normal', nor); nor = nor.reshape(-1, 3)
@@ -1217,7 +1217,20 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, lab
              "cheekSquintRight", "noseSneerLeft", "noseSneerRight", "tongueOut"]
     # boca cerrada en reposo (Damián, 28-11: abierta con los dientes a la vista "da miedo"): la base pasa a tener los
     # labios juntos y algo más de volumen; las claves que ya llevaban el cierre se quedan sólo con lo que les falta
-    if cerrar_reposo > 0:
+    # reposo más amable: parte de algunas claves pasa a la cara de reposo (ojos más abiertos, cejas algo más altas). Cada
+    # una de esas claves se queda con lo que le falta para llegar a su pose de siempre; el parpadeo cierra igual.
+    Dr = np.zeros_like(co)
+    if reposo:
+        delta = {k: claves[k] - co for k in reposo if k in claves}
+        for k, f_ in reposo.items():
+            if k in delta: Dr = Dr + f_ * delta[k]
+        for nombre in list(claves):
+            claves[nombre] = claves[nombre] + Dr - (reposo[nombre] * delta[nombre] if nombre in delta else 0.0)
+        for lado in ("Left", "Right"):
+            if f"eyeBlink{lado}" in claves and f"eyeWide{lado}" in delta:
+                claves[f"eyeBlink{lado}"] = claves[f"eyeBlink{lado}"] - reposo[f"eyeWide{lado}"] * delta[f"eyeWide{lado}"]
+        print("REPOSO", {k: v for k, v in reposo.items() if k in delta}, flush=True)
+    if cerrar_reposo > 0 or reposo:
         f_ = float(cerrar_reposo)
         D = cierre * f_ + np.outer(w_lab, F) * labios_volumen
         for nombre in list(claves): claves[nombre] = claves[nombre] + D
@@ -1227,8 +1240,8 @@ def crear_claves(arm, me, info_ojos, info_boca, adelante, cerrar_reposo=0.0, lab
         for lado in ("Left", "Right"):
             if f"mouthPress{lado}" in claves:
                 claves[f"mouthPress{lado}"] = claves[f"mouthPress{lado}"] - cierre * np.minimum(lado_x[lado], f_)[:, None]
-        m.vertices.foreach_set('co', (co + D).ravel()); m.update()
-        info_boca["D_reposo"] = D
+        m.vertices.foreach_set('co', (co + D + Dr).ravel()); m.update()
+        info_boca["D_reposo"] = D + Dr
         print("BOCA_REPOSO cerrada", f_, "volumen labios", labios_volumen, flush=True)
     if not m.shape_keys: me.shape_key_add(name="Basis", from_mix=False)
     hechas = []

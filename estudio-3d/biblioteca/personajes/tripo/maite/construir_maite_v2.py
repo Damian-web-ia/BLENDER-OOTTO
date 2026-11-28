@@ -296,7 +296,8 @@ BOCA_INFO = CM["construir_boca"](ARM, ME, ADELANTE, LAT, OJOS_DATOS)
 CM["alisar_parpados"](ME, OJOS_DATOS, ADELANTE)
 PARPADOS = CM["preparar_parpados"](ARM, ME, OJOS_DATOS, ADELANTE)
 CM["_desplegar_piel"](ME, OJOS_DATOS, None, ADELANTE, cerca_globo=0.0016)      # otra pasada: pliegues que deja preparar_parpados
-ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE, cerrar_reposo=0.92, labios_volumen=0.0006)
+ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE, cerrar_reposo=0.92, labios_volumen=0.0006,
+                         reposo={"eyeWideLeft": 0.55, "eyeWideRight": 0.55, "browOuterUpLeft": 0.25, "browOuterUpRight": 0.25, "browInnerUp": 0.15})
 CM["ajustar_globos"](ME, OJOS_DATOS)
 CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO)
 CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO)
