@@ -1,6 +1,6 @@
 # PRUEBAS OBLIGATORIAS DE MAITE (skill AAA, punto 19) · EKORUEDAS · 28-11-2026
 # Uso: blender -b --factory-startup --python pruebas_maite.py -- <carpeta_estudio> <carpeta_salida> <prueba> [muestras] [ancho]
-#   prueba: expresiones | pelo | ropa | giro | primer_plano
+#   prueba: expresiones | pelo | ropa | objeto | giro | primer_plano
 # Cada prueba anima con la biblioteca de Maite (maite_anim.py), hornea trenza y tela, y saca un MP4 (o una foto 4K).
 import bpy, os, sys, math, random
 from mathutils import Vector, Matrix, Quaternion
@@ -99,6 +99,22 @@ elif PRUEBA == "ropa":
     A.expresion(1, "sonrisa_natural"); A.expresion(150 + S, "alegria"); A.parpadeos_auto(f0, f1); A.mirada_viva(f0, f1)
     camara((1.05, -2.35, 0.80), (0.0, 0.25, 0.55), 42)
     hornear_y_video(f0, f1, "prueba4_ropa")
+elif PRUEBA == "objeto":
+    # 5 — Interacción con una pieza mecánica: coge la llave de cruz, la mira, la gira y la enseña a cámara (7 s)
+    UT = {}; exec(compile(open(os.path.join(PM, "utileria_maite.py"), encoding="utf-8").read(), "utileria", "exec"), UT)
+    f0, f1 = 1, 168; base(f0, f1)
+    A.brazo(1, "R", "agarra"); A.mano(1, "R", "agarra"); sc.frame_set(1)
+    llave = UT["llave_cruz"](); UT["agarrar"](ARM, llave, "R")
+    A.brazo(1, "R", "reposo"); A.mano(1, "R", "agarra")
+    A.brazo(24, "R", "agarra"); A.mano(24, "R", "agarra"); A.cabeza(24, arriba=-12, giro=-10)
+    A.mirar(24, -0.05, -0.12); A.expresion(24, "curiosidad")
+    A.mano(48, "R", "agarra", muneca=(0, 45, 0)); A.cabeza(48, arriba=-10, giro=-14, ladeo=4); A.expresion(48, "concentracion")
+    A.mano(72, "R", "agarra", muneca=(0, -35, 10)); A.cabeza(72, arriba=-8, giro=-8)
+    A.brazo(100, "R", "presenta"); A.mano(100, "R", "agarra", muneca=(0, 0, -10)); A.cabeza(100); A.mirar(100, 0, 0)
+    A.expresion(100, "alegria"); A.brazo(140, "R", "presenta"); A.brazo(150, "L", "jarras")
+    A.parpadeos_auto(f0, f1, evitar=[(20, 30)]); A.mirada_viva(100, f1)
+    camara((0.55, -1.35, 0.86), (0.0, 0.0, 0.70), 50)
+    hornear_y_video(f0, f1, "prueba5_objeto")
 elif PRUEBA == "giro":
     # 8 — Turntable: la cámara da una vuelta completa alrededor de Maite en reposo (8 s)
     f0, f1 = 1, 192; base(f0, f1); A.expresion(1, "sonrisa_natural"); A.parpadeos_auto(f0, f1)
