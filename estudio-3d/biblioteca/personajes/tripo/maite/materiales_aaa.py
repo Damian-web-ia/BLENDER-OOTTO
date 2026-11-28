@@ -64,7 +64,7 @@ def _caras_pelo_en_piel(me, ip_pelo, ojos):
     print("PELO_AAA caras de piel pintadas de pelo -> pelo:", int(cambia.sum()), flush=True)
 
 
-def pelo_aaa(me, fuerza_pintura=0.45, vetas=170.0, ojos=()):
+def pelo_aaa(me, fuerza_pintura=0.30, vetas=170.0, ojos=()):
     m = me.data
     ip = next(i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_pelo")
     if ojos: _caras_pelo_en_piel(me, ip, ojos)
@@ -141,12 +141,12 @@ def pelo_aaa(me, fuerza_pintura=0.45, vetas=170.0, ojos=()):
     tg = N.new("ShaderNodeTangent"); tg.name = "PELO_tangente"; tg.direction_type = 'RADIAL'; tg.axis = 'Z'; tg.location = (-200, -150)
     L.new(tg.outputs["Tangent"], bs.inputs["Tangent"])
     bs.inputs["Anisotropic"].default_value = 0.75; bs.inputs["Anisotropic Rotation"].default_value = 0.25
-    bs.inputs["Specular IOR Level"].default_value = 0.6
+    bs.inputs["Specular IOR Level"].default_value = 0.45
     for l in list(bs.inputs["Roughness"].links): L.remove(l)
     rr = N.new("ShaderNodeMapRange"); rr.name = "PELO_rug"; rr.location = (-200, 100)
-    rr.inputs["To Min"].default_value = 0.30; rr.inputs["To Max"].default_value = 0.48; L.new(vet, rr.inputs["Value"])
+    rr.inputs["To Min"].default_value = 0.40; rr.inputs["To Max"].default_value = 0.58; L.new(vet, rr.inputs["Value"])
     L.new(rr.outputs["Result"], bs.inputs["Roughness"])
-    bs.inputs["Sheen Weight"].default_value = 0.25; bs.inputs["Sheen Roughness"].default_value = 0.35
+    bs.inputs["Sheen Weight"].default_value = 0.18; bs.inputs["Sheen Roughness"].default_value = 0.4
     bs.inputs["Coat Weight"].default_value = 0.0
     print("PELO_AAA color medio", np.round(med, 3).tolist(), "luminancia p10/50/90", np.round(pct, 3).tolist(),
           "coronilla", np.round(cabeza, 3).tolist(), flush=True)

@@ -280,6 +280,20 @@ def material_cuenca():
     return mt
 
 
+def _oscurecer_por_oclusion(mt, distancia, potencia):
+    """Multiplica el color base por la oclusión ambiental (lo de dentro de la boca se oscurece al meterse)."""
+    N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
+    if N.get("OCL_ao"): return
+    col = tuple(bs.inputs["Base Color"].default_value)
+    ao = N.new("ShaderNodeAmbientOcclusion"); ao.name = "OCL_ao"; ao.inputs["Distance"].default_value = distancia; ao.samples = 8
+    pw = N.new("ShaderNodeMath"); pw.operation = 'POWER'; pw.inputs[1].default_value = potencia; L.new(ao.outputs["AO"], pw.inputs[0])
+    mx = N.new("ShaderNodeMix"); mx.data_type = 'RGBA'; mx.blend_type = 'MULTIPLY'
+    _sk(mx.inputs, "Factor_Float").default_value = 1.0; _sk(mx.inputs, "A_Color").default_value = col
+    cc = N.new("ShaderNodeCombineColor")
+    for k_ in ("Red", "Green", "Blue"): L.new(pw.outputs[0], cc.inputs[k_])
+    L.new(cc.outputs["Color"], _sk(mx.inputs, "B_Color")); L.new(_sk(mx.outputs, "Result_Color"), bs.inputs["Base Color"])
+
+
 def material_simple(nombre, color, rug=0.5, sss=0.0, coat=0.0):
     mt = bpy.data.materials.get(nombre) or bpy.data.materials.new(nombre); mt.use_nodes = True
     bs = mt.node_tree.nodes["Principled BSDF"]; bs.inputs["Base Color"].default_value = (*color, 1)
@@ -687,7 +701,9 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     for nombre, col, rug, sss, coat in (("MAITE_labio_int", (0.62, 0.24, 0.24), 0.3, 0.3, 0.5), ("MAITE_boca_int", (0.075, 0.016, 0.018), 0.6, 0.0, 0.0),
                                          ("MAITE_dientes", (0.86, 0.84, 0.78), 0.28, 0.15, 0.35), ("MAITE_encias", (0.70, 0.27, 0.29), 0.35, 0.3, 0.4),
                                          ("MAITE_lengua", (0.66, 0.26, 0.27), 0.45, 0.35, 0.25)):
-        m.materials.append(material_simple(nombre, col, rug=rug, sss=sss, coat=coat)); mats[nombre] = len(m.materials) - 1
+        mt_ = material_simple(nombre, col, rug=rug, sss=sss, coat=coat)
+        if nombre in ("MAITE_boca_int", "MAITE_lengua", "MAITE_encias"): _oscurecer_por_oclusion(mt_, 0.010, 2.5 if nombre == "MAITE_boca_int" else 1.4)
+        m.materials.append(mt_); mats[nombre] = len(m.materials) - 1
     fc = _color_caras(me)
     ssel = set(sel)
     restos = [i for i, c in enumerate(cen) if i not in ssel and x0 - 0.008 < c[0] < x1 + 0.008 and inf(c[0]) - 0.009 < c[2] < sup(c[0]) + 0.007
@@ -766,7 +782,7 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
         cprof = prof + r_a - 0.0006
         c_ = O - F * cprof + up * (signo * 0.0056 + (z_borde_sup - O.z) - (0.0004 if signo < 0 else 0))
         _elipsoide(bm, capa, PARTES[clave_], c_, X, F, up, r_a, r_a * 0.92, 0.0026, mats["MAITE_encias"], 40, 12)
-    _elipsoide(bm, capa, PARTES["lengua"], O - F * 0.0200 + up * (z_borde_sup - O.z - 0.0068), X, F, up, 0.0092, 0.0115, 0.0030, mats["MAITE_lengua"], 28, 14)
+    _elipsoide(bm, capa, PARTES["lengua"], O - F * 0.0215 + up * (z_borde_sup - O.z - 0.0088), X, F, up, 0.0090, 0.0112, 0.0026, mats["MAITE_lengua"], 28, 14)
     _elipsoide(bm, capa, PARTES["saco"], O - F * 0.0235 + up * 0.0004, X, F, up, 0.0245, 0.0175, 0.0102, mats["MAITE_boca_int"], 36, 20)
     bm.verts.index_update(); bm.verts.ensure_lookup_table()
     info = {k: [] for k in PARTES}
