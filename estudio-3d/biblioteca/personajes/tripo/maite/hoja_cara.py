@@ -52,7 +52,7 @@ try:
     for dv in cp.devices: dv.use = dv.type == "OPTIX"
     sc.cycles.device = 'GPU'
 except Exception as e: print("GPU", e)
-sc.render.engine = 'CYCLES'; sc.cycles.samples = MUESTRAS; sc.cycles.use_denoising = True
+sc.render.engine = 'CYCLES'; sc.cycles.samples = MUESTRAS; sc.cycles.use_denoising = True; sc.render.use_persistent_data = True
 sc.render.resolution_x = sc.render.resolution_y = LADO; sc.view_settings.view_transform = 'AgX'
 def mirar_camara(dx=0.0, dz=0.0):
     b = ARM.pose.bones.get("Mirada")

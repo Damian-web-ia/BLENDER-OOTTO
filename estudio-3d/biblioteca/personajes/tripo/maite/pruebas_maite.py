@@ -37,6 +37,7 @@ try:
     sc.cycles.device = 'GPU'
 except Exception as e: print("GPU", e)
 sc.render.engine = 'CYCLES'; sc.cycles.samples = MUESTRAS; sc.cycles.use_denoising = True
+sc.render.use_persistent_data = True               # medido: 10,7 s -> 4,3 s por fotograma
 sc.render.resolution_x = ANCHO; sc.render.resolution_y = int(ANCHO * 4 / 3) if PRUEBA not in ("giro", "demo_cara") else int(ANCHO * 16 / 9)
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
 sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.35
@@ -270,8 +271,8 @@ elif PRUEBA == "demo_cara":
         mira.location = c; cd.lens = lente; cd.dof.aperture_fstop = fstop
         f = F(t); cam.keyframe_insert("location", frame=f); mira.keyframe_insert("location", frame=f)
         cd.keyframe_insert("lens", frame=f); cd.keyframe_insert("dof.aperture_fstop", frame=f)
-    BUSTO = ALTO * 2.05; CARA = ALTO * 1.25; MUY_CERCA = ALTO * 0.95
-    CB = Vector((H.x, H.y, H.z - ALTO * 0.22)); CC = Vector((H.x, H.y, EO.z - ALTO * 0.10))
+    BUSTO = ALTO * 3.0; CARA = ALTO * 2.05; MUY_CERCA = ALTO * 1.5     # alto del cuadro vertical: en 9:16 el ancho es el que manda
+    CB = Vector((H.x, H.y, H.z - ALTO * 0.45)); CC = Vector((H.x, H.y, EO.z - ALTO * 0.12))
     # palabras del diálogo: las de la voz si hay carpeta; si no, tiempos estimados del texto (sin sonido)
     FRASE = "¡Hola! Soy Maitane, de EKORUEDAS. Hoy os enseño a mirar el desgaste de los neumáticos."
     if CARP and os.path.exists(os.path.join(CARP, "palabras.json")):
@@ -337,6 +338,9 @@ elif PRUEBA == "demo_cara":
         u = i / n_v; u_s = u * u * (3 - 2 * u)                     # arranca y frena suave
         plano(T_VUELTA + i / FPS, CARA * 1.15, 85, az=360.0 * u_s, el=4 + 6 * math.sin(math.pi * u), centro=CC)
     plano(T_FIN, CARA * 1.1, 85, az=0, centro=CC)
+    # durante la vuelta el foco pasa de los ojos al centro de la cabeza (si no, el pelo de atrás sale borroso)
+    for t, p_ in ((T_VUELTA, EO), (T_VUELTA + 0.8, H), (T_FIN - 1.4, H), (T_FIN - 0.6, EO)):
+        foco.location = p_; foco.keyframe_insert("location", frame=F(t))
     hornear_y_video(f0, f1, "demo_cara")
 elif PRUEBA == "primer_plano":
     # 6 — Primer plano 4K vertical del rostro (foto)
