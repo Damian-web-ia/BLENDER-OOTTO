@@ -1560,7 +1560,7 @@ def maquillaje(me, datos_ojos, info_boca, tam=2048):
           "nariz", int((nariz > 0.5).sum()), flush=True)
 
 
-def _material_maquillaje(mt, img, tinte_labios=(0.82, 0.44, 0.47), tinte_rubor=(0.98, 0.74, 0.72), k_labios=0.75, k_rubor=0.30):
+def _material_maquillaje(mt, img, tinte_labios=(0.82, 0.44, 0.47), tinte_rubor=(0.98, 0.74, 0.72), k_labios=0.90, k_rubor=0.30):
     T = mt.node_tree; Nn = T.nodes; Lk = T.links
     for n in [n for n in Nn if n.name.startswith("MAQ_")]: Nn.remove(n)
     uvn = next(n for n in Nn if n.type == 'UVMAP')

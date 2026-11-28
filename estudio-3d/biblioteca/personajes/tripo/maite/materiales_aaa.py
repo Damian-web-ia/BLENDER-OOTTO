@@ -152,7 +152,7 @@ def pelo_aaa(me, fuerza_pintura=0.30, vetas=170.0, ojos=()):
           "coronilla", np.round(cabeza, 3).tolist(), flush=True)
 
 
-def piel_aaa(me, poro=0.00055, fuerza_poro=0.16, rug_labios=0.36):
+def piel_aaa(me, poro=0.00055, fuerza_poro=0.16, rug_labios=0.42):
     """Piel para primer plano (va después del maquillaje). Sin esto, en 4K la cara parece de cera:
     - poro fino pegado a la piel (coordenadas de reposo: no 'nada' cuando se mueve), menos en los labios;
     - rugosidad con variación suave y labios algo más brillantes;
@@ -398,7 +398,7 @@ def ropa_aaa(me, ancho_borde=(0.42, 0.58), detalle=0.55):
         Lk.new(mv.outputs["Result"], sh.inputs["Value"]); Lk.new(sh.outputs["Result"], bs.inputs["Sheen Weight"])
         bs.inputs["Sheen Roughness"].default_value = 0.45; bs.inputs["Subsurface Weight"].default_value = 0.0
         nm = next((n for n in Nn if n.type == 'NORMAL_MAP'), None)
-        if nm is not None: nm.inputs["Strength"].default_value = 0.6     # los pliegues de Tripo, más suaves
+        if nm is not None: nm.inputs["Strength"].default_value = 0.3     # los pliegues de Tripo, suaves (en 4K se veían sus islas a cuadros)
     print("ROPA_AAA materiales:", [m.materials[i].name for i in idx], flush=True)
 
 
