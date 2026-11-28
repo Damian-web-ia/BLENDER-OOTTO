@@ -1338,7 +1338,7 @@ def _lum_min_caras(me, img):
     return out, blanco
 
 
-def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010, 0.0034)):
+def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010, 0.0034), afinar_cejas=0.0):
     m = me.data; N = len(m.vertices)
     co = np.empty(N * 3, np.float64); m.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
     # caras que la clasificación por color dejó como "ojos_dientes" o "pelo" junto a los ojos y la boca: son piel
@@ -1420,6 +1420,14 @@ def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010,
             w_c = np.where(cand, 1 - _ss(0.003, 0.008, dcam), 0.0)
             mask = np.maximum(mask, w_c)
             print("PIEL_LISA borde del cuello y mangas:", int((w_c > 0.5).sum()), "vértices", flush=True)
+    # cejas más finas (Damián, 28-11: "que sea una chica guapa"): el borde de la ceja pintada se repinta de piel
+    if afinar_cejas > 0 and cejas.any():
+        fuera_c = es_piel_v & ~cejas & (np.min([np.linalg.norm(co - np.array(d["C"]), axis=1) for d in datos_ojos.values()], axis=0) < 0.05)
+        d_borde = np.full(N, 1e9); d_borde[cejas] = _dist_a(co[cejas], co[fuera_c])
+        w_af = np.where(cejas, 1 - _ss(afinar_cejas * 0.7, afinar_cejas * 1.3, d_borde), 0.0)
+        mask = np.maximum(mask, w_af)
+        cejas = cejas & (w_af < 0.5)
+        print("PIEL_LISA cejas afinadas:", int((w_af > 0.5).sum()), "vértices del borde pasan a piel", flush=True)
     mask = np.where(es_piel_v, mask, 0.0)
     # relleno armónico: incógnitas = mask > 0.02; fijos = vecinos sanos (piel clara, no ceja)
     U = mask > 0.02
@@ -1735,7 +1743,7 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
     print("BORDES_OJOS borde_sup:", int((sup > 0.5).sum()), "vértices arriba", flush=True)
 
 
-def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, estrechar=0.15, r_plano=0.018, r_fin=0.040):
+def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, estrechar=0.15, r_plano=0.018, r_fin=0.040, agrandar=0.0):
     """Proporciones de una cara guapa (Damián, 28-11: "los ojos dan miedo, están muy separados, y la boca igual").
     El modelo de Tripo tiene los ojos a 58 mm (escala del modelo) y una boca de 47 mm: se acercan los ojos hacia el
     centro y se estrecha la boca, con un campo de desplazamiento suave:
@@ -1755,6 +1763,9 @@ def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, es
         hacia = Xd * np.sign((medio - C) @ Xd)                  # hacia el centro de la cara
         w = 1 - _ss(r_plano, r_fin, np.linalg.norm(co - C, axis=1))
         D += np.outer(w, hacia * acercar); mov[l] = hacia * acercar
+        if agrandar:                                             # ojo más grande: globo, párpados y pestañas a escala
+            ws = 1 - _ss(r_plano, r_plano + 0.012, np.linalg.norm(co - C, axis=1))
+            D += (co - C) * (agrandar * ws)[:, None]
     O = np.array(info_boca["O"], np.float64); X = np.array(info_boca["X"], np.float64); X /= np.linalg.norm(X)
     rel = co - O; dx = rel @ X; dz = rel[:, 2]; dy = rel @ F
     e = np.sqrt((dx / 0.027) ** 2 + (dz / 0.015) ** 2 + (dy / 0.032) ** 2)
@@ -1775,6 +1786,12 @@ def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, es
         b = eb.get(f"Ojo_{l}")
         if b: b.head = b.head + Vector(dv); b.tail = b.tail + Vector(dv)
     bpy.ops.object.mode_set(mode='OBJECT'); bpy.context.view_layer.objects.active = act
+    if agrandar:
+        for l in datos_ojos:
+            for nombre in (f"MAITE_globo_{l}", f"MAITE_cornea_{l}"):
+                o = bpy.data.objects.get(nombre)
+                if o: o.scale = tuple(x * (1 + agrandar) for x in o.scale)
+            datos_ojos[l]["R"] = float(datos_ojos[l]["R"]) * (1 + agrandar)
     for l in datos_ojos: datos_ojos[l]["C"] = Vector(tuple(Cs[l] + mov[l])) if isinstance(datos_ojos[l]["C"], Vector) else Cs[l] + mov[l]
     arm["ojos"] = str({k: (tuple(round(float(x), 5) for x in d["C"]), round(float(d["R"]), 5)) for k, d in datos_ojos.items()})
     bpy.context.view_layer.update()

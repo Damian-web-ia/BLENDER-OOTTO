@@ -256,6 +256,10 @@ def _cejas_curvas(me, cejas, ojos, luv, uv_nombre, densidad=0.75e7, puntos=4, se
     uvt = lr[tl[el, 0]] * wa[:, None] + lr[tl[el, 1]] * wb[:, None] + lr[tl[el, 2]] * wc[:, None]
     col = px[np.clip((uvt[:, 1] * h).astype(int), 0, h - 1), np.clip((uvt[:, 0] * w).astype(int), 0, w - 1), :3]
     ok = (col @ np.array([0.3, 0.55, 0.15])) < 0.40
+    if "mascara_piel" in m.attributes:            # el borde de la ceja se repintó de piel (ceja más fina): ahí no hay pelo
+        mk = np.empty(len(co), np.float32); m.attributes["mascara_piel"].data.foreach_get('value', mk)
+        mr = mk[tv[el, 0]] * wa + mk[tv[el, 1]] * wb + mk[tv[el, 2]] * wc
+        ok &= mr < 0.35
     raiz, uv = raiz[ok], uv[ok]; n = len(raiz)
     vp = np.unique(tv); mapa = np.full(len(co), -1); mapa[vp] = np.arange(len(vp))
     # superficie de la cara alrededor (piel cercana a las cejas) para tumbar los pelos
@@ -291,5 +295,5 @@ def _cejas_curvas(me, cejas, ojos, luv, uv_nombre, densidad=0.75e7, puntos=4, se
             d = d - nor * d.dot(nor)
             if d.length < 1e-6: d = Vector((0, 0, 1))
             d.normalize(); p = q + d * paso
-    _objeto_hebras("MAITE_cejas_hebras", "MAITE_cejas", me, pos, rad, uv, uv_nombre, 0.74, 0.50, 0.36)
+    _objeto_hebras("MAITE_cejas_hebras", "MAITE_cejas", me, pos, rad, uv, uv_nombre, 0.66, 0.52, 0.36)
     print("CEJAS", n, "pelos", flush=True)
