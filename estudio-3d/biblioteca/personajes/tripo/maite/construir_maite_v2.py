@@ -300,7 +300,7 @@ ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE, cerrar_reposo
                          reposo={"eyeWideLeft": 0.55, "eyeWideRight": 0.55, "browOuterUpLeft": 0.30, "browOuterUpRight": 0.30, "browInnerUp": -0.22,
                                   "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15})   # browInnerUp negativo: baja la punta interior de las cejas (sin cara de pena))
 CM["ajustar_globos"](ME, OJOS_DATOS)
-CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO, afinar_cejas=0.0034)
+CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO, afinar_cejas=0.0026)   # 0,0034 se comía las colas de las cejas y dejaba un contorno pálido
 CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO, tinte_labios=(0.84, 0.36, 0.44), k_labios=1.15, k_rubor=0.50)
 CM["bordes_ojos"](ME, OJOS_DATOS)
 OJOS_DATOS = CM["retoque_belleza"](ARM, ME, OJOS_DATOS, BOCA_INFO, ADELANTE, agrandar=0.11, mandibula=0.11, mejillas=0.07)   # ojos más juntos y boca más estrecha (28-11)
