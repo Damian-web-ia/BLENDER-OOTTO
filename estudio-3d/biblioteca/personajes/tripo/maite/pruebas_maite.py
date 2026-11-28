@@ -273,7 +273,7 @@ elif PRUEBA == "demo_cara":
     BUSTO = ALTO * 2.05; CARA = ALTO * 1.25; MUY_CERCA = ALTO * 0.95
     CB = Vector((H.x, H.y, H.z - ALTO * 0.22)); CC = Vector((H.x, H.y, EO.z - ALTO * 0.10))
     # palabras del diálogo: las de la voz si hay carpeta; si no, tiempos estimados del texto (sin sonido)
-    FRASE = "¡Hola! Soy Maitane, de EKORUEDAS, en Derio. Hoy os voy a enseñar a mirar el desgaste de vuestros neumáticos."
+    FRASE = "¡Hola! Soy Maitane, de EKORUEDAS. Hoy os enseño a mirar el desgaste de los neumáticos."
     if CARP and os.path.exists(os.path.join(CARP, "palabras.json")):
         pal = json.load(open(os.path.join(CARP, "palabras.json"), encoding="utf-8"))
         voz = (glob.glob(os.path.join(CARP, "voz.*")) or [None])[0]
@@ -283,6 +283,7 @@ elif PRUEBA == "demo_cara":
             n_ = max(1, sum(1 for c in w.lower() if c in "aeiouáéíóú")); dur = 0.17 * n_ + 0.06
             pal.append({"text": w, "start": round(t_, 3), "end": round(t_ + dur, 3)}); t_ += dur + (0.28 if w[-1] in ".,!?" else 0.03)
     T_HAB = 24.8; DUR_HAB = max(w["end"] for w in pal)
+    print("DEMO tiempos: diálogo", round(DUR_HAB, 2), "s", flush=True)
     T_GIROS = T_HAB + DUR_HAB + 0.8; T_VUELTA = T_GIROS + 3.2; T_FIN = T_VUELTA + 7.0
     f0, f1 = 1, F(T_FIN)
     base(f0, f1)
