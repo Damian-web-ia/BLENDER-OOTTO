@@ -1806,3 +1806,26 @@ def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, es
     print("BELLEZA ojos a", round(dist * 1000, 1), "mm (antes", round(float(np.linalg.norm(Cs["L"] - Cs["R"])) * 1000, 1),
           "); boca", int(estrechar * 100), "% más estrecha; globos", glob, "desplazamiento máx", round(float(np.abs(D).max()) * 1000, 2), "mm", flush=True)
     return datos_ojos
+
+
+def control_pupilas(arm, base=None):
+    """Dilatación de pupilas: propiedad 'pupila' en el esqueleto (1 = normal, 0,6 contraída con luz fuerte o
+    concentración, 1,4 dilatada con sorpresa, interés o poca luz). Mueve el nodo 'Pupila' de los dos ojos."""
+    if "pupila" not in arm.keys():
+        arm["pupila"] = 1.0
+    ui = arm.id_properties_ui("pupila"); ui.update(min=0.5, max=1.6, soft_min=0.5, soft_max=1.6, description="Tamaño de las pupilas (1 = normal)")
+    hechos = 0
+    for lado in ("L", "R"):
+        mt = bpy.data.materials.get(f"MAITE_ojo_{lado}")
+        if not mt: continue
+        n = mt.node_tree.nodes.get("Pupila")
+        if not n: continue
+        v0 = base or n.outputs[0].default_value
+        s = n.outputs[0]
+        try: s.driver_remove("default_value")
+        except Exception: pass
+        fc = s.driver_add("default_value"); dr = fc.driver; dr.type = 'SCRIPTED'
+        var = dr.variables.new(); var.name = "p"; var.type = 'SINGLE_PROP'
+        var.targets[0].id_type = 'OBJECT'; var.targets[0].id = arm; var.targets[0].data_path = '["pupila"]'
+        dr.expression = f"{v0:.4f} * p"; hechos += 1
+    print("PUPILAS control en", hechos, "ojos", flush=True)

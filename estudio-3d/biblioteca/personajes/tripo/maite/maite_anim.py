@@ -340,6 +340,26 @@ EXPRESIONES = {
     "ironia":            {"mouthSmileRight": 0.5, "browDownLeft": 0.3, "browOuterUpRight": 0.4, "eyeSquintLeft": 0.2},
     "comica":            _sim({"eyeWide*": 1.0, "browOuterUp*": 1.0, "mouthStretch*": 0.6, "browInnerUp": 0.8, "jawOpen": 0.7}),
     "guino":             {"eyeBlinkLeft": 1.0, "cheekSquintLeft": 0.5, "mouthSmileLeft": 0.7, "mouthSmileRight": 0.3, "browDownLeft": 0.2},
+    # biblioteca ampliada (prompt de la cara de Maitane, 28-11)
+    "sonrisa_profesional": _sim({"mouthSmile*": 0.45, "cheekSquint*": 0.2, "mouthPress*": 0.15, "eyeSquint*": 0.1}),
+    "sonrisa_espontanea": _sim({"mouthSmile*": 0.75, "cheekSquint*": 0.45, "eyeSquint*": 0.25, "jawOpen": 0.12, "browInnerUp": 0.1}),
+    "felicidad":         _sim({"mouthSmile*": 0.8, "cheekSquint*": 0.5, "eyeSquint*": 0.2, "browInnerUp": 0.2, "jawOpen": 0.10}),
+    "risa_suave":        _sim({"mouthSmile*": 0.85, "cheekSquint*": 0.6, "eyeSquint*": 0.45, "jawOpen": 0.25, "browInnerUp": 0.15}),
+    "carcajada":         _sim({"mouthSmile*": 1.0, "cheekSquint*": 0.9, "eyeSquint*": 0.8, "eyeBlink*": 0.35, "jawOpen": 0.75, "browInnerUp": 0.3}),
+    "seguridad":         _sim({"mouthSmile*": 0.3, "mouthPress*": 0.3, "browDown*": 0.15, "eyeSquint*": 0.15}),
+    "determinacion":     _sim({"browDown*": 0.55, "mouthPress*": 0.5, "eyeSquint*": 0.3, "jawForward": 0.15}),
+    "orgullo":           _sim({"mouthSmile*": 0.45, "browOuterUp*": 0.2, "eyeSquint*": 0.2, "mouthPress*": 0.2}),
+    "complicidad":       {"mouthSmileLeft": 0.6, "mouthSmileRight": 0.25, "eyeSquintLeft": 0.35, "cheekSquintLeft": 0.3, "browOuterUpRight": 0.3},
+    "sorpresa_leve":     _sim({"eyeWide*": 0.5, "browInnerUp": 0.5, "browOuterUp*": 0.5, "jawOpen": 0.10}),
+    "sorpresa_intensa":  _sim({"eyeWide*": 1.0, "browOuterUp*": 1.0, "browInnerUp": 1.0, "jawOpen": 0.55, "mouthFunnel": 0.25}),
+    "impaciencia":       _sim({"mouthPress*": 0.5, "browDown*": 0.3, "eyeSquint*": 0.2}) | {"mouthLeft": 0.3},
+    "decepcion":         _sim({"mouthFrown*": 0.5, "eyeLookDown*": 0.3, "mouthPress*": 0.3, "browInnerUp": 0.5}),
+    "desaprobacion":     _sim({"browDown*": 0.5, "mouthFrown*": 0.3, "mouthPress*": 0.4, "eyeSquint*": 0.3, "noseSneer*": 0.2}),
+    "sospecha":          {"eyeSquintLeft": 0.6, "eyeSquintRight": 0.5, "browDownLeft": 0.5, "browOuterUpRight": 0.2, "mouthPressLeft": 0.3, "mouthLeft": 0.2},
+    "explicando":        _sim({"browInnerUp": 0.35, "browOuterUp*": 0.3, "mouthSmile*": 0.25, "jawOpen": 0.10}),
+    "pensamiento_profundo": {"eyeLookUpLeft": 0.5, "eyeLookUpRight": 0.5, "browDownLeft": 0.45, "browDownRight": 0.3, "mouthPucker": 0.25, "mouthLeft": 0.3, "eyeSquintLeft": 0.2},
+    "ceja_izquierda":    {"browOuterUpLeft": 0.95, "browInnerUp": 0.2, "browDownRight": 0.15},
+    "ceja_derecha":      {"browOuterUpRight": 0.95, "browInnerUp": 0.2, "browDownLeft": 0.15},
 }
 
 # visemas del español (solo boca y mandíbula)
@@ -401,6 +421,9 @@ def _cara_metodos(cls):
             if not any(a <= f <= b for a, b in evitar):
                 self.parpadeo(f, doble=rnd.random() < 0.12, parcial=1.0 if rnd.random() > 0.15 else 0.6)
             f += rnd.randint(int(2.0 * fps), int(5.0 * fps))
+    def pupila(self, f, valor=1.0):
+        """Tamaño de las pupilas (1 normal; 0,6 contraídas; 1,4 dilatadas) con clave en f."""
+        self.arm["pupila"] = valor; self.arm.keyframe_insert('["pupila"]', frame=f)
     def mirar(self, f, x=0.0, z=0.0, tiempo=None):
         """Mueve el hueso 'Mirada' (x + = su izquierda, z + = arriba, en metros del modelo; el objetivo está a 1 m:
         0,10 son unos 6 grados) y pone clave."""
