@@ -312,7 +312,7 @@ RIG["montar_rig"](ARM, ME)
 # ---- fase 4: hebras de pelo sobre la masa de pelo
 PCV = {}
 exec(compile(open(os.path.join(PM, "pelo_curvas.py"), encoding="utf-8").read(), "pelo_curvas", "exec"), PCV)
-PCV["pelo_curvas"](ARM, ME)
+PCV["pelo_curvas"](ARM, ME, ojos=[tuple(d["C"]) for d in OJOS_DATOS.values()])
 ARM["maite_version"] = "v2-fase3"
 bpy.ops.wm.save_as_mainfile(filepath=SALIDA, compress=True)
 print("MAITE_V2_OK", SALIDA, flush=True)
