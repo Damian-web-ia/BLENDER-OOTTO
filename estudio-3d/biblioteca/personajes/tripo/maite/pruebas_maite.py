@@ -105,7 +105,7 @@ elif PRUEBA == "objeto":
     f0, f1 = 1, 168; base(f0, f1)
     A.brazo(1, "R", "agarra"); A.mano(1, "R", "empuna"); sc.frame_set(1)
     llave = UT["llave_cruz"](); UT["agarrar"](ARM, llave, "R")
-    A.brazo(1, "R", "reposo"); A.mano(1, "R", "empuna")
+    A.mano(1, "R", "empuna")            # empieza ya con la llave delante (con el brazo abajo la cruz atravesaba el cuerpo)
     A.brazo(24, "R", "agarra"); A.mano(24, "R", "empuna"); A.cabeza(24, arriba=-12, giro=-10)
     A.mirar(24, -0.05, -0.12); A.expresion(24, "curiosidad")
     A.mano(48, "R", "empuna", muneca=(0, 45, 0)); A.cabeza(48, arriba=-10, giro=-14, ladeo=4); A.expresion(48, "concentracion")
