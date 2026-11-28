@@ -1,7 +1,7 @@
 # PRUEBAS OBLIGATORIAS DE MAITE (skill AAA, punto 19) · EKORUEDAS · 28-11-2026
 # Uso: blender -b --factory-startup --python pruebas_maite.py -- <carpeta_estudio> <carpeta_salida> <prueba> [muestras] [ancho]
 #   prueba: expresiones | dialogo <carpeta_voz> | pelo | ropa | objeto | cine [carpeta_voz] | giro | primer_plano | demo_cara [carpeta_voz]
-#   MAITE_FPS=60 cambia los fotogramas por segundo (demo_cara); MAITE_TRAMO=dialogo saca sólo el diálogo de la demo; MAITE_FOTOS="2,6.5,…" (segundos) saca fotos de control en vez del vídeo.
+#   MAITE_FPS=60 cambia los fotogramas por segundo (demo_cara); MAITE_PNG=1 renderiza a PNG reanudables y monta el MP4; MAITE_TRAMO=dialogo saca sólo el diálogo de la demo; MAITE_FOTOS="2,6.5,…" (segundos) saca fotos de control en vez del vídeo.
 # Cada prueba anima con la biblioteca de Maite (maite_anim.py), hornea trenza y tela, y saca un MP4 (o una foto 4K).
 import bpy, os, sys, math, random
 from mathutils import Vector, Matrix, Quaternion
@@ -46,11 +46,13 @@ def base(f0, f1):
     A.pose_reposo(f0); A.mano(f0, "L", "relajada"); A.mano(f0, "R", "relajada")
     A.respirar(f0, f1); A.vida(f0, f1)
 
+SONIDOS = []
+
 def sonido(ruta, f_inicio=1):
     """Pone el audio en la escena (sale dentro del MP4, en AAC)."""
     ed = sc.sequence_editor or sc.sequence_editor_create()
     tiras = ed.strips if hasattr(ed, "strips") else ed.sequences      # (una colección vacía es "falsa": no usar "or")
-    tiras.new_sound("voz", ruta, 1, f_inicio)
+    tiras.new_sound("voz", ruta, 1, f_inicio); SONIDOS.append((ruta, f_inicio))
     sc.render.ffmpeg.audio_codec = 'AAC'; sc.render.ffmpeg.audio_bitrate = 192; sc.render.ffmpeg.audio_channels = 'STEREO'
 
 def ciclorama():
@@ -90,6 +92,18 @@ def hornear_y_video(f0, f1, nombre):
     sc.frame_set(f0)
     if any(md.type == 'CLOTH' and md.show_render for ob in bpy.data.objects for md in ob.modifiers):
         with bpy.context.temp_override(scene=sc): bpy.ops.ptcache.bake_all(bake=True)
+    if os.environ.get("MAITE_PNG") == "1":
+        # renders largos: fotograma a fotograma en PNG (se puede reanudar: los que ya existen no se repiten) y al final
+        # se monta el MP4 con la voz en el editor de vídeo de Blender
+        carp = os.path.join(OUT, nombre + "_cuadros"); os.makedirs(carp, exist_ok=True)
+        ims = sc.render.image_settings
+        if hasattr(ims, "media_type"): ims.media_type = 'IMAGE'
+        ims.file_format = 'PNG'; ims.color_mode = 'RGB'; ims.color_depth = '8'; ims.compression = 30
+        sc.render.use_overwrite = False; sc.render.use_placeholder = True
+        sc.render.filepath = os.path.join(carp, "f_####")
+        bpy.ops.render.render(animation=True)
+        montar(nombre, f0, f1, carp)
+        return
     ims = sc.render.image_settings
     if hasattr(ims, "media_type"): ims.media_type = 'VIDEO'          # Blender 5: el vídeo es un "tipo de medio" aparte
     ims.file_format = 'FFMPEG'; sc.render.ffmpeg.format = 'MPEG4'; sc.render.ffmpeg.codec = 'H264'
@@ -97,6 +111,30 @@ def hornear_y_video(f0, f1, nombre):
     sc.render.filepath = os.path.join(OUT, nombre + ".mp4")
     bpy.ops.render.render(animation=True)
     print("VIDEO_OK", nombre, flush=True)
+
+def montar(nombre, f0, f1, carp):
+    """Monta el MP4 (H.264 + voz en AAC) con los PNG de carp en una escena aparte del editor de vídeo."""
+    import glob
+    fs = sorted(glob.glob(os.path.join(carp, "f_*.png")))
+    fs = [f for f in fs if os.path.getsize(f) > 0 and f0 <= int(os.path.basename(f)[2:6]) <= f1]
+    if len(fs) != f1 - f0 + 1: print("MONTAJE faltan cuadros:", f1 - f0 + 1 - len(fs), flush=True); return
+    esc = bpy.data.scenes.new("Montaje")
+    esc.render.fps = sc.render.fps; esc.render.resolution_x = sc.render.resolution_x; esc.render.resolution_y = sc.render.resolution_y
+    esc.render.resolution_percentage = 100
+    ed = esc.sequence_editor_create(); tiras = ed.strips if hasattr(ed, "strips") else ed.sequences
+    im = tiras.new_image("cuadros", fs[0], 2, 1)
+    for f in fs[1:]: im.elements.append(os.path.basename(f))
+    for ruta, fi in SONIDOS: tiras.new_sound("voz", ruta, 1, fi - f0 + 1)
+    esc.frame_start, esc.frame_end = 1, len(fs)
+    ims = esc.render.image_settings
+    if hasattr(ims, "media_type"): ims.media_type = 'VIDEO'
+    ims.file_format = 'FFMPEG'; esc.render.ffmpeg.format = 'MPEG4'; esc.render.ffmpeg.codec = 'H264'
+    esc.render.ffmpeg.constant_rate_factor = 'HIGH'; esc.render.ffmpeg.ffmpeg_preset = 'GOOD'
+    esc.render.ffmpeg.audio_codec = 'AAC'; esc.render.ffmpeg.audio_bitrate = 192; esc.render.ffmpeg.audio_channels = 'STEREO'
+    esc.view_settings.view_transform = 'Standard'                  # los PNG ya llevan el AgX: no aplicarlo dos veces
+    esc.render.filepath = os.path.join(OUT, nombre + ".mp4")
+    bpy.ops.render.render(animation=True, scene=esc.name)
+    print("VIDEO_OK", nombre, len(fs), "cuadros", flush=True)
 
 if PRUEBA == "expresiones":
     # 1 — Expresiones con transiciones, parpadeo, mirada viva y cabeza viva (10 s)
