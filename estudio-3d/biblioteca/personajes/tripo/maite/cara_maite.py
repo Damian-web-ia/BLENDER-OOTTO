@@ -1540,7 +1540,7 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
     mt = bpy.data.materials["MAITE_parpado_borde"]; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
     a = atributo(N, -700, 200)
     mx = N.new("ShaderNodeMix"); mx.data_type = 'RGBA'; mx.location = (-400, 200)
-    _sk(mx.inputs, "A_Color").default_value = (0.55, 0.30, 0.27, 1); _sk(mx.inputs, "B_Color").default_value = (0.085, 0.045, 0.040, 1)
+    _sk(mx.inputs, "A_Color").default_value = (0.46, 0.23, 0.21, 1); _sk(mx.inputs, "B_Color").default_value = (0.085, 0.045, 0.040, 1)
     L.new(a.outputs["Fac"], _sk(mx.inputs, "Factor_Float")); L.new(_sk(mx.outputs, "Result_Color"), bs.inputs["Base Color"])
     rg = N.new("ShaderNodeMapRange"); rg.location = (-400, -100); rg.inputs["To Min"].default_value = 0.30; rg.inputs["To Max"].default_value = 0.55
     L.new(a.outputs["Fac"], rg.inputs["Value"]); L.new(rg.outputs["Result"], bs.inputs["Roughness"])
@@ -1548,12 +1548,13 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
     # poquito abajo (línea de agua húmeda) y nada arriba; sin barniz (también refleja de canto)
     cw = N.new("ShaderNodeMapRange"); cw.location = (-400, -350); cw.inputs["To Min"].default_value = 0.12; cw.inputs["To Max"].default_value = 0.0
     L.new(a.outputs["Fac"], cw.inputs["Value"]); L.new(cw.outputs["Result"], bs.inputs["Specular IOR Level"])
-    bs.inputs["Coat Weight"].default_value = 0.0; bs.inputs["Subsurface Weight"].default_value = 0.10
+    # sin subsurface: el borde es más fino que el radio de dispersión y la luz lo atravesaba (salía gris lila)
+    bs.inputs["Coat Weight"].default_value = 0.0; bs.inputs["Subsurface Weight"].default_value = 0.0
 
     # fondo de la cuenca: blanco del ojo en sombra; arriba, más oscuro (debajo de las pestañas)
     mt = bpy.data.materials["MAITE_cuenca"]; N = mt.node_tree.nodes; L = mt.node_tree.links; bs = N["Principled BSDF"]
     mx0 = next(n for n in N if n.type == 'MIX' and n.data_type == 'RGBA')
-    _sk(mx0.inputs, "A_Color").default_value = (0.10, 0.045, 0.042, 1); _sk(mx0.inputs, "B_Color").default_value = (0.42, 0.30, 0.28, 1)
+    _sk(mx0.inputs, "A_Color").default_value = (0.10, 0.045, 0.042, 1); _sk(mx0.inputs, "B_Color").default_value = (0.34, 0.21, 0.20, 1)
     a = atributo(N, -500, 300)
     k = N.new("ShaderNodeMapRange"); k.location = (-300, 300); k.inputs["To Min"].default_value = 1.0; k.inputs["To Max"].default_value = 0.30
     L.new(a.outputs["Fac"], k.inputs["Value"])
