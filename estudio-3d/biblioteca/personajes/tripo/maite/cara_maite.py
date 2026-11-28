@@ -647,11 +647,12 @@ def _reindexar(me, puntos):
 def _caja_redonda(bm, centro, X, Y, Z, sx, sy, sz, mat_i, segs=2):
     """Caja de esquinas redondeadas (para dientes): cubo subdividido y 'inflado' hacia una superelipse.
     Devuelve la lista de sus vértices (OJO: bmesh reutiliza huecos, los nuevos no siempre van al final)."""
-    antes = set(bm.verts)
+    for v in bm.verts: v.tag = True                     # marca (los conjuntos de BMVert no sirven: comparan mal)
     r = bmesh.ops.create_cube(bm, size=2.0)
     aristas = list({e for v in r["verts"] for e in v.link_edges})
     bmesh.ops.subdivide_edges(bm, edges=aristas, cuts=segs, use_grid_fill=True)
-    vs = [v for v in bm.verts if v not in antes]
+    vs = [v for v in bm.verts if not v.tag]
+    for v in bm.verts: v.tag = False
     for v in vs:
         p = v.co.copy()
         k = (abs(p.x) ** 3 + abs(p.y) ** 3 + abs(p.z) ** 3) ** (1 / 3)
@@ -794,7 +795,11 @@ def construir_boca(arm, me, adelante, lat, datos_ojos):
     # reindexar los ojos
     for d in datos_ojos.values():
         d["bucle"] = _reindexar(me, d["bucle_co"]); d["borde_int"] = _reindexar(me, d["borde_co"])
-    print("BOCA lista: dientes", len(info["dientes_sup"]) // 8, "piezas, centro", tuple(round(x, 4) for x in O), flush=True)
+    lejos = sum(1 for k in ("dientes_sup", "dientes_inf", "encia_sup", "encia_inf", "lengua", "saco") for i in info[k]
+                if (m.vertices[i].co - O).length > 0.06)
+    print("BOCA lista: dientes", len(info["dientes_sup"]), "vértices arriba, centro", tuple(round(x, 4) for x in O),
+          "| piezas fuera de sitio:", lejos, flush=True)
+    if lejos: raise RuntimeError(f"BOCA: {lejos} vértices de dientes/encías/lengua/saco a más de 6 cm de la boca")
     return info
 
 
