@@ -81,7 +81,7 @@ for nombre, az, el in VISTAS: foto(nombre, orbita(az, el), 85, H)
 claves({}); foto("08_neutra", orbita(0, 0), 85, H)
 # --- primeros planos
 claves({k: v * 0.6 for k, v in sonrisa.items()})
-foto("09_ojos", (E.x, E.y - 0.20, E.z), 135, E)
+foto("09_ojos", (E.x, E.y - 0.30, E.z), 135, E)
 foto("10_labios", (B.x, B.y - 0.17, B.z), 135, B)
 foto("11_piel_mejilla", (E.x + 0.14, E.y - 0.21, E.z - 0.016), 135, (E.x + 0.030, E.y, E.z - 0.020))
 foto("12_pelo", orbita(160, 18), 85, H)

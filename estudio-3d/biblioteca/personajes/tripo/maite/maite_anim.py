@@ -20,6 +20,34 @@ class MaiteAnim:
             if b.name.startswith("mixamorig:") or b.name.startswith("Trenza"): b.rotation_mode = 'QUATERNION'
         self.trenza = [n for n in arm.get("trenza", "").split(",") if n]
         self._resp = []; self._vida = []
+        self.giro_base, self.ladeo_base = self._calibrar_cabeza()
+
+    def _calibrar_cabeza(self):
+        """La cabeza de Tripo viene girada unos 12° a su izquierda y ladeada unos 4°: se mide con la línea de los ojos
+        y se calcula el giro y el ladeo del cuello y la cabeza que la ponen de frente y derecha. cabeza() lo suma siempre."""
+        P = self.pb; A = self.arm; hs = ("mixamorig:Neck", "mixamorig:Head")
+        if not all(n in P for n in hs + ("Ojo_L", "Ojo_R")): return 0.0, 0.0
+        guarda = {n: (P[n].rotation_mode, P[n].rotation_quaternion.copy()) for n in hs}
+        def poner(g, l):
+            for n, k in zip(hs, (0.35, 0.65)):
+                P[n].rotation_mode = 'QUATERNION'
+                P[n].rotation_quaternion = Euler((0.0, math.radians(g * k), math.radians(l * k)), 'XYZ').to_quaternion()
+            bpy.context.view_layer.update()
+            L = A.matrix_world @ P["Ojo_L"].head; R = A.matrix_world @ P["Ojo_R"].head; d = L - R
+            return math.degrees(math.atan2(d.y, d.x)), math.degrees(math.atan2(d.z, math.hypot(d.x, d.y)))
+        g = l = 0.0
+        for _ in range(3):                                # Newton con la jacobiana medida (los ejes del hueso no son exactos)
+            y0, r0 = poner(g, l); y1, r1 = poner(g + 5, l); y2, r2 = poner(g, l + 5)
+            a, b, c, d = (y1 - y0) / 5, (y2 - y0) / 5, (r1 - r0) / 5, (r2 - r0) / 5
+            det = a * d - b * c
+            if abs(det) < 1e-6: break
+            g += (-y0 * d + r0 * b) / det; l += (-r0 * a + y0 * c) / det
+        y_, r_ = poner(g, l)
+        for n, (rm, qq) in guarda.items(): P[n].rotation_quaternion = qq; P[n].rotation_mode = rm
+        bpy.context.view_layer.update()
+        if abs(y_) > 1.0 or abs(r_) > 1.0 or abs(g) > 30 or abs(l) > 20: print("CABEZA_CALIBRADA sin converger", g, l, y_, r_); return 0.0, 0.0
+        print("CABEZA_CALIBRADA giro %.1f ladeo %.1f (queda %.2f / %.2f grados)" % (g, l, y_, r_), flush=True)
+        return g, l
 
     # -------------------------------------------------------------- básicos
     def _upd(self, f=None):
@@ -58,7 +86,8 @@ class MaiteAnim:
             self.rot(n, f, adelante * k, giro * k, lado * k)
 
     def cabeza(self, f, arriba=0.0, giro=0.0, ladeo=0.0):
-        """Cuello 35 % y cabeza 65 %."""
+        """Cuello 35 % y cabeza 65 % (con la corrección que la pone de frente y derecha)."""
+        giro += self.giro_base; ladeo += self.ladeo_base
         self.rot("mixamorig:Neck", f, -arriba * 0.35, giro * 0.35, ladeo * 0.35)
         self.rot("mixamorig:Head", f, -arriba * 0.65, giro * 0.65, ladeo * 0.65)
 
@@ -183,6 +212,7 @@ class MaiteAnim:
 
     def pose_reposo(self, f):
         self.reset(f, [b.name for b in self.pb if not b.name.startswith("Trenza")])
+        self.cabeza(f)
         self.caderas(f)
         for l in (L, R): self.brazo(f, l, "reposo"); self.mano(f, l, "relajada")
 
