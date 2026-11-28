@@ -1377,6 +1377,21 @@ def piel_lisa(me, datos_ojos, info_boca, r_ojo=(0.0060, 0.0115), r_boca=(0.0010,
     if motas.any():
         mask = np.maximum(mask, 1 - _ss(0.0012, 0.0032, _dist_a(co, co[motas])))
     print("PIEL_LISA motas claras en la cara:", int(motas.sum()), flush=True)
+    # cuello y brazos junto a la camiseta: la piel de Tripo está pintada con blanco corrido en el borde (en 4K se ve
+    # a parches): esa franja de piel se rellena con la piel limpia de al lado
+    icam = next((i for i, mt in enumerate(m.materials) if mt and mt.name == "MAITE_camiseta"), None)
+    if icam is not None:
+        es_cam_v = np.zeros(N, bool)
+        for p in m.polygons:
+            if mi[p.index] == icam: es_cam_v[list(p.vertices)] = True
+        zona_cuello = (co[:, 2] > 0.55) & (co[:, 2] < 0.80)
+        objetivo = es_cam_v & zona_cuello
+        if objetivo.any():
+            cand = es_piel_v & zona_cuello
+            dcam = np.full(N, 1e9); dcam[cand] = _dist_a(co[cand], co[objetivo])
+            w_c = np.where(cand, 1 - _ss(0.003, 0.008, dcam), 0.0)
+            mask = np.maximum(mask, w_c)
+            print("PIEL_LISA borde del cuello y mangas:", int((w_c > 0.5).sum()), "vértices", flush=True)
     mask = np.where(es_piel_v, mask, 0.0)
     # relleno armónico: incógnitas = mask > 0.02; fijos = vecinos sanos (piel clara, no ceja)
     U = mask > 0.02
