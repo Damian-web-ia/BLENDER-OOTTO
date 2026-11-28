@@ -296,14 +296,14 @@ BOCA_INFO = CM["construir_boca"](ARM, ME, ADELANTE, LAT, OJOS_DATOS)
 CM["alisar_parpados"](ME, OJOS_DATOS, ADELANTE)
 PARPADOS = CM["preparar_parpados"](ARM, ME, OJOS_DATOS, ADELANTE)
 CM["_desplegar_piel"](ME, OJOS_DATOS, None, ADELANTE, cerca_globo=0.0016)      # otra pasada: pliegues que deja preparar_parpados
-ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE, cerrar_reposo=0.92, labios_volumen=0.0006,
+ARKIT = CM["crear_claves"](ARM, ME, PARPADOS, BOCA_INFO, ADELANTE, cerrar_reposo=0.92, labios_volumen=0.0009,
                          reposo={"eyeWideLeft": 0.55, "eyeWideRight": 0.55, "browOuterUpLeft": 0.30, "browOuterUpRight": 0.30, "browInnerUp": -0.22,
                                   "mouthSmileLeft": 0.15, "mouthSmileRight": 0.15})   # browInnerUp negativo: baja la punta interior de las cejas (sin cara de pena))
 CM["ajustar_globos"](ME, OJOS_DATOS)
-CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO, afinar_cejas=0.0026)
-CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO)
+CM["piel_lisa"](ME, OJOS_DATOS, BOCA_INFO, afinar_cejas=0.0034)
+CM["maquillaje"](ME, OJOS_DATOS, BOCA_INFO, tinte_labios=(0.84, 0.36, 0.44), k_labios=1.15, k_rubor=0.50)
 CM["bordes_ojos"](ME, OJOS_DATOS)
-OJOS_DATOS = CM["retoque_belleza"](ARM, ME, OJOS_DATOS, BOCA_INFO, ADELANTE, agrandar=0.07, mandibula=0.07)   # ojos más juntos y boca más estrecha (28-11)
+OJOS_DATOS = CM["retoque_belleza"](ARM, ME, OJOS_DATOS, BOCA_INFO, ADELANTE, agrandar=0.11, mandibula=0.11, mejillas=0.07)   # ojos más juntos y boca más estrecha (28-11)
 CM["control_pupilas"](ARM)
 ARM["boca"] = str(tuple(round(float(x), 5) for x in BOCA_INFO["O"]))   # centro de la boca (para encuadrar primeros planos)
 # ---- fase 6: materiales AAA (pelo)

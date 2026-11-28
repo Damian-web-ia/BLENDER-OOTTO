@@ -613,7 +613,7 @@ def preparar_parpados(arm, me, datos, adelante, semilla=7):
                 if prev:
                     f2 = bm.faces.new((prev[0], prev[1], vb, va)); f2.material_index = i_lin; f2.smooth = True
                 prev = (va, vb)
-        for fila, (lista, n, Lmin, Lmax, haciaarriba) in enumerate(((I["sup"], 64, 0.0024, 0.0050, 1), (I["sup"], 40, 0.0018, 0.0034, 1), (I["inf"], 24, 0.0008, 0.0019, -1))):
+        for fila, (lista, n, Lmin, Lmax, haciaarriba) in enumerate(((I["sup"], 72, 0.0028, 0.0062, 1), (I["sup"], 44, 0.0020, 0.0040, 1), (I["inf"], 24, 0.0008, 0.0019, -1))):   # pestañas de arriba más largas y tupidas (28-11)
             pts = sorted(lista, key=lambda k: (Vector(co0[k]) - A).dot(B - A))
             cur = [Vector(co0[k]) for k in pts]
             if len(cur) < 3: continue
@@ -1617,7 +1617,7 @@ def _sangrado(px, ys, xs, pasos=8):
         lleno |= nuevo
 
 
-def maquillaje(me, datos_ojos, info_boca, tam=2048):
+def maquillaje(me, datos_ojos, info_boca, tam=2048, **tintes):
     m = me.data
     O = np.array(info_boca["O"]); F = np.array(info_boca["F"]); X = np.array(info_boca["X"])
     B = BOCA; sup = _parabola((B["esq_d"], B["sup_c"], B["esq_i"])); inf = _parabola((B["esq_d"], B["inf_c"], B["esq_i"]))
@@ -1665,7 +1665,7 @@ def maquillaje(me, datos_ojos, info_boca, tam=2048):
     np.maximum.at(px[:, :, 2], (ys, xs), nariz.astype(np.float32))
     _sangrado(px, ys, xs, pasos=8)                      # sin esto, las costuras de UV salen como grietas claras en los labios
     img.pixels.foreach_set(px.ravel()); img.update(); img.pack()
-    _material_maquillaje(m.materials[ip], img)
+    _material_maquillaje(m.materials[ip], img, **tintes)
     print("MAQUILLAJE", len(caras), "caras,", len(P), "píxeles; labios", int((labios > 0.5).sum()), "rubor", int((rubor > 0.5).sum()),
           "nariz", int((nariz > 0.5).sum()), flush=True)
 
@@ -1801,7 +1801,7 @@ def bordes_ojos(me, datos_ojos, d_min=0.0006, d_max=0.0034, sombra_sup=0.38, som
     print("BORDES_OJOS borde_sup:", int((sup > 0.5).sum()), "vértices arriba", flush=True)
 
 
-def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, estrechar=0.15, r_plano=0.018, r_fin=0.040, agrandar=0.0, mandibula=0.0):
+def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, estrechar=0.15, r_plano=0.018, r_fin=0.040, agrandar=0.0, mandibula=0.0, mejillas=0.0):
     """Proporciones de una cara guapa (Damián, 28-11: "los ojos dan miedo, están muy separados, y la boca igual").
     El modelo de Tripo tiene los ojos a 58 mm (escala del modelo) y una boca de 47 mm: se acercan los ojos hacia el
     centro y se estrecha la boca, con un campo de desplazamiento suave:
@@ -1835,6 +1835,14 @@ def retoque_belleza(arm, me, datos_ojos, info_boca, adelante, acercar=0.0038, es
         dxm = dx - xm
         wj = _ss(0.012, -0.020, dz) * (1 - _ss(-0.050, -0.075, dz)) * (1 - _ss(-0.045, -0.070, dy)) * (1 - _ss(0.07, 0.09, np.abs(dxm)))
         D += np.outer(-dxm * mandibula * wj, X)
+    # mejillas algo más finas (Damián, 28-11 10:22: "un poco más guapa"): la parte de fuera de la cara entre la boca y
+    # debajo de los ojos se acerca a la línea media; ni la nariz ni la boca (centro) ni las orejas (atrás) se tocan
+    if mejillas:
+        xm = (medio - O) @ X; dxm = dx - xm; adx = np.abs(dxm)
+        wb = _ss(-0.020, -0.004, dz) * (1 - _ss(0.022, 0.036, dz))
+        wl = _ss(0.018, 0.040, adx) * (1 - _ss(0.066, 0.086, adx))
+        wf = 1 - _ss(-0.045, -0.070, dy)
+        D += np.outer(-dxm * mejillas * wb * wl * wf, X)
     # malla y shape keys
     m.vertices.foreach_set('co', (co + D).ravel())
     if m.shape_keys:
